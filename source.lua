@@ -1311,9 +1311,9 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V8.9 (SPECTUM + DESTELLO PING-PONG / IDA Y VUELTA)
+						-- [INICIO] INYECCIÓN HYPNOTIC V9.0 (SPECTRUM + DESTELLO PING-PONG VISIBLE)
 task.spawn(function()
-	print("Trasher Debug | Inicializando motor Hypnotic V8.9 (Dual Stroke + Ping-Pong Flash + Corner Physics)...")
+	print("Trasher Debug | Inicializando motor Hypnotic V9.0 (Dual Stroke + Visible Ping-Pong Fix)...")
 	local RunService = game:GetService("RunService")
 	
 	if not Main then 
@@ -1366,11 +1366,11 @@ task.spawn(function()
 	-------------------------------------------------------
 	local rotationSpeed = 30        -- Velocidad de giro del espectro
 	local crossfadeSpeed = 3        -- Velocidad de inversión de color
-	local flashDuration = 3.0       -- Duración de cada tramo (3s Ida / 3s Vuelta)
-	local fadeWindow = 0.20         -- Porcentaje (20%) dedicado al Fade In / Fade Out
-	local cornerSlowdown = 0.65     -- Fuerza de frenado en curvas (65% más lento)
+	local flashDuration = 2.8       -- Duración de cada trayecto (2.8s ida / 2.8s vuelta)
+	local fadeWindow = 0.15         -- Transición de entrada/salida (15% del trayecto)
+	local cornerSlowdown = 0.50     -- Fuerza de desaceleración en esquinas (0.0 a 0.7 max)
 	
-	-- Paleta recuperada: Incluye los tramos de sombra negra viajera
+	-- Paleta de colores para el espectro
 	local baseColors = {
 		Color3.fromRGB(0, 0, 0),        -- Negro Protegido (Sombra)
 		Color3.fromRGB(130, 0, 255),    -- Morado Neón
@@ -1383,8 +1383,10 @@ task.spawn(function()
 	-------------------------------------------------------
 	-- 4. LÓGICA INTERNA
 	-------------------------------------------------------
-	
-	-- Filtro de Polaridad: Mantiene negros puros al invertir colores
+	local function lerp(a, b, t)
+		return a + (b - a) * t
+	end
+
 	local function getPolarityColor(color, alpha)
 		if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
 			return Color3.fromRGB(0, 0, 0)
@@ -1393,7 +1395,7 @@ task.spawn(function()
 		return color:Lerp(negativeColor, alpha)
 	end
 
-	local lastFlashStart = tick()
+	local startTime = tick()
 
 	-------------------------------------------------------
 	-- 5. BUCLE PRINCIPAL (RUNSERVICE)
@@ -1421,26 +1423,25 @@ task.spawn(function()
 		-----------------------------------------------
 		-- B. Lógica de la Capa de Destello (Ping-Pong)
 		-----------------------------------------------
-		-- Ciclo simétrico completo: 0 -> 1 (Ida) y 1 -> 0 (Vuelta)
-		local rawProgress = ((now - lastFlashStart) / flashDuration) % 2
+		-- Ciclo continuo 0..2 (0..1 ida, 1..2 vuelta)
+		local rawProgress = ((now - startTime) / flashDuration) % 2
 		
 		local flashProgress = rawProgress
 		if rawProgress > 1 then
-			-- Inversión del recorrido para el viaje de regreso
 			flashProgress = 2 - rawProgress
 		end
 		
-		-- Física de desaceleración armónica aplicada en ambas direcciones
+		-- Física de curvatura armónica
 		local easedProgress = flashProgress
 		if cornerSlowdown > 0 then
 			easedProgress = flashProgress - (cornerSlowdown / (4 * math.pi)) * math.sin(flashProgress * 4 * math.pi)
 		end
 
-		-- Desplazamiento en ida y retorno
-		local movementOffset = math.lerp(1, -1, easedProgress)
+		-- Mapeo ajustado a la zona visible del menú (de 0.55 a -0.55)
+		local movementOffset = lerp(0.55, -0.55, easedProgress)
 		flashGradient.Offset = Vector2.new(movementOffset, 0)
 		
-		-- Fade In / Fade Out dinámico en los extremos
+		-- Transición suave de transparencia en extremos
 		local fadeRamp = 1
 		if flashProgress < fadeWindow then
 			fadeRamp = flashProgress / fadeWindow
@@ -1450,22 +1451,22 @@ task.spawn(function()
 		
 		local opacity = math.sin(fadeRamp * (math.pi / 2))
 		
-		-- Modulación de transparencia dinámica
+		-- Modulación de transparencia dinámica siempre visible
 		flashGradient.Transparency = NumberSequence.new({
 			NumberSequenceKeypoint.new(0, 1),
-			NumberSequenceKeypoint.new(0.42, 1),
-			NumberSequenceKeypoint.new(0.47, 1 - (0.4 * opacity)),
-			NumberSequenceKeypoint.new(0.5, 1 - opacity),
-			NumberSequenceKeypoint.new(0.53, 1 - (0.4 * opacity)),
-			NumberSequenceKeypoint.new(0.58, 1),
+			NumberSequenceKeypoint.new(0.40, 1),
+			NumberSequenceKeypoint.new(0.46, 1 - (0.45 * opacity)),
+			NumberSequenceKeypoint.new(0.50, 1 - opacity),
+			NumberSequenceKeypoint.new(0.54, 1 - (0.45 * opacity)),
+			NumberSequenceKeypoint.new(0.60, 1),
 			NumberSequenceKeypoint.new(1, 1)
 		})
 		
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V8.9 listo! (Efecto Ping-Pong Ida y Vuelta activo)")
+	print("Trasher Debug | ¡Motor Hypnotic V9.0 listo! (Destello visible y fluido)")
 end)
--- [FIN] INYECCIÓN HYPNOTIC V8.9
+-- [FIN] INYECCIÓN HYPNOTIC V9.0
 
 -- =============================================================================
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
