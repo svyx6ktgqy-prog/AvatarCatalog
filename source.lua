@@ -978,9 +978,9 @@ local dragOffsetMobile = 150
 Rayfield.DisplayOrder = 100
 LoadingFrame.Version.Text = Release
 
-								-- [INICIO] INYECCIÓN DE FONDO ANIMADO TRASHER (SÚPER CONTROLADO)
+									-- [INICIO] INYECCIÓN DE FONDO ANIMADO TRASHER + POLARIDAD HIPNÓTICA (SÚPER CONTROLADO)
 	task.spawn(function()
-		print("Trasher Debug | Inicializando motor de fondo ultra-controlado...")
+		print("Trasher Debug | Inicializando motor de fondo ultra-controlado con Efecto Polaridad...")
 		
 		-- 1. Enlaces RAW de GitHub y Rutas en Delta
 		local urlScene1 = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/refs/heads/main/assets/Scene1.jpg" 
@@ -1043,7 +1043,7 @@ LoadingFrame.Version.Text = Release
 			cornerContainer.CornerRadius = exactRadius
 			cornerContainer.Parent = bgContainer
 			
-			-- 4. Imagen 1 (Base)
+			-- 4. Imagen 1 (Base) + UIGradient
 			local bgImage1 = Instance.new("ImageLabel")
 			bgImage1.Parent = bgContainer
 			bgImage1.Size = UDim2.new(1, 0, 1, 0)
@@ -1057,7 +1057,10 @@ LoadingFrame.Version.Text = Release
 			corner1.CornerRadius = exactRadius
 			corner1.Parent = bgImage1
 			
-			-- 5. Imagen 2 (Superior)
+			local grad1 = Instance.new("UIGradient")
+			grad1.Parent = bgImage1
+			
+			-- 5. Imagen 2 (Superior) + UIGradient
 			local bgImage2 = Instance.new("ImageLabel")
 			bgImage2.Parent = bgContainer
 			bgImage2.Size = UDim2.new(1, 0, 1, 0)
@@ -1065,53 +1068,91 @@ LoadingFrame.Version.Text = Release
 			bgImage2.ScaleType = Enum.ScaleType.Crop
 			bgImage2.ClipsDescendants = true
 			bgImage2.Image = asset2
-			bgImage2.ImageTransparency = 1 -- Empieza oculta
+			bgImage2.ImageTransparency = 1 
 			bgImage2.ZIndex = 2
 			
 			local corner2 = Instance.new("UICorner")
 			corner2.CornerRadius = exactRadius
 			corner2.Parent = bgImage2
 			
-			-- 6. Filtro oscuro de legibilidad (Mejora el contraste del texto de Rayfield)
+			local grad2 = Instance.new("UIGradient")
+			grad2.Parent = bgImage2
+			
+			-- 6. Filtro oscuro de legibilidad
 			local darkTint = Instance.new("Frame")
 			darkTint.Name = "DarkOverlay"
 			darkTint.Parent = bgContainer
 			darkTint.Size = UDim2.new(1, 0, 1, 0)
 			darkTint.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-			darkTint.BackgroundTransparency = 0.45 -- Ajusta esto si quieres que se vea más o menos oscuro
-			darkTint.ZIndex = 3 -- Por encima de las imágenes, por debajo de la interfaz
+			darkTint.BackgroundTransparency = 0.45 
+			darkTint.ZIndex = 3 
 			darkTint.BorderSizePixel = 0
 			
 			local tintCorner = Instance.new("UICorner")
 			tintCorner.CornerRadius = exactRadius
 			tintCorner.Parent = darkTint
 			
-			-- 7. Motor de Animación Matemático por Ciclo de Renderizado
-			-- "speed" controla la velocidad. Un valor de 1.2 hace que cambie suavemente cada 3-4 segundos.
-			local speed = 3.0
+			-- 7. Lógica de Colores (Clonada del Motor Stroke)
+			local baseColors = {
+				Color3.fromRGB(0, 0, 0),        -- Negro (Vignette)
+				Color3.fromRGB(130, 0, 255),    -- Morado Neón
+				Color3.fromRGB(0, 230, 255),    -- Cyan Ciberpunk
+				Color3.fromRGB(255, 0, 150),    -- Magenta
+				Color3.fromRGB(255, 180, 0),    -- Dorado
+				Color3.fromRGB(0, 0, 0)         -- Negro (Vignette)
+			}
+
+			local function getPolarityColor(color, alpha)
+				if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
+					return Color3.fromRGB(0, 0, 0)
+				end
+				local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
+				return color:Lerp(negativeColor, alpha)
+			end
+			
+			-- 8. Motor de Animación Matemático (Transición + Espectro)
+			local speed = 3.0           -- Velocidad de cambio de imagen
+			local rotationSpeed = 30    -- Giro del gradiente
+			local crossfadeSpeed = 3    -- Inversión de negativo a positivo
+			
 			local RunService = game:GetService("RunService")
 			
-			RunService.Heartbeat:Connect(function()
-				-- Si por alguna razón borras la UI o se cierra, apagamos el bucle para no causar lag
+			RunService.Heartbeat:Connect(function(dt)
 				if not bgContainer or not bgContainer.Parent then return end
-				
-				-- Si el menú principal está oculto, pausamos el renderizado para ahorrar batería en móviles
 				if not Main.Visible then return end
 				
-				-- Genera un factor oscilante perfecto de 0 a 1 basado en el tiempo del juego
-				local fadeFactor = (math.cos(tick() * speed) + 1) / 2
+				local now = tick()
 				
-				-- Aplicamos las transparencias directamente de forma cruzada
+				-- [A] Crossfade de imágenes
+				local fadeFactor = (math.cos(now * speed) + 1) / 2
 				bgImage1.ImageTransparency = fadeFactor
 				bgImage2.ImageTransparency = 1 - fadeFactor
+
+				-- [B] Inyección del color hipnótico en tiempo real
+				local invertAlpha = (math.sin(now * crossfadeSpeed) + 1) / 2
+				local currentRotation = (grad1.Rotation + (rotationSpeed * dt)) % 360
+				
+				grad1.Rotation = currentRotation
+				grad2.Rotation = currentRotation
+				
+				local spectrum = ColorSequence.new({
+					ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1], invertAlpha)),
+					ColorSequenceKeypoint.new(0.300, getPolarityColor(baseColors[2], invertAlpha)),
+					ColorSequenceKeypoint.new(0.500, getPolarityColor(baseColors[3], invertAlpha)),
+					ColorSequenceKeypoint.new(0.700, getPolarityColor(baseColors[4], invertAlpha)),
+					ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6], invertAlpha))
+				})
+
+				grad1.Color = spectrum
+				grad2.Color = spectrum
 			end)
 			
-			print("Trasher Debug | ¡Motor de transición activado de forma segura!")
+			print("Trasher Debug | ¡Fondo animado sincronizado con polaridad activado de forma segura!")
 		else
 			warn("Trasher Debug | Tu ejecutor no es compatible con 'getcustomasset'.")
 		end
 	end)
-	-- [FIN] INYECCIÓN DE FONDO ANIMADO TRASHER (SÚPER CONTROLADO)
+	-- [FIN] INYECCIÓN DE FONDO ANIMADO TRASHER + POLARIDAD HIPNÓTICA TRASHER (SÚPER CONTROLADO)
 
 	-- [INICIO] EFECTO HIPNÓTICO DE COLORES EN TEXTO
 	task.spawn(function()
