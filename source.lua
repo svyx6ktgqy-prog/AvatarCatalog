@@ -978,9 +978,9 @@ local dragOffsetMobile = 150
 Rayfield.DisplayOrder = 100
 LoadingFrame.Version.Text = Release
 
-										-- [INICIO] INYECCIÓN DE FONDO ANIMADO TRASHER + POLARIDAD HIPNÓTICA (SÚPER CONTROLADO)
+											-- [INICIO] INYECCIÓN DE FONDO ANIMADO TRASHER (SÚPER CONTROLADO)
 	task.spawn(function()
-		print("Trasher Debug | Inicializando motor de fondo ultra-controlado con Efecto Polaridad...")
+		print("Trasher Debug | Inicializando motor de fondo ultra-controlado con EFECTO POLARIDAD...")
 		
 		-- 1. Enlaces RAW de GitHub y Rutas en Delta
 		local urlScene1 = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/refs/heads/main/assets/Scene1.jpg" 
@@ -1021,22 +1021,29 @@ LoadingFrame.Version.Text = Release
 			local asset1 = ensureAndLoadImage(urlScene1, pathImage1)
 			local asset2 = ensureAndLoadImage(urlScene2, pathImage2)
 			
+			-- 2. Empujar los elementos originales de Rayfield al frente
+			for _, obj in ipairs(Main:GetDescendants()) do
+				if obj:IsA("GuiObject") then
+					obj.ZIndex = obj.ZIndex + 10
+				end
+			end
+			
 			local mainCorner = Main:FindFirstChildOfClass("UICorner")
 			local exactRadius = mainCorner and mainCorner.CornerRadius or UDim2.new(0, 8)
 			
-			-- 3. Contenedor Maestro (Hundido al fondo)
+			-- 3. Contenedor Maestro
 			local bgContainer = Instance.new("Frame")
 			bgContainer.Name = "CustomAnimatedBackground"
 			bgContainer.Parent = Main
 			bgContainer.Size = UDim2.new(1, 0, 1, 0)
 			bgContainer.BackgroundTransparency = 1
-			bgContainer.ZIndex = -10
+			bgContainer.ZIndex = 1
 			
 			local cornerContainer = Instance.new("UICorner")
 			cornerContainer.CornerRadius = exactRadius
 			cornerContainer.Parent = bgContainer
 			
-			-- 4. Imagen 1 (Base) + UIGradient
+			-- 4. Imagen 1 (Base)
 			local bgImage1 = Instance.new("ImageLabel")
 			bgImage1.Parent = bgContainer
 			bgImage1.Size = UDim2.new(1, 0, 1, 0)
@@ -1044,16 +1051,17 @@ LoadingFrame.Version.Text = Release
 			bgImage1.ScaleType = Enum.ScaleType.Crop
 			bgImage1.ClipsDescendants = true
 			bgImage1.Image = asset1
-			bgImage1.ZIndex = -9
+			bgImage1.ZIndex = 1
 			
 			local corner1 = Instance.new("UICorner")
 			corner1.CornerRadius = exactRadius
 			corner1.Parent = bgImage1
 			
+			-- > NUEVO: Gradiente para inyectar la polaridad en la Imagen 1
 			local grad1 = Instance.new("UIGradient")
 			grad1.Parent = bgImage1
 			
-			-- 5. Imagen 2 (Superior) + UIGradient
+			-- 5. Imagen 2 (Superior)
 			local bgImage2 = Instance.new("ImageLabel")
 			bgImage2.Parent = bgContainer
 			bgImage2.Size = UDim2.new(1, 0, 1, 0)
@@ -1061,98 +1069,96 @@ LoadingFrame.Version.Text = Release
 			bgImage2.ScaleType = Enum.ScaleType.Crop
 			bgImage2.ClipsDescendants = true
 			bgImage2.Image = asset2
-			bgImage2.ImageTransparency = 1 
-			bgImage2.ZIndex = -8
+			bgImage2.ImageTransparency = 1 -- Empieza oculta
+			bgImage2.ZIndex = 2
 			
 			local corner2 = Instance.new("UICorner")
 			corner2.CornerRadius = exactRadius
 			corner2.Parent = bgImage2
 			
+			-- > NUEVO: Gradiente para inyectar la polaridad en la Imagen 2
 			local grad2 = Instance.new("UIGradient")
 			grad2.Parent = bgImage2
 			
-			-- 6. Filtro oscuro de legibilidad (Más fuerte)
+			-- 6. Filtro oscuro de legibilidad
 			local darkTint = Instance.new("Frame")
 			darkTint.Name = "DarkOverlay"
 			darkTint.Parent = bgContainer
 			darkTint.Size = UDim2.new(1, 0, 1, 0)
-			darkTint.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-			darkTint.BackgroundTransparency = 0.35 
-			darkTint.ZIndex = -7 
+			darkTint.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+			darkTint.BackgroundTransparency = 0.45
+			darkTint.ZIndex = 3
 			darkTint.BorderSizePixel = 0
 			
 			local tintCorner = Instance.new("UICorner")
 			tintCorner.CornerRadius = exactRadius
 			tintCorner.Parent = darkTint
 			
-			-- 7. Lógica de Colores (Clonada y MUTEADA para el fondo)
+			-- 7. Motor de Animación Matemático (Fondo animado + Polaridad)
+			local speed = 3.0
+			local rotationSpeed = 30        -- Sincronizado exactamente con el borde (Hypnotic)
+			local crossfadeSpeed = 3        -- Sincronizado exactamente con la velocidad de polaridad
+			
+			-- Los mismos colores base del borde espectral para mantener simetría visual
 			local baseColors = {
-				Color3.fromRGB(0, 0, 0),        -- Negro (Vignette)
-				Color3.fromRGB(130, 0, 255),    -- Morado Neón
-				Color3.fromRGB(0, 230, 255),    -- Cyan Ciberpunk
-				Color3.fromRGB(255, 0, 150),    -- Magenta
-				Color3.fromRGB(255, 180, 0),    -- Dorado
-				Color3.fromRGB(0, 0, 0)         -- Negro (Vignette)
+				Color3.fromRGB(0, 0, 0),        
+				Color3.fromRGB(130, 0, 255),    
+				Color3.fromRGB(0, 230, 255),    
+				Color3.fromRGB(255, 0, 150),    
+				Color3.fromRGB(255, 180, 0),    
+				Color3.fromRGB(0, 0, 0)         
 			}
-
+			
+			-- Matemáticas independientes de inversión (protegidas en este Task.Spawn)
 			local function getPolarityColor(color, alpha)
 				if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
+					-- Protege el color negro para que el fondo no se ponga blanco de golpe 
 					return Color3.fromRGB(0, 0, 0)
 				end
-				
-				-- Calculamos el negativo pero lo OSCURECEMOS multiplicando por 0.35
-				local negativeColor = Color3.new(
-					(1 - color.R) * 0.35, 
-					(1 - color.G) * 0.35, 
-					(1 - color.B) * 0.35
-				)
-				
+				local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
 				return color:Lerp(negativeColor, alpha)
 			end
-			
-			-- 8. Motor de Animación Matemático (Transición + Espectro)
-			local speed = 3.0           -- Velocidad de cambio de imagen
-			local rotationSpeed = 30    -- Giro del gradiente
-			local crossfadeSpeed = 3    -- Inversión de negativo a positivo
 			
 			local RunService = game:GetService("RunService")
 			
 			RunService.Heartbeat:Connect(function(dt)
+				-- Protecciones anti-crasheo
 				if not bgContainer or not bgContainer.Parent then return end
 				if not Main.Visible then return end
 				
 				local now = tick()
 				
-				-- [A] Crossfade de imágenes
+				-- A. Transición de opacidad original de Trasher
 				local fadeFactor = (math.cos(now * speed) + 1) / 2
 				bgImage1.ImageTransparency = fadeFactor
 				bgImage2.ImageTransparency = 1 - fadeFactor
-
-				-- [B] Inyección del color hipnótico en tiempo real
-				local invertAlpha = (math.sin(now * crossfadeSpeed) + 1) / 2
-				local currentRotation = (grad1.Rotation + (rotationSpeed * dt)) % 360
 				
+				-- B. Transición de color y rotación del filtro polarizado
+				local currentRotation = (grad1.Rotation + (rotationSpeed * dt)) % 360
 				grad1.Rotation = currentRotation
 				grad2.Rotation = currentRotation
 				
-				local spectrum = ColorSequence.new({
+				local invertAlpha = (math.sin(now * crossfadeSpeed) + 1) / 2
+				
+				local colorSeq = ColorSequence.new({
 					ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1], invertAlpha)),
 					ColorSequenceKeypoint.new(0.300, getPolarityColor(baseColors[2], invertAlpha)),
 					ColorSequenceKeypoint.new(0.500, getPolarityColor(baseColors[3], invertAlpha)),
 					ColorSequenceKeypoint.new(0.700, getPolarityColor(baseColors[4], invertAlpha)),
 					ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6], invertAlpha))
 				})
-
-				grad1.Color = spectrum
-				grad2.Color = spectrum
+				
+				-- Aplicar el efecto de color negativo a las imágenes de fondo
+				grad1.Color = colorSeq
+				grad2.Color = colorSeq
 			end)
 			
-			print("Trasher Debug | ¡Fondo animado sincronizado con polaridad activado de forma segura!")
+			print("Trasher Debug | ¡Motor de transición e inyección de POLARIDAD activados!")
 		else
 			warn("Trasher Debug | Tu ejecutor no es compatible con 'getcustomasset'.")
 		end
 	end)
-	-- [FIN] INYECCIÓN DE FONDO ANIMADO TRASHER + POLARIDAD HIPNÓTICA
+	-- [FIN] INYECCIÓN DE FONDO ANIMADO TRASHER (SÚPER CONTROLADO)
 
 	-- [INICIO] EFECTO HIPNÓTICO DE COLORES EN TEXTO
 	task.spawn(function()
