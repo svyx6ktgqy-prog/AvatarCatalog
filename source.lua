@@ -1311,9 +1311,9 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V9.0 (SPECTRUM + DESTELLO PING-PONG VISIBLE)
+						-- [INICIO] INYECCIÓN HYPNOTIC V9.1 (SPECTRUM + FRENADO EXACTO EN ESQUINAS)
 task.spawn(function()
-	print("Trasher Debug | Inicializando motor Hypnotic V9.0 (Dual Stroke + Visible Ping-Pong Fix)...")
+	print("Trasher Debug | Inicializando motor Hypnotic V9.1 (Dual Stroke + Perfect Corner Physics)...")
 	local RunService = game:GetService("RunService")
 	
 	if not Main then 
@@ -1366,9 +1366,9 @@ task.spawn(function()
 	-------------------------------------------------------
 	local rotationSpeed = 30        -- Velocidad de giro del espectro
 	local crossfadeSpeed = 3        -- Velocidad de inversión de color
-	local flashDuration = 2.8       -- Duración de cada trayecto (2.8s ida / 2.8s vuelta)
-	local fadeWindow = 0.15         -- Transición de entrada/salida (15% del trayecto)
-	local cornerSlowdown = 0.50     -- Fuerza de desaceleración en esquinas (0.0 a 0.7 max)
+	local flashDuration = 3.0       -- Duración de cada trayecto de esquina a esquina
+	local fadeWindow = 0.12         -- Ventana de desvanecimiento en los bordes
+	local cornerSlowdown = 0.70     -- Intensidad de exhibición en esquinas (70% más lento en las curvas)
 	
 	-- Paleta de colores para el espectro
 	local baseColors = {
@@ -1423,7 +1423,7 @@ task.spawn(function()
 		-----------------------------------------------
 		-- B. Lógica de la Capa de Destello (Ping-Pong)
 		-----------------------------------------------
-		-- Ciclo continuo 0..2 (0..1 ida, 1..2 vuelta)
+		-- Ciclo continuo 0..2 (0..1 Ida a la esquina opuesta, 1..2 Retorno)
 		local rawProgress = ((now - startTime) / flashDuration) % 2
 		
 		local flashProgress = rawProgress
@@ -1431,17 +1431,19 @@ task.spawn(function()
 			flashProgress = 2 - rawProgress
 		end
 		
-		-- Física de curvatura armónica
+		-- FÍSICA CORREGIDA DE ESQUINAS:
+		-- Mínima velocidad en t = 0 y t = 1 (Curvas laterales)
+		-- Máxima velocidad en t = 0.5 (Tránsito rápido por el centro de arriba y abajo)
 		local easedProgress = flashProgress
 		if cornerSlowdown > 0 then
-			easedProgress = flashProgress - (cornerSlowdown / (4 * math.pi)) * math.sin(flashProgress * 4 * math.pi)
+			easedProgress = flashProgress - (cornerSlowdown / (2 * math.pi)) * math.sin(flashProgress * 2 * math.pi)
 		end
 
-		-- Mapeo ajustado a la zona visible del menú (de 0.55 a -0.55)
+		-- Desplazamiento preciso entre esquinas del marco
 		local movementOffset = lerp(0.55, -0.55, easedProgress)
 		flashGradient.Offset = Vector2.new(movementOffset, 0)
 		
-		-- Transición suave de transparencia en extremos
+		-- Transición de opacidad en los giros extremos
 		local fadeRamp = 1
 		if flashProgress < fadeWindow then
 			fadeRamp = flashProgress / fadeWindow
@@ -1451,7 +1453,7 @@ task.spawn(function()
 		
 		local opacity = math.sin(fadeRamp * (math.pi / 2))
 		
-		-- Modulación de transparencia dinámica siempre visible
+		-- Gradiente de destello con visibilidad sostenida
 		flashGradient.Transparency = NumberSequence.new({
 			NumberSequenceKeypoint.new(0, 1),
 			NumberSequenceKeypoint.new(0.40, 1),
@@ -1464,9 +1466,9 @@ task.spawn(function()
 		
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V9.0 listo! (Destello visible y fluido)")
+	print("Trasher Debug | ¡Motor Hypnotic V9.1 listo! (Frenado perfecto en curvas activado)")
 end)
--- [FIN] INYECCIÓN HYPNOTIC V9.0
+-- [FIN] INYECCIÓN HYPNOTIC V9.1
 
 -- =============================================================================
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
