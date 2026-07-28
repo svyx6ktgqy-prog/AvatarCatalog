@@ -1797,6 +1797,72 @@ end)
 
 -- fin de thumb y track
 
+-- [INICIO] INYECCIÓN DE FUENTE PERSONALIZADA (Heavytal.ttf)
+task.spawn(function()
+    print("Trasher Debug | Inicializando motor de fuente personalizada (Heavytal)...")
+
+    -- 1. Enlace RAW directo a tu fuente en GitHub
+    local fontUrl = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/main/assets/Heavytal.ttf"
+    local fontFileName = "Heavytal_Rayfield.ttf"
+    local fontAssetId = ""
+
+    -- 2. Descarga segura y registro del asset
+    local success, err = pcall(function()
+        local requestFunc = request or http_request or (syn and syn.request)
+        
+        if type(writefile) == "function" and type(isfile) == "function" then
+            if not isfile(fontFileName) then
+                if requestFunc then
+                    local req = requestFunc({Url = fontUrl, Method = "GET"})
+                    if req and type(req) == "table" and req.Body then
+                        writefile(fontFileName, req.Body)
+                    end
+                else
+                    -- Fallback simple
+                    writefile(fontFileName, game:HttpGet(fontUrl))
+                end
+            end
+        end
+        
+        -- Obtener el ID del custom asset para la fuente
+        if type(getcustomasset) == "function" then
+            fontAssetId = getcustomasset(fontFileName)
+        end
+    end)
+
+    if not success or fontAssetId == "" then
+        warn("Trasher Debug | Error al cargar la fuente Heavytal. Usando fuente por defecto. Detalle: " .. tostring(err))
+        return
+    end
+
+    -- 3. Crear el objeto Font de Roblox
+    local customFont = Font.new(fontAssetId, Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+
+    -- 4. Motor de Escaneo y Aplicación
+    local function aplicarFuente(obj)
+        if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+            -- Sobrescribimos la fuente nativa por la tuya
+            obj.FontFace = customFont
+        end
+    end
+
+    -- 5. Esperar a que la interfaz principal exista y aplicar
+    if Main then
+        -- Aplicar a los textos que ya existen al abrir el menú
+        for _, obj in ipairs(Main:GetDescendants()) do
+            aplicarFuente(obj)
+        end
+
+        -- Aplicar automáticamente a cualquier pestaña, botón o texto creado en el futuro
+        Main.DescendantAdded:Connect(aplicarFuente)
+        
+        print("Trasher Debug | ¡Fuente Heavytal aplicada correctamente a toda la interfaz!")
+    else
+        warn("Trasher Debug | No se encontró 'Main' para aplicar la fuente.")
+    end
+end)
+-- [FIN] INYECCIÓN DE FUENTE PERSONALIZADA
+
 -- Thanks to Latte Softworks for the Lucide integration for Roblox
 local Icons = useStudio and require(script.Parent.icons) or loadWithTimeout('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/refs/heads/main/icons.lua')
 -- Variables
