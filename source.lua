@@ -1086,10 +1086,18 @@ LoadingFrame.Version.Text = Release
 			tintCorner.CornerRadius = exactRadius
 			tintCorner.Parent = darkTint
 			
-			-- 7. Motor de Animación Matemático por Ciclo de Renderizado
-			-- "speed" controla la velocidad. Un valor de 1.2 hace que cambie suavemente cada 3-4 segundos.
+						-- 7. Motor de Animación Matemático por Ciclo de Renderizado
+			-- "speed" controla la velocidad de transición de imágenes.
 			local speed = 3.0
+			-- "crossfadeSpeed" controla la velocidad del efecto negativo/positivo
+			local crossfadeSpeed = 3 
 			local RunService = game:GetService("RunService")
+			
+			-- Función matemática de polaridad (recreada aquí para el fondo)
+			local function getPolarityColor(color, alpha)
+				local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
+				return color:Lerp(negativeColor, alpha)
+			end
 			
 			RunService.Heartbeat:Connect(function()
 				-- Si por alguna razón borras la UI o se cierra, apagamos el bucle para no causar lag
@@ -1098,20 +1106,21 @@ LoadingFrame.Version.Text = Release
 				-- Si el menú principal está oculto, pausamos el renderizado para ahorrar batería en móviles
 				if not Main.Visible then return end
 				
-				-- Genera un factor oscilante perfecto de 0 a 1 basado en el tiempo del juego
-				local fadeFactor = (math.cos(tick() * speed) + 1) / 2
+				local now = tick()
 				
-				-- Aplicamos las transparencias directamente de forma cruzada
+				-- 1. Transición de imágenes (Crossfade)
+				local fadeFactor = (math.cos(now * speed) + 1) / 2
 				bgImage1.ImageTransparency = fadeFactor
 				bgImage2.ImageTransparency = 1 - fadeFactor
+				
+				-- 2. Efecto Negativo/Positivo Hipnótico
+				local invertAlpha = (math.sin(now * crossfadeSpeed) + 1) / 2
+				local currentColor = getPolarityColor(Color3.fromRGB(255, 255, 255), invertAlpha)
+				
+				-- Aplicar el color a ambas imágenes de fondo
+				bgImage1.ImageColor3 = currentColor
+				bgImage2.ImageColor3 = currentColor
 			end)
-			
-			print("Trasher Debug | ¡Motor de transición activado de forma segura!")
-		else
-			warn("Trasher Debug | Tu ejecutor no es compatible con 'getcustomasset'.")
-		end
-	end)
-	-- [FIN] INYECCIÓN DE FONDO ANIMADO TRASHER (SÚPER CONTROLADO)
 
 	-- [INICIO] EFECTO HIPNÓTICO DE COLORES EN TEXTO
 	task.spawn(function()
