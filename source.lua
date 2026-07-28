@@ -979,148 +979,67 @@ Rayfield.DisplayOrder = 100
 LoadingFrame.Version.Text = Release
 
 								-- [INICIO] INYECCIÓN DE FONDO ANIMADO TRASHER (SÚPER CONTROLADO)
-	task.spawn(function()
-		print("Trasher Debug | Inicializando motor de fondo ultra-controlado...")
-		
-		-- 1. Enlaces RAW de GitHub y Rutas en Delta
-		local urlScene1 = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/refs/heads/main/assets/Scene1.jpg" 
-		local urlScene2 = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/refs/heads/main/assets/Scene2.jpg"
-		
-		local folderPath = "trasher"
-		local pathImage1 = folderPath .. "/Scene1.jpg"
-		local pathImage2 = folderPath .. "/Scene2.jpg"
-		
-		if type(getcustomasset) == "function" then
-			local requestFunc = request or http_request or (syn and syn.request)
-			
-			-- Asegurar que exista la carpeta 'trasher'
-			if type(makefolder) == "function" and type(isfolder) == "function" then
-				if not isfolder(folderPath) then
-					makefolder(folderPath)
-				end
-			end
-			
-			-- Descarga segura de imágenes
-			local function ensureAndLoadImage(url, path)
-				if type(isfile) == "function" and type(writefile) == "function" and requestFunc then
-					if not isfile(path) then
-						if url:match("^http") then
-							local success, req = pcall(function()
-								return requestFunc({Url = url, Method = "GET"})
-							end)
-							if success and req and type(req) == "table" and req.Body then
-								writefile(path, req.Body)
-							end
-						end
-					end
-				end
-				local success, asset = pcall(getcustomasset, path)
-				return success and asset or ""
-			end
+local bgContainer = Instance.new("Frame")
+bgContainer.Name = "AnimatedBackground"
+bgContainer.Size = UDim2.new(1, 0, 1, 0)
+bgContainer.Position = UDim2.new(0, 0, 0, 0)
+bgContainer.ZIndex = 0
+bgContainer.BackgroundTransparency = 1
+bgContainer.BorderSizePixel = 0
+bgContainer.ClipsDescendants = true
+bgContainer.Parent = Main -- Asegúrate de que 'Main' es tu frame principal
 
-			local asset1 = ensureAndLoadImage(urlScene1, pathImage1)
-			local asset2 = ensureAndLoadImage(urlScene2, pathImage2)
-			
-			-- 2. Empujar los elementos originales de Rayfield al frente
-			for _, obj in ipairs(Main:GetDescendants()) do
-				if obj:IsA("GuiObject") then
-					obj.ZIndex = obj.ZIndex + 10
-				end
-			end
-			
-			local mainCorner = Main:FindFirstChildOfClass("UICorner")
-			local exactRadius = mainCorner and mainCorner.CornerRadius or UDim2.new(0, 8)
-			
-			-- 3. Contenedor Maestro
-			local bgContainer = Instance.new("Frame")
-			bgContainer.Name = "CustomAnimatedBackground"
-			bgContainer.Parent = Main
-			bgContainer.Size = UDim2.new(1, 0, 1, 0)
-			bgContainer.BackgroundTransparency = 1
-			bgContainer.ZIndex = 1
-			
-			local cornerContainer = Instance.new("UICorner")
-			cornerContainer.CornerRadius = exactRadius
-			cornerContainer.Parent = bgContainer
-			
-			-- 4. Imagen 1 (Base)
-			local bgImage1 = Instance.new("ImageLabel")
-			bgImage1.Parent = bgContainer
-			bgImage1.Size = UDim2.new(1, 0, 1, 0)
-			bgImage1.BackgroundTransparency = 1
-			bgImage1.ScaleType = Enum.ScaleType.Crop
-			bgImage1.ClipsDescendants = true
-			bgImage1.Image = asset1
-			bgImage1.ZIndex = 1
-			
-			local corner1 = Instance.new("UICorner")
-			corner1.CornerRadius = exactRadius
-			corner1.Parent = bgImage1
-			
-			-- 5. Imagen 2 (Superior)
-			local bgImage2 = Instance.new("ImageLabel")
-			bgImage2.Parent = bgContainer
-			bgImage2.Size = UDim2.new(1, 0, 1, 0)
-			bgImage2.BackgroundTransparency = 1
-			bgImage2.ScaleType = Enum.ScaleType.Crop
-			bgImage2.ClipsDescendants = true
-			bgImage2.Image = asset2
-			bgImage2.ImageTransparency = 1 -- Empieza oculta
-			bgImage2.ZIndex = 2
-			
-			local corner2 = Instance.new("UICorner")
-			corner2.CornerRadius = exactRadius
-			corner2.Parent = bgImage2
-			
-			-- 6. Filtro oscuro de legibilidad (Mejora el contraste del texto de Rayfield)
-			local darkTint = Instance.new("Frame")
-			darkTint.Name = "DarkOverlay"
-			darkTint.Parent = bgContainer
-			darkTint.Size = UDim2.new(1, 0, 1, 0)
-			darkTint.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-			darkTint.BackgroundTransparency = 0.45 -- Ajusta esto si quieres que se vea más o menos oscuro
-			darkTint.ZIndex = 3 -- Por encima de las imágenes, por debajo de la interfaz
-			darkTint.BorderSizePixel = 0
-			
-			local tintCorner = Instance.new("UICorner")
-			tintCorner.CornerRadius = exactRadius
-			tintCorner.Parent = darkTint
-			
-						-- 7. Motor de Animación Matemático por Ciclo de Renderizado
-			-- "speed" controla la velocidad de transición de imágenes.
-			local speed = 3.0
-			-- "crossfadeSpeed" controla la velocidad del efecto negativo/positivo
-			local crossfadeSpeed = 3 
-			local RunService = game:GetService("RunService")
-			
-			-- Función matemática de polaridad (recreada aquí para el fondo)
-			local function getPolarityColor(color, alpha)
-				local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
-				return color:Lerp(negativeColor, alpha)
-			end
-			
-			RunService.Heartbeat:Connect(function()
-				-- Si por alguna razón borras la UI o se cierra, apagamos el bucle para no causar lag
-				if not bgContainer or not bgContainer.Parent then return end
-				
-				-- Si el menú principal está oculto, pausamos el renderizado para ahorrar batería en móviles
-				if not Main.Visible then return end
-				
-				local now = tick()
-				
-				-- 1. Transición de imágenes (Crossfade)
-				local fadeFactor = (math.cos(now * speed) + 1) / 2
-				bgImage1.ImageTransparency = fadeFactor
-				bgImage2.ImageTransparency = 1 - fadeFactor
-				
-				-- 2. Efecto Negativo/Positivo Hipnótico
-				local invertAlpha = (math.sin(now * crossfadeSpeed) + 1) / 2
-				local currentColor = getPolarityColor(Color3.fromRGB(255, 255, 255), invertAlpha)
-				
-				-- Aplicar el color a ambas imágenes de fondo
-				bgImage1.ImageColor3 = currentColor
-				bgImage2.ImageColor3 = currentColor
-			end)
+local bgImage1 = Instance.new("ImageLabel")
+bgImage1.Name = "Image1"
+bgImage1.Size = UDim2.new(1, 0, 1, 0)
+bgImage1.BackgroundTransparency = 1
+bgImage1.ZIndex = 0
+bgImage1.Image = "rbxassetid://133108922415797" 
+bgImage1.ScaleType = Enum.ScaleType.Crop
+bgImage1.Parent = bgContainer
+
+local bgImage2 = Instance.new("ImageLabel")
+bgImage2.Name = "Image2"
+bgImage2.Size = UDim2.new(1, 0, 1, 0)
+bgImage2.BackgroundTransparency = 1
+bgImage2.ZIndex = 0
+bgImage2.Image = "rbxassetid://135805541786938" 
+bgImage2.ScaleType = Enum.ScaleType.Crop
+bgImage2.ImageTransparency = 1
+bgImage2.Parent = bgContainer
+
+-- 7. Motor de Animación Matemático por Ciclo de Renderizado
+local speed = 3.0
+local crossfadeSpeed = 3 
+local RunService = game:GetService("RunService")
+
+local function getPolarityColor(color, alpha)
+	local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
+	return color:Lerp(negativeColor, alpha)
+end
+
+RunService.Heartbeat:Connect(function()
+	if not bgContainer or not bgContainer.Parent then return end
+	
+	-- Prevención de errores: verificamos que Main exista antes de leer su propiedad
+	-- Esto evita que el menú se rompa (no se abra) por un error de referencia nula
+	if Main and not Main.Visible then return end
+	
+	local now = tick()
+	
+	-- Crossfade
+	local fadeFactor = (math.cos(now * speed) + 1) / 2
+	bgImage1.ImageTransparency = fadeFactor
+	bgImage2.ImageTransparency = 1 - fadeFactor
+	
+	-- Efecto Negativo/Positivo
+	local invertAlpha = (math.sin(now * crossfadeSpeed) + 1) / 2
+	local currentColor = getPolarityColor(Color3.fromRGB(255, 255, 255), invertAlpha)
+	
+	bgImage1.ImageColor3 = currentColor
+	bgImage2.ImageColor3 = currentColor
+end)
+-- [FIN] INYECCIÓN DE FONDO ANIMADO TRASHER
 
 	-- [INICIO] EFECTO HIPNÓTICO DE COLORES EN TEXTO
 	task.spawn(function()
