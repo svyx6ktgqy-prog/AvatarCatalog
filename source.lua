@@ -1386,12 +1386,7 @@ LoadingFrame.Version.Text = Release
 		end
 	end)
 
-		-- NOTA: Asegúrate de que este end) de la siguiente línea realmente cierre algo anterior (como tu inyección V8). 
-	-- Si lo pegaste por accidente y está suelto, bórralo, o romperá el script.
-end) 
-	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
-
--- [INICIO] INYECCIÓN HYPNOTIC V9.0 (SPECTRUM + DESTELLO PING-PONG VISIBLE)
+		-- [INICIO] INYECCIÓN HYPNOTIC V9.0 (SPECTRUM + DESTELLO PING-PONG VISIBLE)
 task.spawn(function()
 	print("Trasher Debug | Inicializando motor Hypnotic V9.0 (Dual Stroke + Visible Ping-Pong Fix)...")
 	local RunService = game:GetService("RunService")
