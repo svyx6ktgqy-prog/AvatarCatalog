@@ -1311,9 +1311,9 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V8.6 (SPECTUM CON SOMBRA NEGRA + DESTELLO SUAVE)
+						-- [INICIO] INYECCIÓN HYPNOTIC V8.7 (SPECTUM + DESTELLO SUAVE CON FÍSICA EN CURVAS)
 task.spawn(function()
-	print("Trasher Debug | Inicializando motor Hypnotic V8.6 (Dual Stroke + Real Flash V2 + Smooth Fade)...")
+	print("Trasher Debug | Inicializando motor Hypnotic V8.7 (Dual Stroke + Corner Physics + Smooth Fade)...")
 	local RunService = game:GetService("RunService")
 	
 	if not Main then 
@@ -1333,7 +1333,7 @@ task.spawn(function()
 			stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			stroke.Parent = Main
 		end
-		-- Ambos strokes en 255,255,255 para evitar bordes oscuros indeseados por multiplicación
+		-- Mantenemos 255,255,255 para asegurar nitidez limpia en el gradiente
 		stroke.Color = Color3.fromRGB(255, 255, 255)
 		return stroke
 	end
@@ -1363,12 +1363,13 @@ task.spawn(function()
 	flashGradient.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
 
 	-------------------------------------------------------
-	-- 3. PARÁMETROS DE RENDIMIENTO
+	-- 3. PARÁMETROS DE RENDIMIENTO Y FÍSICA
 	-------------------------------------------------------
-	local rotationSpeed = 30     -- Velocidad del giro
-	local crossfadeSpeed = 3     -- Velocidad de transición color
-	local flashDuration = 2.599   -- Duración completa del destello
-	local fadeWindow = 0.20      -- Porcentaje del ciclo (20%) dedicado al Fade In y Fade Out
+	local rotationSpeed = 30        -- Velocidad de giro del espectro
+	local crossfadeSpeed = 3        -- Velocidad de inversión de color
+	local flashDuration = 2.8       -- Duración completa del trayecto del destello
+	local fadeWindow = 0.20         -- Porcentaje (20%) dedicado al Fade In / Fade Out
+	local cornerSlowdown = 0.45     -- Fuerza de desaceleración en esquinas (0.0 a 0.7 max)
 	
 	-- Paleta recuperada: Incluye los tramos de sombra negra viajera
 	local baseColors = {
@@ -1384,10 +1385,10 @@ task.spawn(function()
 	-- 4. LÓGICA INTERNA
 	-------------------------------------------------------
 	
-	-- Filtro de Polaridad: Evita que el negro pase a blanco al invertir el espectro
+	-- Filtro de Polaridad: Mantiene negros puros al invertir colores
 	local function getPolarityColor(color, alpha)
 		if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
-			return Color3.fromRGB(0, 0, 0) -- Se mantiene negro puro
+			return Color3.fromRGB(0, 0, 0)
 		end
 		local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
 		return color:Lerp(negativeColor, alpha)
@@ -1419,7 +1420,7 @@ task.spawn(function()
 		})
 
 		-----------------------------------------------
-		-- B. Lógica de la Capa de Destello Rápido
+		-- B. Lógica de la Capa de Destello
 		-----------------------------------------------
 		local flashProgress = (now - lastFlashStart) / flashDuration
 		
@@ -1428,11 +1429,18 @@ task.spawn(function()
 			flashProgress = 0
 		end
 		
-		-- Movimiento de desplazamiento
-		local movementOffset = math.lerp(1, -1, flashProgress)
+		-- Física de curvatura: Remapeo armónico de velocidad
+		-- Genera puntos de menor velocidad exactamente al 25% y 75% del trayecto (zonas de esquinas)
+		local easedProgress = flashProgress
+		if cornerSlowdown > 0 then
+			easedProgress = flashProgress + (cornerSlowdown / (4 * math.pi)) * math.sin(flashProgress * 4 * math.pi)
+		end
+
+		-- Movimiento con desaceleración orgánica en curvas
+		local movementOffset = math.lerp(1, -1, easedProgress)
 		flashGradient.Offset = Vector2.new(movementOffset, 0)
 		
-		-- Cálculo de multiplicador de visibilidad (Crossfade Fade In/Out)
+		-- Cálculo del Fade In/Out progresivo
 		local fadeRamp = 1
 		if flashProgress < fadeWindow then
 			fadeRamp = flashProgress / fadeWindow
@@ -1440,25 +1448,24 @@ task.spawn(function()
 			fadeRamp = (1 - flashProgress) / fadeWindow
 		end
 		
-		-- Curva sinusoidal para suavizado de bordes (entre 0 y 1)
 		local opacity = math.sin(fadeRamp * (math.pi / 2))
 		
-		-- Modulación dinámica de transparencia para evitar apariciones/desapariciones secas
+		-- Modulación de transparencia dinámica
 		flashGradient.Transparency = NumberSequence.new({
 			NumberSequenceKeypoint.new(0, 1),
 			NumberSequenceKeypoint.new(0.42, 1),
-			NumberSequenceKeypoint.new(0.47, 1 - (0.4 * opacity)), -- Halo (pasa suavemente de 1 a 0.6)
-			NumberSequenceKeypoint.new(0.5, 1 - opacity),          -- Núcleo (pasa suavemente de 1 a 0)
-			NumberSequenceKeypoint.new(0.53, 1 - (0.4 * opacity)), -- Halo (pasa suavemente de 1 a 0.6)
+			NumberSequenceKeypoint.new(0.47, 1 - (0.4 * opacity)),
+			NumberSequenceKeypoint.new(0.5, 1 - opacity),
+			NumberSequenceKeypoint.new(0.53, 1 - (0.4 * opacity)),
 			NumberSequenceKeypoint.new(0.58, 1),
 			NumberSequenceKeypoint.new(1, 1)
 		})
 		
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V8.6 listo! (Destello con Crossfade Suave)")
+	print("Trasher Debug | ¡Motor Hypnotic V8.7 listo! (Desaceleración en curvas activada)")
 end)
--- [FIN] INYECCIÓN HYPNOTIC V8.6
+-- [FIN] INYECCIÓN HYPNOTIC V8.7
 
 -- =============================================================================
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
