@@ -1311,7 +1311,7 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V9.1 (SPECTRUM + CORREGIDO DESTALLO)
+						-- [INICIO] INYECCIÓN HYPNOTIC V9.1 (RECORRIDO COMPLETO + CROSSFADE EN ESQUINAS)
 task.spawn(function()
 	print("Trasher Debug | Inicializando motor Hypnotic V9.1 (Dual Stroke + Perfect Corner Physics)...")
 	local RunService = game:GetService("RunService")
@@ -1367,7 +1367,8 @@ task.spawn(function()
 	local rotationSpeed = 30        -- Velocidad de giro del espectro
 	local crossfadeSpeed = 3        -- Velocidad de inversión de color
 	local flashDuration = 3.0       -- Duración de cada trayecto de esquina a esquina
-	local cornerSlowdown = 0.70     -- Intensidad de exhibición en esquinas (70% más lento en las curvas)
+	local fadeWindow = 0.15         -- Ventana de crossfade suave en los extremos (0.15 = 15% del trayecto)
+	local cornerSlowdown = 0.70     -- Intensidad de exhibición en esquinas
 	
 	-- Paleta de colores para el espectro
 	local baseColors = {
@@ -1420,7 +1421,7 @@ task.spawn(function()
 		})
 
 		-----------------------------------------------
-		-- B. Lógica de la Capa de Destello (Ping-Pong) - CORREGIDA
+		-- B. Lógica de la Capa de Destello (Ping-Pong)
 		-----------------------------------------------
 		local rawProgress = ((now - startTime) / flashDuration) % 2
 		
@@ -1429,19 +1430,28 @@ task.spawn(function()
 			flashProgress = 2 - rawProgress
 		end
 		
+		-- Físicas de desaceleración en curva
 		local easedProgress = flashProgress
 		if cornerSlowdown > 0 then
 			easedProgress = flashProgress - (cornerSlowdown / (2 * math.pi)) * math.sin(flashProgress * 2 * math.pi)
 		end
 
-		-- CORRECCIÓN 1: Ajustado de 0.55 a 0.45 para que el destello reboté justo en el límite sin salirse
-		local movementOffset = lerp(0.45, -0.45, easedProgress)
+		-- AJUSTE 1: Recorrido exacto de esquina a esquina (0.50 permite tocar el inicio y final absoluto)
+		local movementOffset = lerp(0.50, -0.50, easedProgress)
 		flashGradient.Offset = Vector2.new(movementOffset, 0)
 		
-		-- CORRECCIÓN 2: Fijado a 1 para que el destello mantenga su visibilidad máxima en las esquinas
-		local opacity = 1
+		-- AJUSTE 2: Crossfade suave en los puntos extremos
+		local fadeRamp = 1
+		if flashProgress < fadeWindow then
+			fadeRamp = flashProgress / fadeWindow
+		elseif flashProgress > (1 - fadeWindow) then
+			fadeRamp = (1 - flashProgress) / fadeWindow
+		end
 		
-		-- Gradiente de destello constante
+		-- Transición senoidal para que el desvanecimiento sea fluido y no brusco
+		local opacity = math.sin(fadeRamp * (math.pi / 2))
+		
+		-- Gradiente con transparencia dinámica
 		flashGradient.Transparency = NumberSequence.new({
 			NumberSequenceKeypoint.new(0, 1),
 			NumberSequenceKeypoint.new(0.40, 1),
@@ -1454,7 +1464,7 @@ task.spawn(function()
 		
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V9.1 listo! (Destello sin fugas y 100% visible)")
+	print("Trasher Debug | ¡Motor Hypnotic V9.1 corregido! (Trayecto completo + Crossfade fluido en esquinas)")
 end)
 -- [FIN] INYECCIÓN HYPNOTIC V9.1
 
