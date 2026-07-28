@@ -1311,9 +1311,9 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V8.7 (SPECTUM + DESTELLO SUAVE CON FÍSICA EN CURVAS)
+						-- [INICIO] INYECCIÓN HYPNOTIC V8.8 (SPECTUM + DESTELLO CON CURVA INICIAL LENTA)
 task.spawn(function()
-	print("Trasher Debug | Inicializando motor Hypnotic V8.7 (Dual Stroke + Corner Physics + Smooth Fade)...")
+	print("Trasher Debug | Inicializando motor Hypnotic V8.8 (Dual Stroke + Initial Corner Fix + Smooth Fade)...")
 	local RunService = game:GetService("RunService")
 	
 	if not Main then 
@@ -1333,7 +1333,6 @@ task.spawn(function()
 			stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			stroke.Parent = Main
 		end
-		-- Mantenemos 255,255,255 para asegurar nitidez limpia en el gradiente
 		stroke.Color = Color3.fromRGB(255, 255, 255)
 		return stroke
 	end
@@ -1367,9 +1366,9 @@ task.spawn(function()
 	-------------------------------------------------------
 	local rotationSpeed = 30        -- Velocidad de giro del espectro
 	local crossfadeSpeed = 3        -- Velocidad de inversión de color
-	local flashDuration = 2.8       -- Duración completa del trayecto del destello
+	local flashDuration = 3.2       -- Duración extendida para apreciar la curva con calma
 	local fadeWindow = 0.20         -- Porcentaje (20%) dedicado al Fade In / Fade Out
-	local cornerSlowdown = 0.45     -- Fuerza de desaceleración en esquinas (0.0 a 0.7 max)
+	local cornerSlowdown = 0.65     -- Fuerza de frenado en curvas (65% más lento en las esquinas)
 	
 	-- Paleta recuperada: Incluye los tramos de sombra negra viajera
 	local baseColors = {
@@ -1429,14 +1428,15 @@ task.spawn(function()
 			flashProgress = 0
 		end
 		
-		-- Física de curvatura: Remapeo armónico de velocidad
-		-- Genera puntos de menor velocidad exactamente al 25% y 75% del trayecto (zonas de esquinas)
+		-- FIX DE FÍSICA: Se resta la función armónica.
+		-- Esto coloca la velocidad MÍNIMA en t = 0 (curva inicial) y t = 0.5 (curva opuesta),
+		-- y la velocidad MÁXIMA en las rectas intermedias.
 		local easedProgress = flashProgress
 		if cornerSlowdown > 0 then
-			easedProgress = flashProgress + (cornerSlowdown / (4 * math.pi)) * math.sin(flashProgress * 4 * math.pi)
+			easedProgress = flashProgress - (cornerSlowdown / (4 * math.pi)) * math.sin(flashProgress * 4 * math.pi)
 		end
 
-		-- Movimiento con desaceleración orgánica en curvas
+		-- Movimiento con desaceleración profunda en las esquinas
 		local movementOffset = math.lerp(1, -1, easedProgress)
 		flashGradient.Offset = Vector2.new(movementOffset, 0)
 		
@@ -1463,9 +1463,9 @@ task.spawn(function()
 		
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V8.7 listo! (Desaceleración en curvas activada)")
+	print("Trasher Debug | ¡Motor Hypnotic V8.8 listo! (Curva inicial cinematográfica corregida)")
 end)
--- [FIN] INYECCIÓN HYPNOTIC V8.7
+-- [FIN] INYECCIÓN HYPNOTIC V8.8
 
 -- =============================================================================
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
