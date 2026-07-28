@@ -1311,9 +1311,9 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V8.8 (SPECTUM + DESTELLO CON CURVA INICIAL LENTA)
+						-- [INICIO] INYECCIÓN HYPNOTIC V8.9 (SPECTUM + DESTELLO PING-PONG / IDA Y VUELTA)
 task.spawn(function()
-	print("Trasher Debug | Inicializando motor Hypnotic V8.8 (Dual Stroke + Initial Corner Fix + Smooth Fade)...")
+	print("Trasher Debug | Inicializando motor Hypnotic V8.9 (Dual Stroke + Ping-Pong Flash + Corner Physics)...")
 	local RunService = game:GetService("RunService")
 	
 	if not Main then 
@@ -1366,9 +1366,9 @@ task.spawn(function()
 	-------------------------------------------------------
 	local rotationSpeed = 30        -- Velocidad de giro del espectro
 	local crossfadeSpeed = 3        -- Velocidad de inversión de color
-	local flashDuration = 3.2       -- Duración extendida para apreciar la curva con calma
+	local flashDuration = 3.0       -- Duración de cada tramo (3s Ida / 3s Vuelta)
 	local fadeWindow = 0.20         -- Porcentaje (20%) dedicado al Fade In / Fade Out
-	local cornerSlowdown = 0.65     -- Fuerza de frenado en curvas (65% más lento en las esquinas)
+	local cornerSlowdown = 0.65     -- Fuerza de frenado en curvas (65% más lento)
 	
 	-- Paleta recuperada: Incluye los tramos de sombra negra viajera
 	local baseColors = {
@@ -1419,28 +1419,28 @@ task.spawn(function()
 		})
 
 		-----------------------------------------------
-		-- B. Lógica de la Capa de Destello
+		-- B. Lógica de la Capa de Destello (Ping-Pong)
 		-----------------------------------------------
-		local flashProgress = (now - lastFlashStart) / flashDuration
+		-- Ciclo simétrico completo: 0 -> 1 (Ida) y 1 -> 0 (Vuelta)
+		local rawProgress = ((now - lastFlashStart) / flashDuration) % 2
 		
-		if flashProgress >= 1 then
-			lastFlashStart = now
-			flashProgress = 0
+		local flashProgress = rawProgress
+		if rawProgress > 1 then
+			-- Inversión del recorrido para el viaje de regreso
+			flashProgress = 2 - rawProgress
 		end
 		
-		-- FIX DE FÍSICA: Se resta la función armónica.
-		-- Esto coloca la velocidad MÍNIMA en t = 0 (curva inicial) y t = 0.5 (curva opuesta),
-		-- y la velocidad MÁXIMA en las rectas intermedias.
+		-- Física de desaceleración armónica aplicada en ambas direcciones
 		local easedProgress = flashProgress
 		if cornerSlowdown > 0 then
 			easedProgress = flashProgress - (cornerSlowdown / (4 * math.pi)) * math.sin(flashProgress * 4 * math.pi)
 		end
 
-		-- Movimiento con desaceleración profunda en las esquinas
+		-- Desplazamiento en ida y retorno
 		local movementOffset = math.lerp(1, -1, easedProgress)
 		flashGradient.Offset = Vector2.new(movementOffset, 0)
 		
-		-- Cálculo del Fade In/Out progresivo
+		-- Fade In / Fade Out dinámico en los extremos
 		local fadeRamp = 1
 		if flashProgress < fadeWindow then
 			fadeRamp = flashProgress / fadeWindow
@@ -1463,9 +1463,9 @@ task.spawn(function()
 		
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V8.8 listo! (Curva inicial cinematográfica corregida)")
+	print("Trasher Debug | ¡Motor Hypnotic V8.9 listo! (Efecto Ping-Pong Ida y Vuelta activo)")
 end)
--- [FIN] INYECCIÓN HYPNOTIC V8.8
+-- [FIN] INYECCIÓN HYPNOTIC V8.9
 
 -- =============================================================================
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
