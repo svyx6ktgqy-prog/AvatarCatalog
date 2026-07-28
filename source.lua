@@ -1311,7 +1311,7 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V8.5 (FIX BORDES NEGROS)
+						-- [INICIO] INYECCIÓN HYPNOTIC V8.5 (SPECTUM CON SOMBRA NEGRA PROTEGIDA)
 task.spawn(function()
 	print("Trasher Debug | Inicializando motor Hypnotic V8.5 (Dual Stroke + Real Flash V2)...")
 	local RunService = game:GetService("RunService")
@@ -1333,8 +1333,8 @@ task.spawn(function()
 			stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			stroke.Parent = Main
 		end
-		-- FIX CLAVE 1: Asegurar que el color base sea siempre blanco puro (255,255,255)
-		-- para no multiplicar los gradientes con negro.
+		-- EL FIX REAL: Ambos strokes deben ser 255,255,255 para que Roblox 
+		-- no multiplique el gradiente por negro produciendo bordes oscuros indeseados.
 		stroke.Color = Color3.fromRGB(255, 255, 255)
 		return stroke
 	end
@@ -1360,7 +1360,7 @@ task.spawn(function()
 	local spectrumGradient = getGradient(animatedStroke)
 	local flashGradient = getGradient(flashStroke)
 
-	-- Design del Destello Realista (Blanco Puro absoluto)
+	-- Diseño del Destello Realista (Blanco Puro)
 	flashGradient.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
 	
 	flashGradient.Transparency = NumberSequence.new({
@@ -1380,22 +1380,25 @@ task.spawn(function()
 	local crossfadeSpeed = 3     -- Velocidad de transición color
 	local flashDuration = 0.5    -- Velocidad del destello
 	
-	-- FIX CLAVE 2: Reemplazados los (0,0,0) por colores magenta para hacer un loop suave e infinito sin tramos negros
+	-- Paleta recuperada: Incluye los tramos de sombra negra viajera
 	local baseColors = {
-		Color3.fromRGB(255, 0, 150),    -- Magenta (Inicio)
+		Color3.fromRGB(0, 0, 0),        -- Negro Protegido (Sombra)
 		Color3.fromRGB(130, 0, 255),    -- Morado Neón
 		Color3.fromRGB(0, 230, 255),    -- Cyan Ciberpunk
 		Color3.fromRGB(255, 0, 150),    -- Magenta
 		Color3.fromRGB(255, 180, 0),    -- Dorado
-		Color3.fromRGB(255, 0, 150)     -- Magenta (Fin perfecto para Seamless Loop)
+		Color3.fromRGB(0, 0, 0)         -- Negro Protegido (Sombra)
 	}
 	
 	-------------------------------------------------------
-	-- 4. LOGICA INTERNA
+	-- 4. LÓGICA INTERNA
 	-------------------------------------------------------
 	
-	-- FIX CLAVE 3: Removida la conversión forzada a negro (0,0,0)
+	-- Filtro de Polaridad: Evita que el negro pase a blanco al invertir el espectro
 	local function getPolarityColor(color, alpha)
+		if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
+			return Color3.fromRGB(0, 0, 0) -- Se mantiene negro puro
+		end
 		local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
 		return color:Lerp(negativeColor, alpha)
 	end
@@ -1419,9 +1422,9 @@ task.spawn(function()
 		spectrumGradient.Transparency = NumberSequence.new(0)
 		spectrumGradient.Color = ColorSequence.new({
 			ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1], invertAlpha)),
-			ColorSequenceKeypoint.new(0.25, getPolarityColor(baseColors[2], invertAlpha)),
-			ColorSequenceKeypoint.new(0.50, getPolarityColor(baseColors[3], invertAlpha)),
-			ColorSequenceKeypoint.new(0.75, getPolarityColor(baseColors[4], invertAlpha)),
+			ColorSequenceKeypoint.new(0.300, getPolarityColor(baseColors[2], invertAlpha)),
+			ColorSequenceKeypoint.new(0.500, getPolarityColor(baseColors[3], invertAlpha)),
+			ColorSequenceKeypoint.new(0.700, getPolarityColor(baseColors[4], invertAlpha)),
 			ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6], invertAlpha))
 		})
 
@@ -1440,7 +1443,7 @@ task.spawn(function()
 		
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V8.5 listo! (Limpieza de bordes negros aplicada)")
+	print("Trasher Debug | ¡Motor Hypnotic V8.5 listo! (Spectrum con negro protegido + UIStroke blanco)")
 end)
 -- [FIN] INYECCIÓN HYPNOTIC V8.5
 
