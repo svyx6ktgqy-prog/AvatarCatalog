@@ -1311,26 +1311,25 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-	-- [INICIO] INYECCIÓN DE BORDES ANIMADOS (ESTILO TRIANGLEHOOD)
+		-- [INICIO] INYECCIÓN DE BORDES HIPNÓTICOS CON REFLEJO DE LUZ
 	task.spawn(function()
-		print("Trasher Debug | Inicializando motor de bordes animados...")
+		print("Trasher Debug | Inicializando motor de bordes hipnóticos...")
 		local RunService = game:GetService("RunService")
 		
-		-- Esperar a que exista la ventana principal
 		if not Main then return end
 		
 		-- 1. Crear el Borde (UIStroke)
-		local animatedStroke = Main:FindFirstChildOfClass("UIStroke")
+		local animatedStroke = Main:FindFirstChild("AnimatedBorder")
 		if not animatedStroke then
 			animatedStroke = Instance.new("UIStroke")
 			animatedStroke.Name = "AnimatedBorder"
-			animatedStroke.Thickness = 2.5 -- Grosor del borde (ajústalo a tu gusto)
-   animatedStroke.Color = Color3.fromRGB(255, 255, 255) -- <<< ¡AGREGA ESTA LÍNEA!
+			animatedStroke.Thickness = 3
+			animatedStroke.Color = Color3.fromRGB(255, 255, 255) -- Base blanca para permitir colores limpios
 			animatedStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			animatedStroke.Parent = Main
 		end
 		
-		-- 2. Crear el Gradiente de Colores
+		-- 2. Crear el Gradiente
 		local strokeGradient = animatedStroke:FindFirstChildOfClass("UIGradient")
 		if not strokeGradient then
 			strokeGradient = Instance.new("UIGradient")
@@ -1338,35 +1337,70 @@ LoadingFrame.Version.Text = Release
 			strokeGradient.Parent = animatedStroke
 		end
 		
-						strokeGradient.Color = ColorSequence.new({
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),        -- Inicio Negro
-	ColorSequenceKeypoint.new(0.02, Color3.fromRGB(0, 0, 0)),     -- Solo 2% de sombra/corte
-	
-	-- [ZONA DE LUZ A TOPE - 96% DE COBERTURA]
-	ColorSequenceKeypoint.new(0.03, Color3.fromRGB(0, 255, 255)), -- Arranca el color casi en el borde
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 0, 255)),  -- Centro Neón expansivo
-	ColorSequenceKeypoint.new(0.97, Color3.fromRGB(0, 255, 255)), -- El color se extiende hasta el final
-	-- [/ZONA DE LUZ A TOPE]
-
-	ColorSequenceKeypoint.new(0.98, Color3.fromRGB(0, 0, 0)),     -- Solo 2% de sombra/corte final
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))         
-})
+		-- 3. Configuración de Tiempos y Velocidades
+		local rotationSpeed = 12 -- Velocidad de rotación ultra lenta e hipnótica (grados/sec)
+		local reflectionInterval = 120 -- Intervalo del reflejo en segundos (120 seg = 2 minutos)
+		local reflectionSpeed = 0.6 -- Velocidad con la que cruza el destello blanco
 		
-		-- 4. Bucle Matemático de Rotación
-		local rotationSpeed = 60 -- Velocidad de la animación
+		-- 4. Definición de la Paleta Multi-Gradiente Hipnótica
+		local gradientNormal = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 0, 35)),     -- Violeta Abisal
+			ColorSequenceKeypoint.new(0.2, Color3.fromRGB(130, 0, 255)),  -- Neón Morado
+			ColorSequenceKeypoint.new(0.4, Color3.fromRGB(0, 230, 255)),  -- Cyan Ciberpunk
+			ColorSequenceKeypoint.new(0.6, Color3.fromRGB(255, 0, 150)),  -- Magenta
+			ColorSequenceKeypoint.new(0.8, Color3.fromRGB(255, 180, 0)),  -- Destello Dorado
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 0, 35))      -- Cierre Suave
+		})
 		
-		RunService.Heartbeat:Connect(function()
-			-- Protecciones anti-lag: solo animar si el menú existe y es visible
+		local lastReflectionTime = tick()
+		local isReflecting = false
+		local reflectionProgress = 0
+		
+		-- 5. Bucle Principal de Animación y Reflejo
+		RunService.Heartbeat:Connect(function(dt)
 			if not Main or not Main.Parent or not Main.Visible then return end
 			
-			-- Girar el gradiente constantemente para crear el efecto de borde animado
-			strokeGradient.Rotation = (tick() * rotationSpeed) % 360
+			-- Rotación constante, suave y relajante
+			strokeGradient.Rotation = (strokeGradient.Rotation + (rotationSpeed * dt)) % 360
+			
+			-- Comprobación del temporizador para el reflejo blanco
+			local now = tick()
+			if not isReflecting and (now - lastReflectionTime) >= reflectionInterval then
+				isReflecting = true
+				reflectionProgress = 0
+			end
+			
+			-- Renderizado del reflejo blanco si está activo
+			if isReflecting then
+				reflectionProgress = reflectionProgress + (dt * reflectionSpeed)
+				
+				if reflectionProgress >= 1 then
+					isReflecting = false
+					lastReflectionTime = now
+					strokeGradient.Color = gradientNormal
+				else
+					-- Cálculo seguro de posiciones ascendentes para el rayo de luz en Roblox
+					local pos = reflectionProgress
+					local p1 = math.clamp(pos - 0.08, 0.01, 0.88)
+					local p2 = math.clamp(pos, 0.05, 0.92)
+					local p3 = math.clamp(pos + 0.08, 0.09, 0.99)
+					
+					strokeGradient.Color = ColorSequence.new({
+						ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 0, 35)),
+						ColorSequenceKeypoint.new(p1, Color3.fromRGB(0, 230, 255)),   -- Halo Cyan previo
+						ColorSequenceKeypoint.new(p2, Color3.fromRGB(255, 255, 255)), -- REFLEJO BLANCO PURO
+						ColorSequenceKeypoint.new(p3, Color3.fromRGB(255, 0, 150)),   -- Halo Magenta posterior
+						ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 0, 35))
+					})
+				end
+			else
+				strokeGradient.Color = gradientNormal
+			end
 		end)
 		
-		print("Trasher Debug | ¡Bordes animados activados con éxito!")
+		print("Trasher Debug | ¡Bordes hipnóticos con reflejo periódico activados!")
 	end)
 	-- [FIN] INYECCIÓN DE BORDES ANIMADOS
-
 -- =============================================================================
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
 -- =============================================================================
