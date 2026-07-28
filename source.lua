@@ -1338,23 +1338,21 @@ LoadingFrame.Version.Text = Release
 			strokeGradient.Parent = animatedStroke
 		end
 		
-						-- 3. Configurar colores: Base negra con línea de luz MUCHO MÁS ESTIRADA
-		strokeGradient.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),        -- Inicio Negro
-			ColorSequenceKeypoint.new(0.15, Color3.fromRGB(0, 0, 0)),     -- Se mantiene negro (solo un 15% de margen)
-			
-			-- [ZONA DEL COMETA ESTIRADA Y GRUESA]
-			ColorSequenceKeypoint.new(0.25, Color3.fromRGB(0, 255, 255)), -- Empieza a iluminarse mucho antes (Ej: Cyan)
-			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 0, 255)),  -- Centro brillante y expansivo (Ej: Magenta)
-			ColorSequenceKeypoint.new(0.75, Color3.fromRGB(0, 255, 255)), -- Termina de iluminarse mucho después (Ej: Cyan)
-			-- [/ZONA DEL COMETA ESTIRADA]
-
-			ColorSequenceKeypoint.new(0.85, Color3.fromRGB(0, 0, 0)),     -- Vuelve a Negro (dejando otro 15% de margen)
-			ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))         -- Final Negro
-		})
+						strokeGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),        
+	ColorSequenceKeypoint.new(0.05, Color3.fromRGB(0, 0, 0)),     -- El margen negro es solo del 5%
+	
+	-- [ZONA DE LUZ SUPER ESTIRADA]
+	ColorSequenceKeypoint.new(0.10, Color3.fromRGB(0, 255, 255)), -- La luz arranca en el 10%
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 0, 255)),  -- Centro
+	ColorSequenceKeypoint.new(0.90, Color3.fromRGB(0, 255, 255)), -- La luz se estira hasta el 90%
+	
+	ColorSequenceKeypoint.new(0.95, Color3.fromRGB(0, 0, 0)),     -- El margen negro final es del 5%
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))         
+})
 		
 		-- 4. Bucle Matemático de Rotación
-		local rotationSpeed = 910 -- Velocidad de la animación
+		local rotationSpeed = 210 -- Velocidad de la animación
 		
 		RunService.Heartbeat:Connect(function()
 			-- Protecciones anti-lag: solo animar si el menú existe y es visible
