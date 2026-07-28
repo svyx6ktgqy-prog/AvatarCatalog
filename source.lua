@@ -994,7 +994,7 @@ bgImage1.Name = "Image1"
 bgImage1.Size = UDim2.new(1, 0, 1, 0)
 bgImage1.BackgroundTransparency = 1
 bgImage1.ZIndex = 0
-bgImage1.Image = "rbxassetid://133108922415797" 
+bgImage1.Image = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/refs/heads/main/assets/Scene1.jpg" 
 bgImage1.ScaleType = Enum.ScaleType.Crop
 bgImage1.Parent = bgContainer
 
@@ -1003,7 +1003,7 @@ bgImage2.Name = "Image2"
 bgImage2.Size = UDim2.new(1, 0, 1, 0)
 bgImage2.BackgroundTransparency = 1
 bgImage2.ZIndex = 0
-bgImage2.Image = "rbxassetid://135805541786938" 
+bgImage2.Image = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/refs/heads/main/assets/Scene2.jpg" 
 bgImage2.ScaleType = Enum.ScaleType.Crop
 bgImage2.ImageTransparency = 1
 bgImage2.Parent = bgContainer
