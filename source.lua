@@ -1354,7 +1354,7 @@ LoadingFrame.Version.Text = Release
 		})
 		
 		-- 4. Bucle Matemático de Rotación
-		local rotationSpeed = 310 -- Velocidad de la animación
+		local rotationSpeed = 910 -- Velocidad de la animación
 		
 		RunService.Heartbeat:Connect(function()
 			-- Protecciones anti-lag: solo animar si el menú existe y es visible
