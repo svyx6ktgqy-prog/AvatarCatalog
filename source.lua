@@ -1397,171 +1397,172 @@ task.spawn(function()
 		return 
 	end
 	
-		-------------------------------------------------------
-	-- 1. CONFIGURACIÓN DE LOS DOS BORDES (CAPAS FIX)
-	-------------------------------------------------------
-	-- Capa 1: Espectro Hipnótico (Se queda en el Main)
-	local animatedStroke = Main:FindFirstChild("AnimatedBorderBase")
-	if not animatedStroke then
-		animatedStroke = Instance.new("UIStroke")
-		animatedStroke.Name = "AnimatedBorderBase"
-		animatedStroke.Thickness = 2.5
-		animatedStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		animatedStroke.Parent = Main
-	end
-	animatedStroke.Color = Color3.fromRGB(255, 255, 255)
+-------------------------------------------------------
+-- 1. CONFIGURACIÓN DE LOS DOS BORDES (CAPAS FIX)
+-------------------------------------------------------
+-- Capa 1: Espectro Hipnótico (Se queda en el Main)
+local animatedStroke = Main:FindFirstChild("AnimatedBorderBase")
+if not animatedStroke then
+	animatedStroke = Instance.new("UIStroke")
+	animatedStroke.Name = "AnimatedBorderBase"
+	animatedStroke.Thickness = 2.5
+	animatedStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	animatedStroke.Parent = Main
+end
+animatedStroke.Color = Color3.fromRGB(255, 255, 255)
 
-	-- Capa 2: ¡EL TRUCO! Un marco fantasma para que Roblox no ignore el destello
-	local flashContainer = Main:FindFirstChild("FlashContainer")
-	if not flashContainer then
-		flashContainer = Instance.new("Frame")
-		flashContainer.Name = "FlashContainer"
-		flashContainer.Size = UDim2.new(1, 0, 1, 0)
-		flashContainer.BackgroundTransparency = 1 -- Marco invisible
-		flashContainer.ZIndex = 50 -- Aseguramos que el destello esté por encima de todo
-		flashContainer.Parent = Main
-		
-		-- Le damos la misma curvatura que tiene Rayfield
-		local corner = Instance.new("UICorner")
-		local mainCorner = Main:FindFirstChildOfClass("UICorner")
-		corner.CornerRadius = mainCorner and mainCorner.CornerRadius or UDim2.new(0, 8)
-		corner.Parent = flashContainer
-	end
-
-	-- Ahora le aplicamos el destello al Marco Fantasma
-	local flashStroke = flashContainer:FindFirstChild("AnimatedBorderFlash")
-	if not flashStroke then
-		flashStroke = Instance.new("UIStroke")
-		flashStroke.Name = "AnimatedBorderFlash"
-		flashStroke.Thickness = 3.0 -- Un pelín más grueso para que destaque
-		flashStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		flashStroke.Parent = flashContainer
-	end
-	flashStroke.Color = Color3.fromRGB(255, 255, 255)
-
-	-------------------------------------------------------
-	-- 2. CONFIGURACIÓN DE GRADIENTES
-	-------------------------------------------------------
-	local function getGradient(parent)
-		local grad = parent:FindFirstChildOfClass("UIGradient")
-		if not grad then
-			grad = Instance.new("UIGradient")
-			grad.Parent = parent
-		end
-		return grad
-	end
-
-	local spectrumGradient = getGradient(animatedStroke)
-	local flashGradient = getGradient(flashStroke)
-
-	-- Diseño del Destello Realista (Blanco Puro)
-	flashGradient.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
-
-	-------------------------------------------------------
-	-- 3. PARÁMETROS DE RENDIMIENTO Y FÍSICA
-	-------------------------------------------------------
-	local rotationSpeed = 30        -- Velocidad de giro del espectro
-	local crossfadeSpeed = 3        -- Velocidad de inversión de color
-	local flashDuration = 2.5       -- Duración de cada trayecto (2.8s ida / 2.8s vuelta)
-	local fadeWindow = 0.6         -- Transición de entrada/salida (15% del trayecto)
-	local cornerSlowdown = 0.80     -- Fuerza de desaceleración en esquinas (0.0 a 0.8 max)
+-- Capa 2: ¡EL TRUCO! Un marco fantasma para que Roblox no ignore el destello
+local flashContainer = Main:FindFirstChild("FlashContainer")
+if not flashContainer then
+	flashContainer = Instance.new("Frame")
+	flashContainer.Name = "FlashContainer"
+	flashContainer.Size = UDim2.new(1, 0, 1, 0)
+	flashContainer.BackgroundTransparency = 1 -- Marco invisible
+	flashContainer.Active = false -- CRUCIAL: Evita que bloquee los clics del menú
+	flashContainer.ZIndex = 50 -- Aseguramos que el destello esté por encima de todo
+	flashContainer.Parent = Main
 	
-	-- Paleta de colores para el espectro
-	local baseColors = {
-		Color3.fromRGB(0, 0, 0),        -- Negro Protegido (Sombra)
-		Color3.fromRGB(130, 0, 255),    -- Morado Neón
-		Color3.fromRGB(0, 230, 255),    -- Cyan Ciberpunk
-		Color3.fromRGB(255, 0, 150),    -- Magenta
-		Color3.fromRGB(255, 180, 0),    -- Dorado
-		Color3.fromRGB(0, 0, 0)         -- Negro Protegido (Sombra)
-	}
+	-- Le damos la misma curvatura que tiene Rayfield
+	local corner = Instance.new("UICorner")
+	local mainCorner = Main:FindFirstChildOfClass("UICorner")
+	corner.CornerRadius = mainCorner and mainCorner.CornerRadius or UDim2.new(0, 8)
+	corner.Parent = flashContainer
+end
+
+-- Ahora le aplicamos el destello al Marco Fantasma
+local flashStroke = flashContainer:FindFirstChild("AnimatedBorderFlash")
+if not flashStroke then
+	flashStroke = Instance.new("UIStroke")
+	flashStroke.Name = "AnimatedBorderFlash"
+	flashStroke.Thickness = 3.0 -- Un pelín más grueso para que destaque
+	flashStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	flashStroke.Parent = flashContainer
+end
+flashStroke.Color = Color3.fromRGB(255, 255, 255)
+
+-------------------------------------------------------
+-- 2. CONFIGURACIÓN DE GRADIENTES
+-------------------------------------------------------
+local function getGradient(parent)
+	local grad = parent:FindFirstChildOfClass("UIGradient")
+	if not grad then
+		grad = Instance.new("UIGradient")
+		grad.Parent = parent
+	end
+	return grad
+end
+
+local spectrumGradient = getGradient(animatedStroke)
+local flashGradient = getGradient(flashStroke)
+
+-- Diseño del Destello Realista (Blanco Puro)
+flashGradient.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
+
+-------------------------------------------------------
+-- 3. PARÁMETROS DE RENDIMIENTO Y FÍSICA
+-------------------------------------------------------
+local rotationSpeed = 30        -- Velocidad de giro del espectro
+local crossfadeSpeed = 3        -- Velocidad de inversión de color
+local flashDuration = 2.5       -- Duración de cada trayecto (2.8s ida / 2.8s vuelta)
+local fadeWindow = 0.6          -- Transición de entrada/salida (15% del trayecto)
+local cornerSlowdown = 0.80     -- Fuerza de desaceleración en esquinas (0.0 a 0.8 max)
+
+-- Paleta de colores para el espectro
+local baseColors = {
+	Color3.fromRGB(0, 0, 0),        -- Negro Protegido (Sombra)
+	Color3.fromRGB(130, 0, 255),    -- Morado Neón
+	Color3.fromRGB(0, 230, 255),    -- Cyan Ciberpunk
+	Color3.fromRGB(255, 0, 150),    -- Magenta
+	Color3.fromRGB(255, 180, 0),    -- Dorado
+	Color3.fromRGB(0, 0, 0)         -- Negro Protegido (Sombra)
+}
+
+-------------------------------------------------------
+-- 4. LÓGICA INTERNA
+-------------------------------------------------------
+local function lerp(a, b, t)
+	return a + (b - a) * t
+end
+
+local function getPolarityColor(color, alpha)
+	if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
+		return Color3.fromRGB(0, 0, 0)
+	end
+	local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
+	return color:Lerp(negativeColor, alpha)
+end
+
+local startTime = tick()
+
+-------------------------------------------------------
+-- 5. BUCLE PRINCIPAL (RUNSERVICE)
+-------------------------------------------------------
+RunService.Heartbeat:Connect(function(dt)
+	if not Main or not Main.Parent or not Main.Visible then return end
 	
-	-------------------------------------------------------
-	-- 4. LÓGICA INTERNA
-	-------------------------------------------------------
-	local function lerp(a, b, t)
-		return a + (b - a) * t
+	local now = tick()
+	
+	-----------------------------------------------
+	-- A. Lógica de la Capa de Fondo (Spectrum)
+	-----------------------------------------------
+	spectrumGradient.Rotation = (spectrumGradient.Rotation + (rotationSpeed * dt)) % 360
+	local invertAlpha = (math.sin(now * crossfadeSpeed) + 1) / 2
+	
+	spectrumGradient.Transparency = NumberSequence.new(0)
+	spectrumGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1], invertAlpha)),
+		ColorSequenceKeypoint.new(0.300, getPolarityColor(baseColors[2], invertAlpha)),
+		ColorSequenceKeypoint.new(0.500, getPolarityColor(baseColors[3], invertAlpha)),
+		ColorSequenceKeypoint.new(0.700, getPolarityColor(baseColors[4], invertAlpha)),
+		ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6], invertAlpha))
+	})
+
+	-----------------------------------------------
+	-- B. Lógica de la Capa de Destello (Ping-Pong)
+	-----------------------------------------------
+	-- Ciclo continuo 0..2 (0..1 ida, 1..2 vuelta)
+	local rawProgress = ((now - startTime) / flashDuration) % 2
+	
+	local flashProgress = rawProgress
+	if rawProgress > 1 then
+		flashProgress = 2 - rawProgress
+	end
+	
+	-- Física de curvatura armónica
+	local easedProgress = flashProgress
+	if cornerSlowdown > 0 then
+		easedProgress = flashProgress - (cornerSlowdown / (2 * math.pi)) * math.sin(flashProgress * 2 * math.pi)
 	end
 
-	local function getPolarityColor(color, alpha)
-		if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
-			return Color3.fromRGB(0, 0, 0)
-		end
-		local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
-		return color:Lerp(negativeColor, alpha)
-	end
-
-	local startTime = tick()
-
-	-------------------------------------------------------
-	-- 5. BUCLE PRINCIPAL (RUNSERVICE)
-	-------------------------------------------------------
-	RunService.Heartbeat:Connect(function(dt)
-		if not Main or not Main.Parent or not Main.Visible then return end
-		
-		local now = tick()
-		
-		-----------------------------------------------
-		-- A. Lógica de la Capa de Fondo (Spectrum)
-		-----------------------------------------------
-		spectrumGradient.Rotation = (spectrumGradient.Rotation + (rotationSpeed * dt)) % 360
-		local invertAlpha = (math.sin(now * crossfadeSpeed) + 1) / 2
-		
-		spectrumGradient.Transparency = NumberSequence.new(0)
-		spectrumGradient.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1], invertAlpha)),
-			ColorSequenceKeypoint.new(0.300, getPolarityColor(baseColors[2], invertAlpha)),
-			ColorSequenceKeypoint.new(0.500, getPolarityColor(baseColors[3], invertAlpha)),
-			ColorSequenceKeypoint.new(0.700, getPolarityColor(baseColors[4], invertAlpha)),
-			ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6], invertAlpha))
-		})
-
-		-----------------------------------------------
-		-- B. Lógica de la Capa de Destello (Ping-Pong)
-		-----------------------------------------------
-		-- Ciclo continuo 0..2 (0..1 ida, 1..2 vuelta)
-		local rawProgress = ((now - startTime) / flashDuration) % 2
-		
-		local flashProgress = rawProgress
-		if rawProgress > 1 then
-			flashProgress = 2 - rawProgress
-		end
-		
-		-- Física de curvatura armónica
-		local easedProgress = flashProgress
-		if cornerSlowdown > 0 then
-			easedProgress = flashProgress - (cornerSlowdown / (2 * math.pi)) * math.sin(flashProgress * 2 * math.pi)
-		end
-
-		-- Mapeo ajustado a la zona visible del menú (de 0.55 a -0.55) fix1
-		-- Limitamos el trayecto a 0.45 para que la luz no se salga del UI
-		local movementOffset = lerp(0.55, -0.55, easedProgress) 
-		flashGradient.Offset = Vector2.new(movementOffset, 0)
-		
-		-- Transición suave de transparencia en extremos
-		local fadeRamp = 1
-		if flashProgress < fadeWindow then
-			fadeRamp = flashProgress / fadeWindow
-		elseif flashProgress > (1 - fadeWindow) then
-			fadeRamp = (1 - flashProgress) / fadeWindow
-		end
-		
-		local opacity = math.sin(fadeRamp * (math.pi / 2))
-		
-		-- Modulación de transparencia dinámica siempre visible
-		flashGradient.Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 1),
-			NumberSequenceKeypoint.new(0.40, 1),
-			NumberSequenceKeypoint.new(0.46, 1 - (0.45 * opacity)),
-			NumberSequenceKeypoint.new(0.50, 1 - opacity),
-			NumberSequenceKeypoint.new(0.54, 1 - (0.45 * opacity)),
-			NumberSequenceKeypoint.new(0.60, 1),
-			NumberSequenceKeypoint.new(1, 1)
-		})
-		
-	end)
+	-- Mapeo ajustado a la zona visible del menú (de 0.55 a -0.55) fix1
+	-- Limitamos el trayecto a 0.45 para que la luz no se salga del UI
+	local movementOffset = lerp(0.55, -0.55, easedProgress) 
+	flashGradient.Offset = Vector2.new(movementOffset, 0)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V9.0 listo! (Destello visible y fluido)")
+	-- Transición suave de transparencia en extremos
+	local fadeRamp = 1
+	if flashProgress < fadeWindow then
+		fadeRamp = flashProgress / fadeWindow
+	elseif flashProgress > (1 - fadeWindow) then
+		fadeRamp = (1 - flashProgress) / fadeWindow
+	end
+	
+	local opacity = math.sin(fadeRamp * (math.pi / 2))
+	
+	-- Modulación de transparencia dinámica siempre visible
+	flashGradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(0.40, 1),
+		NumberSequenceKeypoint.new(0.46, 1 - (0.45 * opacity)),
+		NumberSequenceKeypoint.new(0.50, 1 - opacity),
+		NumberSequenceKeypoint.new(0.54, 1 - (0.45 * opacity)),
+		NumberSequenceKeypoint.new(0.60, 1),
+		NumberSequenceKeypoint.new(1, 1)
+	})
+	
+end)
+
+print("Trasher Debug | ¡Motor Hypnotic V9.0 listo! (Destello visible y fluido)")
 -- [FIN] INYECCIÓN HYPNOTIC V9.0
 
 -- =============================================================================
