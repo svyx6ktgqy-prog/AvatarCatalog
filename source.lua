@@ -1797,13 +1797,13 @@ end)
 
 -- fin de thumb y track
 
--- [INICIO] INYECCIÓN DE FUENTE PERSONALIZADA (Heavytal.ttf)
+-- [INICIO] INYECCIÓN DE FUENTE PERSONALIZADA (Heavytal.ttf) - CORREGIDO
 task.spawn(function()
-    print("Trasher Debug | Inicializando motor de fuente personalizada (Heavytal)...")
+    print("Trasher Debug | Inicializando motor de fuente (Heavytal) con enlace directo...")
 
-    -- 1. Enlace RAW directo a tu fuente en GitHub
-    local fontUrl = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/main/assets/Heavytal.ttf"
-    local fontFileName = "Heavytal_Rayfield.ttf"
+    -- 1. Enlace directo y exacto proporcionado
+    local fontUrl = "https://github.com/svyx6ktgqy-prog/rayfield/raw/refs/heads/main/assets/Heavytal.ttf"
+    local fontFileName = "Heavytal_Rayfield_V2.ttf" -- Cambiamos el nombre para ignorar el archivo anterior si estaba corrupto
     local fontAssetId = ""
 
     -- 2. Descarga segura y registro del asset
@@ -1812,56 +1812,60 @@ task.spawn(function()
         
         if type(writefile) == "function" and type(isfile) == "function" then
             if not isfile(fontFileName) then
+                print("Trasher Debug | Descargando archivo Heavytal.ttf...")
                 if requestFunc then
                     local req = requestFunc({Url = fontUrl, Method = "GET"})
                     if req and type(req) == "table" and req.Body then
                         writefile(fontFileName, req.Body)
                     end
                 else
-                    -- Fallback simple
                     writefile(fontFileName, game:HttpGet(fontUrl))
                 end
             end
         end
         
-        -- Obtener el ID del custom asset para la fuente
         if type(getcustomasset) == "function" then
             fontAssetId = getcustomasset(fontFileName)
+            print("Trasher Debug | Asset ID generado: " .. tostring(fontAssetId))
         end
     end)
 
     if not success or fontAssetId == "" then
-        warn("Trasher Debug | Error al cargar la fuente Heavytal. Usando fuente por defecto. Detalle: " .. tostring(err))
+        warn("Trasher Debug | Fallo al descargar/registrar Heavytal.ttf. Detalle: " .. tostring(err))
         return
     end
 
-    -- 3. Crear el objeto Font de Roblox
-    local customFont = Font.new(fontAssetId, Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    -- 3. Crear el objeto Font de Roblox con seguridad
+    local successFont, customFont = pcall(function()
+        return Font.new(fontAssetId, Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    end)
+
+    if not successFont then
+        warn("Trasher Debug | Tu ejecutor no soporta Font.new con custom assets. Detalle: " .. tostring(customFont))
+        return
+    end
 
     -- 4. Motor de Escaneo y Aplicación
     local function aplicarFuente(obj)
         if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-            -- Sobrescribimos la fuente nativa por la tuya
+            -- Sobrescribimos la fuente nativa
             obj.FontFace = customFont
         end
     end
 
     -- 5. Esperar a que la interfaz principal exista y aplicar
     if Main then
-        -- Aplicar a los textos que ya existen al abrir el menú
         for _, obj in ipairs(Main:GetDescendants()) do
             aplicarFuente(obj)
         end
 
-        -- Aplicar automáticamente a cualquier pestaña, botón o texto creado en el futuro
         Main.DescendantAdded:Connect(aplicarFuente)
-        
         print("Trasher Debug | ¡Fuente Heavytal aplicada correctamente a toda la interfaz!")
     else
         warn("Trasher Debug | No se encontró 'Main' para aplicar la fuente.")
     end
 end)
--- [FIN] INYECCIÓN DE FUENTE PERSONALIZADA
+-- [FIN] INYECCIÓN DE FUENTE PERSONALIZADA - CORREGIDO
 
 -- Thanks to Latte Softworks for the Lucide integration for Roblox
 local Icons = useStudio and require(script.Parent.icons) or loadWithTimeout('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/refs/heads/main/icons.lua')
