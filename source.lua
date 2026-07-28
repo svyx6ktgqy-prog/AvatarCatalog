@@ -10,16 +10,6 @@
 
 ]]
 
-	-- [INICIO] PROTECTOR DE INSTANCIA ÚNICA (ANTI-RE-EJECUCIÓN)
-if getgenv().TrasherMenuLoaded then
-	warn("Trasher Debug | El menú ya está abierto y activo. Evitando duplicación.")
-	return
-end
-getgenv().TrasherMenuLoaded = true
-
--- AQUÍ ABAJO VA TODO EL RESTO DE TU SCRIPT (Rayfield, ventanas, tabs, etc.)
--- [Aquí pegas el resto de tu código...]
-
 if debugX then
 	warn('Initialising Rayfield')
 end
@@ -4998,14 +4988,3 @@ task.delay(4, function()
 end)
 
 return RayfieldLibrary
-
--- [CIERRE] Limpieza de la variable global al cerrar la ventana
--- (Esto generalmente se coloca dentro de la función de cierre de Rayfield o al final absoluto del archivo)
-if Window and Window.OnClose then
-    Window.OnClose:Connect(function()
-        getgenv().TrasherMenuLoaded = nil
-    end)
-else
-    -- Si tu versión no usa un evento OnClose directo, asegúrate de limpiar al terminar el flujo:
-    getgenv().TrasherMenuLoaded = nil
-end
