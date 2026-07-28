@@ -1,5 +1,11 @@
---[[
+-- [INICIO] Control de ejecución unificado
+if getgenv().TrasherMenuLoaded then
+    warn("Trasher Debug | El script ya está en ejecución. Cierra la ventana actual antes de volver a abrirlo.")
+    return -- Detiene la ejecución para proteger el switch, el fondo y los destellos
+end
+getgenv().TrasherMenuLoaded = true
 
+--[[
 	Rayfield Interface Suite
 	by hermax
 
