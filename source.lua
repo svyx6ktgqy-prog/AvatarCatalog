@@ -1397,27 +1397,47 @@ task.spawn(function()
 		return 
 	end
 	
+		-------------------------------------------------------
+	-- 1. CONFIGURACIÓN DE LOS DOS BORDES (CAPAS FIX)
 	-------------------------------------------------------
-	-- 1. CONFIGURACIÓN DE LOS DOS BORDES (CAPAS)
-	-------------------------------------------------------
-	local function setupStroke(name, thickness, zindex)
-		local stroke = Main:FindFirstChild(name)
-		if not stroke then
-			stroke = Instance.new("UIStroke")
-			stroke.Name = name
-			stroke.Thickness = thickness
-			stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-			stroke.Parent = Main
-		end
-		stroke.Color = Color3.fromRGB(255, 255, 255)
-		return stroke
+	-- Capa 1: Espectro Hipnótico (Se queda en el Main)
+	local animatedStroke = Main:FindFirstChild("AnimatedBorderBase")
+	if not animatedStroke then
+		animatedStroke = Instance.new("UIStroke")
+		animatedStroke.Name = "AnimatedBorderBase"
+		animatedStroke.Thickness = 2.5
+		animatedStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		animatedStroke.Parent = Main
+	end
+	animatedStroke.Color = Color3.fromRGB(255, 255, 255)
+
+	-- Capa 2: ¡EL TRUCO! Un marco fantasma para que Roblox no ignore el destello
+	local flashContainer = Main:FindFirstChild("FlashContainer")
+	if not flashContainer then
+		flashContainer = Instance.new("Frame")
+		flashContainer.Name = "FlashContainer"
+		flashContainer.Size = UDim2.new(1, 0, 1, 0)
+		flashContainer.BackgroundTransparency = 1 -- Marco invisible
+		flashContainer.ZIndex = 50 -- Aseguramos que el destello esté por encima de todo
+		flashContainer.Parent = Main
+		
+		-- Le damos la misma curvatura que tiene Rayfield
+		local corner = Instance.new("UICorner")
+		local mainCorner = Main:FindFirstChildOfClass("UICorner")
+		corner.CornerRadius = mainCorner and mainCorner.CornerRadius or UDim2.new(0, 8)
+		corner.Parent = flashContainer
 	end
 
-	-- Capa 1: Espectro Hipnótico (Fondo)
-	local animatedStroke = setupStroke("AnimatedBorderBase", 2.5)
-	
-	-- Capa 2: Destello Realista (Superposición)
-	local flashStroke = setupStroke("AnimatedBorderFlash", 2.7, 2)
+	-- Ahora le aplicamos el destello al Marco Fantasma
+	local flashStroke = flashContainer:FindFirstChild("AnimatedBorderFlash")
+	if not flashStroke then
+		flashStroke = Instance.new("UIStroke")
+		flashStroke.Name = "AnimatedBorderFlash"
+		flashStroke.Thickness = 3.0 -- Un pelín más grueso para que destaque
+		flashStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		flashStroke.Parent = flashContainer
+	end
+	flashStroke.Color = Color3.fromRGB(255, 255, 255)
 
 	-------------------------------------------------------
 	-- 2. CONFIGURACIÓN DE GRADIENTES
@@ -1515,7 +1535,7 @@ task.spawn(function()
 
 		-- Mapeo ajustado a la zona visible del menú (de 0.55 a -0.55) fix1
 		-- Limitamos el trayecto a 0.45 para que la luz no se salga del UI
-  local movementOffset = lerp(0.55, -0.55, easedProgress) 
+		local movementOffset = lerp(0.55, -0.55, easedProgress) 
 		flashGradient.Offset = Vector2.new(movementOffset, 0)
 		
 		-- Transición suave de transparencia en extremos
@@ -1542,7 +1562,6 @@ task.spawn(function()
 	end)
 	
 	print("Trasher Debug | ¡Motor Hypnotic V9.0 listo! (Destello visible y fluido)")
-end)
 -- [FIN] INYECCIÓN HYPNOTIC V9.0
 
 -- =============================================================================
