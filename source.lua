@@ -1378,7 +1378,7 @@ task.spawn(function()
 	-------------------------------------------------------
 	local rotationSpeed = 30     -- Velocidad del giro
 	local crossfadeSpeed = 3     -- Velocidad de transición color
-	local flashDuration = 2.0    -- Velocidad del destello
+	local flashDuration = 5.0    -- Velocidad del destello
 	
 	-- Paleta recuperada: Incluye los tramos de sombra negra viajera
 	local baseColors = {
