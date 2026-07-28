@@ -1326,7 +1326,7 @@ task.spawn(function()
 	if not animatedStroke then
 		animatedStroke = Instance.new("UIStroke")
 		animatedStroke.Name = "AnimatedBorder"
-		animatedStroke.Thickness = 1.5
+		animatedStroke.Thickness = 2.5
 		animatedStroke.Color = Color3.fromRGB(255, 255, 255)
 		animatedStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 		animatedStroke.Parent = Main
@@ -1390,7 +1390,7 @@ task.spawn(function()
 		strokeGradient.Rotation = (strokeGradient.Rotation + (rotationSpeed * dt)) % 360
 		
 		-- B. Alternancia Negativo/Positivo cada 10ms
-		if (now - lastInvertCheck) >= 0.490 then
+		if (now - lastInvertCheck) >= 0.500 then
 			isNegative = not isNegative
 			lastInvertCheck = now
 		end
