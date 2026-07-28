@@ -1311,7 +1311,7 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V9.1 (RECORRIDO COMPLETO + CROSSFADE EN ESQUINAS)
+						-- [INICIO] INYECCIÓN HYPNOTIC V9.1 (DESTALLO 100% VISIBLE EN RECORRIDO + FADE SOLO EN LÍMITE)
 task.spawn(function()
 	print("Trasher Debug | Inicializando motor Hypnotic V9.1 (Dual Stroke + Perfect Corner Physics)...")
 	local RunService = game:GetService("RunService")
@@ -1367,7 +1367,7 @@ task.spawn(function()
 	local rotationSpeed = 30        -- Velocidad de giro del espectro
 	local crossfadeSpeed = 3        -- Velocidad de inversión de color
 	local flashDuration = 3.0       -- Duración de cada trayecto de esquina a esquina
-	local fadeWindow = 0.15         -- Ventana de crossfade suave en los extremos (0.15 = 15% del trayecto)
+	local fadeWindow = 0.025        -- AJUSTE: Solo el 2.5% final del trayecto (Fade exacto al tocar el límite)
 	local cornerSlowdown = 0.70     -- Intensidad de exhibición en esquinas
 	
 	-- Paleta de colores para el espectro
@@ -1436,11 +1436,12 @@ task.spawn(function()
 			easedProgress = flashProgress - (cornerSlowdown / (2 * math.pi)) * math.sin(flashProgress * 2 * math.pi)
 		end
 
-		-- AJUSTE 1: Recorrido exacto de esquina a esquina (0.50 permite tocar el inicio y final absoluto)
-		local movementOffset = lerp(0.50, -0.50, easedProgress)
+		-- Desplazamiento exacto
+		local movementOffset = lerp(0.44, -0.44, easedProgress)
 		flashGradient.Offset = Vector2.new(movementOffset, 0)
 		
-		-- AJUSTE 2: Crossfade suave en los puntos extremos
+		-- LÓGICA DE FADE RESTRINGIDA AL EXTREMO EXACTO:
+		-- Mantiene fadeRamp = 1 (100% visible) durante todo el camino
 		local fadeRamp = 1
 		if flashProgress < fadeWindow then
 			fadeRamp = flashProgress / fadeWindow
@@ -1448,23 +1449,23 @@ task.spawn(function()
 			fadeRamp = (1 - flashProgress) / fadeWindow
 		end
 		
-		-- Transición senoidal para que el desvanecimiento sea fluido y no brusco
+		-- Transición rápida justo al llegar al punto de retorno
 		local opacity = math.sin(fadeRamp * (math.pi / 2))
 		
-		-- Gradiente con transparencia dinámica
+		-- Gradiente de destello
 		flashGradient.Transparency = NumberSequence.new({
 			NumberSequenceKeypoint.new(0, 1),
-			NumberSequenceKeypoint.new(0.40, 1),
-			NumberSequenceKeypoint.new(0.46, 1 - (0.45 * opacity)),
+			NumberSequenceKeypoint.new(0.44, 1),
+			NumberSequenceKeypoint.new(0.48, 1 - (0.5 * opacity)),
 			NumberSequenceKeypoint.new(0.50, 1 - opacity),
-			NumberSequenceKeypoint.new(0.54, 1 - (0.45 * opacity)),
-			NumberSequenceKeypoint.new(0.60, 1),
+			NumberSequenceKeypoint.new(0.52, 1 - (0.5 * opacity)),
+			NumberSequenceKeypoint.new(0.56, 1),
 			NumberSequenceKeypoint.new(1, 1)
 		})
 		
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V9.1 corregido! (Trayecto completo + Crossfade fluido en esquinas)")
+	print("Trasher Debug | ¡Motor Hypnotic V9.1 corregido! (Brillo continuo en movimiento + Fade exacto en límites)")
 end)
 -- [FIN] INYECCIÓN HYPNOTIC V9.1
 
