@@ -1311,9 +1311,9 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V9.1 (DESTALLO 100% VISIBLE EN RECORRIDO + FADE SOLO EN LÍMITE)
+						-- [INICIO] INYECCIÓN HYPNOTIC V9.0 (SPECTRUM + DESTELLO PING-PONG VISIBLE)
 task.spawn(function()
-	print("Trasher Debug | Inicializando motor Hypnotic V9.1 (Dual Stroke + Perfect Corner Physics)...")
+	print("Trasher Debug | Inicializando motor Hypnotic V9.0 (Dual Stroke + Visible Ping-Pong Fix)...")
 	local RunService = game:GetService("RunService")
 	
 	if not Main then 
@@ -1366,9 +1366,9 @@ task.spawn(function()
 	-------------------------------------------------------
 	local rotationSpeed = 30        -- Velocidad de giro del espectro
 	local crossfadeSpeed = 3        -- Velocidad de inversión de color
-	local flashDuration = 3.0       -- Duración de cada trayecto de esquina a esquina
-	local fadeWindow = 0.025        -- AJUSTE: Solo el 2.5% final del trayecto (Fade exacto al tocar el límite)
-	local cornerSlowdown = 0.70     -- Intensidad de exhibición en esquinas
+	local flashDuration = 2.8       -- Duración de cada trayecto (2.8s ida / 2.8s vuelta)
+	local fadeWindow = 0.15         -- Transición de entrada/salida (15% del trayecto)
+	local cornerSlowdown = 0.50     -- Fuerza de desaceleración en esquinas (0.0 a 0.7 max)
 	
 	-- Paleta de colores para el espectro
 	local baseColors = {
@@ -1423,6 +1423,7 @@ task.spawn(function()
 		-----------------------------------------------
 		-- B. Lógica de la Capa de Destello (Ping-Pong)
 		-----------------------------------------------
+		-- Ciclo continuo 0..2 (0..1 ida, 1..2 vuelta)
 		local rawProgress = ((now - startTime) / flashDuration) % 2
 		
 		local flashProgress = rawProgress
@@ -1430,18 +1431,17 @@ task.spawn(function()
 			flashProgress = 2 - rawProgress
 		end
 		
-		-- Físicas de desaceleración en curva
+		-- Física de curvatura armónica
 		local easedProgress = flashProgress
 		if cornerSlowdown > 0 then
-			easedProgress = flashProgress - (cornerSlowdown / (2 * math.pi)) * math.sin(flashProgress * 2 * math.pi)
+			easedProgress = flashProgress - (cornerSlowdown / (4 * math.pi)) * math.sin(flashProgress * 4 * math.pi)
 		end
 
-		-- Desplazamiento exacto
-		local movementOffset = lerp(0.44, -0.44, easedProgress)
+		-- Mapeo ajustado a la zona visible del menú (de 0.55 a -0.55)
+		local movementOffset = lerp(0.55, -0.55, easedProgress)
 		flashGradient.Offset = Vector2.new(movementOffset, 0)
 		
-		-- LÓGICA DE FADE RESTRINGIDA AL EXTREMO EXACTO:
-		-- Mantiene fadeRamp = 1 (100% visible) durante todo el camino
+		-- Transición suave de transparencia en extremos
 		local fadeRamp = 1
 		if flashProgress < fadeWindow then
 			fadeRamp = flashProgress / fadeWindow
@@ -1449,25 +1449,24 @@ task.spawn(function()
 			fadeRamp = (1 - flashProgress) / fadeWindow
 		end
 		
-		-- Transición rápida justo al llegar al punto de retorno
 		local opacity = math.sin(fadeRamp * (math.pi / 2))
 		
-		-- Gradiente de destello
+		-- Modulación de transparencia dinámica siempre visible
 		flashGradient.Transparency = NumberSequence.new({
 			NumberSequenceKeypoint.new(0, 1),
-			NumberSequenceKeypoint.new(0.44, 1),
-			NumberSequenceKeypoint.new(0.48, 1 - (0.5 * opacity)),
+			NumberSequenceKeypoint.new(0.40, 1),
+			NumberSequenceKeypoint.new(0.46, 1 - (0.45 * opacity)),
 			NumberSequenceKeypoint.new(0.50, 1 - opacity),
-			NumberSequenceKeypoint.new(0.52, 1 - (0.5 * opacity)),
-			NumberSequenceKeypoint.new(0.56, 1),
+			NumberSequenceKeypoint.new(0.54, 1 - (0.45 * opacity)),
+			NumberSequenceKeypoint.new(0.60, 1),
 			NumberSequenceKeypoint.new(1, 1)
 		})
 		
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V9.1 corregido! (Brillo continuo en movimiento + Fade exacto en límites)")
+	print("Trasher Debug | ¡Motor Hypnotic V9.0 listo! (Destello visible y fluido)")
 end)
--- [FIN] INYECCIÓN HYPNOTIC V9.1
+-- [FIN] INYECCIÓN HYPNOTIC V9.0
 
 -- =============================================================================
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
