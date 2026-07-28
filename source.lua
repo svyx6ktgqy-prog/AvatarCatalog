@@ -1338,8 +1338,8 @@ LoadingFrame.Version.Text = Release
 		end
 		
 		-- 3. Configuración de Tiempos y Velocidades
-		local rotationSpeed = 12 -- Velocidad de rotación ultra lenta e hipnótica (grados/sec)
-		local reflectionInterval = 120 -- Intervalo del reflejo en segundos (120 seg = 2 minutos)
+		local rotationSpeed = 100 -- Velocidad de rotación ultra lenta e hipnótica (grados/sec)
+		local reflectionInterval = 20 -- Intervalo del reflejo en segundos (120 seg = 2 minutos)
 		local reflectionSpeed = 0.6 -- Velocidad con la que cruza el destello blanco
 		
 		-- 4. Definición de la Paleta Multi-Gradiente Hipnótica
