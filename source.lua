@@ -10,6 +10,15 @@
 
 ]]
 
+	-- [INICIO] PROTECTOR DE INSTANCIA ÚNICA (ANTI-RE-EJECUCIÓN)
+	if getgenv().TrasherMenuLoaded then
+		warn("Trasher Debug | El menú ya está abierto y activo. Evitando duplicación.")
+		return
+	end
+	getgenv().TrasherMenuLoaded = true
+	
+	-- (Aquí debajo va todo el código de tu UI y Rayfield...)
+
 if debugX then
 	warn('Initialising Rayfield')
 end
