@@ -1339,20 +1339,21 @@ LoadingFrame.Version.Text = Release
 		end
 		
 						strokeGradient.Color = ColorSequence.new({
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),        
-	ColorSequenceKeypoint.new(0.05, Color3.fromRGB(0, 0, 0)),     -- El margen negro es solo del 5%
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),        -- Inicio Negro
+	ColorSequenceKeypoint.new(0.02, Color3.fromRGB(0, 0, 0)),     -- Solo 2% de sombra/corte
 	
-	-- [ZONA DE LUZ SUPER ESTIRADA]
-	ColorSequenceKeypoint.new(0.10, Color3.fromRGB(0, 255, 255)), -- La luz arranca en el 10%
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 0, 255)),  -- Centro
-	ColorSequenceKeypoint.new(0.90, Color3.fromRGB(0, 255, 255)), -- La luz se estira hasta el 90%
-	
-	ColorSequenceKeypoint.new(0.95, Color3.fromRGB(0, 0, 0)),     -- El margen negro final es del 5%
+	-- [ZONA DE LUZ A TOPE - 96% DE COBERTURA]
+	ColorSequenceKeypoint.new(0.03, Color3.fromRGB(0, 255, 255)), -- Arranca el color casi en el borde
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 0, 255)),  -- Centro Neón expansivo
+	ColorSequenceKeypoint.new(0.97, Color3.fromRGB(0, 255, 255)), -- El color se extiende hasta el final
+	-- [/ZONA DE LUZ A TOPE]
+
+	ColorSequenceKeypoint.new(0.98, Color3.fromRGB(0, 0, 0)),     -- Solo 2% de sombra/corte final
 	ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))         
 })
 		
 		-- 4. Bucle Matemático de Rotación
-		local rotationSpeed = 210 -- Velocidad de la animación
+		local rotationSpeed = 60 -- Velocidad de la animación
 		
 		RunService.Heartbeat:Connect(function()
 			-- Protecciones anti-lag: solo animar si el menú existe y es visible
