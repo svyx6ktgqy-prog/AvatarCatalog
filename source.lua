@@ -1311,9 +1311,9 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V8.4 (SIN DESTELLO)
+						-- [INICIO] INYECCIÓN HYPNOTIC V8.4 (SIN DESTELLO + CROSSFADE POLARIDAD)
 task.spawn(function()
-	print("Trasher Debug | Inicializando motor Hypnotic V8.4 (Espectro Continuo, Sin Destello)...")
+	print("Trasher Debug | Inicializando motor Hypnotic V8.4 (Crossfade Suave)...")
 	local RunService = game:GetService("RunService")
 	
 	if not Main then 
@@ -1340,8 +1340,9 @@ task.spawn(function()
 		strokeGradient.Parent = animatedStroke
 	end
 
-	-- 3. Parámetros de Rendimiento
-	local rotationSpeed = 30     -- Velocidad del espectro
+	-- 3. Parámetros de Rendimiento y Efectos
+	local rotationSpeed = 30     -- Velocidad del giro del espectro
+	local crossfadeSpeed = 3     -- Velocidad de la transición Positivo <-> Negativo
 	
 	-- Paleta Base
 	local baseColors = {
@@ -1353,20 +1354,18 @@ task.spawn(function()
 		Color3.fromRGB(0, 0, 0)         -- Negro Protegido
 	}
 	
-	-- Control de Tiempos y Estados
-	local lastInvertCheck = tick()
-	local isNegative = false
-	
-	-- Filtro de Polaridad (Negro Protegido)
-	local function getPolarityColor(color)
+	-- Filtro de Polaridad con Crossfade (Interpolar de Original a Negativo)
+	local function getPolarityColor(color, alpha)
+		-- Mantener el negro protegido intacto
 		if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
 			return Color3.fromRGB(0, 0, 0)
 		end
 		
-		if isNegative then
-			return Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
-		end
-		return color
+		-- Calcular el color negativo real
+		local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
+		
+		-- Lerp (Linear Interpolation) mezcla suavemente el original y el negativo
+		return color:Lerp(negativeColor, alpha)
 	end
 
 	-- Bucle Principal
@@ -1378,24 +1377,22 @@ task.spawn(function()
 		-- A. Rotación constante
 		strokeGradient.Rotation = (strokeGradient.Rotation + (rotationSpeed * dt)) % 360
 		
-		-- B. Alternancia Negativo/Positivo
-		if (now - lastInvertCheck) >= 0.500 then
-			isNegative = not isNegative
-			lastInvertCheck = now
-		end
+		-- B. Cálculo del nivel de Crossfade (0 = Original, 1 = Negativo)
+		-- math.sin oscila suavemente, le sumamos 1 y lo dividimos por 2 para que no baje de 0.
+		local invertAlpha = (math.sin(now * crossfadeSpeed) + 1) / 2
 		
-		-- C. Estado Reposo Constante: Espectro Hipnótico
+		-- C. Aplicar colores interpolados en tiempo real
 		strokeGradient.Transparency = NumberSequence.new(0)
 		strokeGradient.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1])),
-			ColorSequenceKeypoint.new(0.300, getPolarityColor(baseColors[2])),
-			ColorSequenceKeypoint.new(0.500, getPolarityColor(baseColors[3])),
-			ColorSequenceKeypoint.new(0.700, getPolarityColor(baseColors[4])),
-			ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6]))
+			ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1], invertAlpha)),
+			ColorSequenceKeypoint.new(0.300, getPolarityColor(baseColors[2], invertAlpha)),
+			ColorSequenceKeypoint.new(0.500, getPolarityColor(baseColors[3], invertAlpha)),
+			ColorSequenceKeypoint.new(0.700, getPolarityColor(baseColors[4], invertAlpha)),
+			ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6], invertAlpha))
 		})
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V8.4 listo sin destello!")
+	print("Trasher Debug | ¡Motor Hypnotic V8.4 listo con crossfade activo!")
 end)
 -- [FIN] INYECCIÓN HYPNOTIC V8.4
 
