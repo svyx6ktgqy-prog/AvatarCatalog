@@ -1311,7 +1311,7 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V8.5 (FUNDO SPECTRUM + DESTELLO REALISTA RÁPIDO)
+						-- [INICIO] INYECCIÓN HYPNOTIC V8.5 (FIX BORDES NEGROS)
 task.spawn(function()
 	print("Trasher Debug | Inicializando motor Hypnotic V8.5 (Dual Stroke + Real Flash V2)...")
 	local RunService = game:GetService("RunService")
@@ -1333,8 +1333,9 @@ task.spawn(function()
 			stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			stroke.Parent = Main
 		end
-		-- Nota: ZIndex en UIStroke a veces es temperamental dependiendo de la jerarquía,
-		-- nos aseguramos de que el flash se cree después para que se dibuje encima si es posible.
+		-- FIX CLAVE 1: Asegurar que el color base sea siempre blanco puro (255,255,255)
+		-- para no multiplicar los gradientes con negro.
+		stroke.Color = Color3.fromRGB(255, 255, 255)
 		return stroke
 	end
 
@@ -1342,8 +1343,7 @@ task.spawn(function()
 	local animatedStroke = setupStroke("AnimatedBorderBase", 2.5)
 	
 	-- Capa 2: Destello Realista (Superposición)
-	local flashStroke = setupStroke("AnimatedBorderFlash", 2.7, 2) -- Un poco más grueso para efecto halo
-	flashStroke.Color = Color3.fromRGB(255, 255, 255) -- El flash es blanco
+	local flashStroke = setupStroke("AnimatedBorderFlash", 2.7, 2)
 
 	-------------------------------------------------------
 	-- 2. CONFIGURACIÓN DE GRADIENTES
@@ -1360,12 +1360,9 @@ task.spawn(function()
 	local spectrumGradient = getGradient(animatedStroke)
 	local flashGradient = getGradient(flashStroke)
 
-	-- Diseño del Destello Realista (Núcleo Blanco + Halos blancos opacos)
-	-- Usamos la Transparencia del gradiente para crear el haz de luz
-	flashGradient.Color = ColorSequence.new(Color3.new(1, 1, 1)) -- Todo blanco
+	-- Design del Destello Realista (Blanco Puro absoluto)
+	flashGradient.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
 	
-	-- Secuencia de Transparencia del Haz:
-	-- Totalmente Transparente -> Halo Opaco (0.5) -> Núcleo Sólido (0) -> Halo Opaco (0.5) -> Totalmente Transparente
 	flashGradient.Transparency = NumberSequence.new({
 		NumberSequenceKeypoint.new(0, 1),           -- Invisible
 		NumberSequenceKeypoint.new(0.42, 1),        -- Invisible inicio
@@ -1379,37 +1376,30 @@ task.spawn(function()
 	-------------------------------------------------------
 	-- 3. PARÁMETROS DE RENDIMIENTO
 	-------------------------------------------------------
-	-- Fondo (Spectrum)
 	local rotationSpeed = 30     -- Velocidad del giro
 	local crossfadeSpeed = 3     -- Velocidad de transición color
-
-	-- Destello (Flash Rápido)
-	local flashDuration = 0.5    -- Súper rápido: Completa el viaje en medio segundo
+	local flashDuration = 0.5    -- Velocidad del destello
 	
-	-- Paleta Base del Fondo
+	-- FIX CLAVE 2: Reemplazados los (0,0,0) por colores magenta para hacer un loop suave e infinito sin tramos negros
 	local baseColors = {
-		Color3.fromRGB(0, 0, 0),        -- Negro Protegido
+		Color3.fromRGB(255, 0, 150),    -- Magenta (Inicio)
 		Color3.fromRGB(130, 0, 255),    -- Morado Neón
 		Color3.fromRGB(0, 230, 255),    -- Cyan Ciberpunk
 		Color3.fromRGB(255, 0, 150),    -- Magenta
 		Color3.fromRGB(255, 180, 0),    -- Dorado
-		Color3.fromRGB(0, 0, 0)         -- Negro Protegido
+		Color3.fromRGB(255, 0, 150)     -- Magenta (Fin perfecto para Seamless Loop)
 	}
 	
 	-------------------------------------------------------
 	-- 4. LOGICA INTERNA
 	-------------------------------------------------------
 	
-	-- Auxiliar: Filtro de Polaridad Fondo (kept from previous V)
+	-- FIX CLAVE 3: Removida la conversión forzada a negro (0,0,0)
 	local function getPolarityColor(color, alpha)
-		if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
-			return Color3.fromRGB(255, 255, 255)
-		end
 		local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
 		return color:Lerp(negativeColor, alpha)
 	end
 
-	-- Control de tiempo del destello continuo
 	local lastFlashStart = tick()
 
 	-------------------------------------------------------
@@ -1423,40 +1413,34 @@ task.spawn(function()
 		-----------------------------------------------
 		-- A. Lógica de la Capa de Fondo (Spectrum)
 		-----------------------------------------------
-		-- Rotación
 		spectrumGradient.Rotation = (spectrumGradient.Rotation + (rotationSpeed * dt)) % 360
-		-- Crossfade Polaridad
 		local invertAlpha = (math.sin(now * crossfadeSpeed) + 1) / 2
+		
 		spectrumGradient.Transparency = NumberSequence.new(0)
 		spectrumGradient.Color = ColorSequence.new({
 			ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1], invertAlpha)),
-			ColorSequenceKeypoint.new(0.300, getPolarityColor(baseColors[2], invertAlpha)),
-			ColorSequenceKeypoint.new(0.500, getPolarityColor(baseColors[3], invertAlpha)),
-			ColorSequenceKeypoint.new(0.700, getPolarityColor(baseColors[4], invertAlpha)),
+			ColorSequenceKeypoint.new(0.25, getPolarityColor(baseColors[2], invertAlpha)),
+			ColorSequenceKeypoint.new(0.50, getPolarityColor(baseColors[3], invertAlpha)),
+			ColorSequenceKeypoint.new(0.75, getPolarityColor(baseColors[4], invertAlpha)),
 			ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6], invertAlpha))
 		})
 
 		-----------------------------------------------
 		-- B. Lógica de la Capa de Destello Rápido
 		-----------------------------------------------
-		-- Calcular progreso del destello (0 a 1)
 		local flashProgress = (now - lastFlashStart) / flashDuration
 		
 		if flashProgress >= 1 then
-			-- Reiniciar el ciclo inmediatamente al llegar a la meta
 			lastFlashStart = now
 			flashProgress = 0
 		end
 		
-		-- Efecto de viaje realista por el contorno usando OFFSET.
-		-- Movemos el offset de la transparencia desde 1 (completamente fuera a un lado) 
-		-- hasta -1 (completamente fuera al otro lado).
 		local movementOffset = math.lerp(1, -1, flashProgress)
 		flashGradient.Offset = Vector2.new(movementOffset, 0)
 		
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V8.5 listo! (Spectrum suave + Real Flash rápido activo)")
+	print("Trasher Debug | ¡Motor Hypnotic V8.5 listo! (Limpieza de bordes negros aplicada)")
 end)
 -- [FIN] INYECCIÓN HYPNOTIC V8.5
 
