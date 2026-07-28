@@ -1326,7 +1326,7 @@ task.spawn(function()
 	if not animatedStroke then
 		animatedStroke = Instance.new("UIStroke")
 		animatedStroke.Name = "AnimatedBorder"
-		animatedStroke.Thickness = 3
+		animatedStroke.Thickness = 1.5
 		animatedStroke.Color = Color3.fromRGB(255, 255, 255)
 		animatedStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 		animatedStroke.Parent = Main
@@ -1341,8 +1341,8 @@ task.spawn(function()
 	end
 
 	-- 3. Parámetros de Rendimiento
-	local rotationSpeed = 40     -- Velocidad del espectro
-	local cooldownInterval = 1.5    -- 3 Segundos de espera entre viajes
+	local rotationSpeed = 30     -- Velocidad del espectro
+	local cooldownInterval = 3    -- 3 Segundos de espera entre viajes
 	local flashDuration = 1.2     -- Duración exacta del recorrido (segundos)
 	
 	-- Paleta Base
@@ -1390,7 +1390,7 @@ task.spawn(function()
 		strokeGradient.Rotation = (strokeGradient.Rotation + (rotationSpeed * dt)) % 360
 		
 		-- B. Alternancia Negativo/Positivo cada 10ms
-		if (now - lastInvertCheck) >= 0.500 then
+		if (now - lastInvertCheck) >= 0.490 then
 			isNegative = not isNegative
 			lastInvertCheck = now
 		end
