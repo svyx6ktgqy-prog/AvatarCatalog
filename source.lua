@@ -4535,7 +4535,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 			sampleSend = true
 		end
 
-		--if Settings.ScriptID then
+				--if Settings.ScriptID then
 			reporter:windowCreated({
 				script_name        = Settings.Name or "Unknown",
 				script_version     = Release,
@@ -4549,6 +4549,22 @@ function RayfieldLibrary:CreateWindow(Settings)
 				verification_token = Settings.VerificationToken,
 			})
 		--end
+	end
+
+	-- [CIERRE TRASHER] Limpieza de la variable global y motores al cerrar la ventana
+	if Window.OnClose then
+		Window.OnClose:Connect(function()
+			-- 1. Liberamos el candado principal para permitir que el script se vuelva a ejecutar
+			if getgenv then getgenv().TrasherMenuLoaded = nil end
+			
+			-- 2. Apagamos el motor del destello y fondo V3 para evitar que se superpongan
+			if getgenv and getgenv().TrasherMasterConn then
+				getgenv().TrasherMasterConn:Disconnect()
+				getgenv().TrasherMasterConn = nil
+			end
+			
+			print("Trasher Debug | Menú cerrado correctamente. Entorno limpio.")
+		end)
 	end
 
 	return Window
