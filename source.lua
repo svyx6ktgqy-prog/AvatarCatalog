@@ -1341,7 +1341,7 @@ task.spawn(function()
 	end
 
 	-- 3. Parámetros de Rendimiento
-	local rotationSpeed = 80     -- Velocidad del espectro
+	local rotationSpeed = 40     -- Velocidad del espectro
 	local cooldownInterval = 1.5    -- 3 Segundos de espera entre viajes
 	local flashDuration = 1.2     -- Duración exacta del recorrido (segundos)
 	
