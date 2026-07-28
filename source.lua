@@ -1311,9 +1311,9 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-			-- [INICIO] INYECCIÓN HYPNOTIC V8 (SPEED 210 + REFLEJO TRASLÚCIDO + NEGATIVO/POSITIVO 10MS)
+				-- [INICIO] INYECCIÓN HYPNOTIC V8.1 (BLACK LOCK + 0.300 SPACING)
 	task.spawn(function()
-		print("Trasher Debug | Inicializando motor Hypnotic V8...")
+		print("Trasher Debug | Aplicando filtro Black Lock y ajuste 0.300...")
 		local RunService = game:GetService("RunService")
 		
 		if not Main then return end
@@ -1337,22 +1337,21 @@ LoadingFrame.Version.Text = Release
 			strokeGradient.Parent = animatedStroke
 		end
 
-		-- 3. Configuración de Parámetros de Rendimiento
-		local rotationSpeed = 210     -- Velocidad solicitada (210°/seg)
-		local cooldown3Min = 180      -- Tiempo de espera antes del viaje (3 minutos = 180 seg)
-		local flashStepSpeed = 4.5    -- Viaje ultrarrápido paso a paso (~3ms por fotograma)
+		-- 3. Parámetros de Rendimiento
+		local rotationSpeed = 210
+		local cooldown3Min = 180
+		local flashStepSpeed = 4.5
 		
-		-- Paleta Base del Stroke
+		-- Paleta Base con fondo Negro Protegido
 		local baseColors = {
-			Color3.fromRGB(15, 0, 35),
-			Color3.fromRGB(130, 0, 255),
-			Color3.fromRGB(0, 230, 255),
-			Color3.fromRGB(255, 0, 150),
-			Color3.fromRGB(255, 180, 0),
-			Color3.fromRGB(15, 0, 35)
+			Color3.fromRGB(0, 0, 0),        -- Negro Protegido (0.000)
+			Color3.fromRGB(130, 0, 255),    -- Morado Neón
+			Color3.fromRGB(0, 230, 255),    -- Cyan Ciberpunk
+			Color3.fromRGB(255, 0, 150),    -- Magenta
+			Color3.fromRGB(255, 180, 0),    -- Dorado
+			Color3.fromRGB(0, 0, 0)         -- Negro Protegido (1.000)
 		}
 		
-		-- Controladores de Estado Temporizados
 		local last3MinCheck = tick()
 		local isReflecting = false
 		local reflectionProgress = 0
@@ -1360,39 +1359,42 @@ LoadingFrame.Version.Text = Release
 		local lastInvertCheck = tick()
 		local isNegative = false
 		
-		-- Algoritmo Matemático de Inversión (Efecto Negativo/Positivo)
+		-- ALGORITMO PROTECTOR DE NEGROS (BLACK LOCK)
 		local function getPolarityColor(color)
+			-- Si el color es negro o casi negro, NUNCA se invierte a blanco
+			if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
+				return Color3.fromRGB(0, 0, 0)
+			end
+			
 			if isNegative then
-				-- Invierte los canales RGB (255 - R, 255 - G, 255 - B)
 				return Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
 			end
 			return color
 		end
 
-		-- Bucle Principal de Alta Frecuencia
+		-- Bucle Principal
 		RunService.Heartbeat:Connect(function(dt)
 			if not Main or not Main.Parent or not Main.Visible then return end
 			
 			local now = tick()
 			
-			-- A. ROTACIÓN A VELOCIDAD 210
+			-- A. Rotación a Velocidad 210
 			strokeGradient.Rotation = (strokeGradient.Rotation + (rotationSpeed * dt)) % 360
 			
-			-- B. ALTERNANCIA NEGATIVO / POSITIVO (Cada 10 milisegundos)
-			if (now - lastInvertCheck) >= 0.500 then
+			-- B. Alternancia Negativo/Positivo cada 10ms (Solo afecta colores vivos)
+			if (now - lastInvertCheck) >= 0.010 then
 				isNegative = not isNegative
 				lastInvertCheck = now
 			end
 			
-			-- C. TEMPORIZADOR DE 3 MINUTOS PARA EL REFLEJO
+			-- C. Temporizador de 3 Minutos
 			if not isReflecting and (now - last3MinCheck) >= cooldown3Min then
 				isReflecting = true
 				reflectionProgress = 0
 			end
 			
-			-- D. RENDERING DEL REFLEJO TRASLÚCIDO (VIAJE COMPLETO ULTRA RÁPIDO)
+			-- D. Renderizado del Reflejo Traslúcido Cristalino
 			if isReflecting then
-				-- Avanza el haz de luz a alta velocidad paso a paso (~3ms)
 				reflectionProgress = reflectionProgress + (dt * flashStepSpeed)
 				
 				if reflectionProgress >= 1 then
@@ -1400,46 +1402,42 @@ LoadingFrame.Version.Text = Release
 					last3MinCheck = now
 					strokeGradient.Transparency = NumberSequence.new(0)
 				else
-					-- Puntos de paso coordinados para evitar colisión de Keypoints
 					local p2 = math.clamp(reflectionProgress, 0.002, 0.998)
 					local p1 = math.clamp(p2 - 0.08, 0.001, p2 - 0.001)
 					local p3 = math.clamp(p2 + 0.08, p2 + 0.001, 0.999)
 					
-					-- Color del haz (Blanco Neón con halos laterales)
 					strokeGradient.Color = ColorSequence.new({
 						ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1])),
 						ColorSequenceKeypoint.new(p1, getPolarityColor(baseColors[3])),
-						ColorSequenceKeypoint.new(p2, Color3.fromRGB(255, 255, 255)), -- Cristal Blanco
+						ColorSequenceKeypoint.new(p2, Color3.fromRGB(255, 255, 255)),
 						ColorSequenceKeypoint.new(p3, getPolarityColor(baseColors[4])),
 						ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6]))
 					})
 					
-					-- Capa de Traslucidez Avanzada (Modula la opacidad en tiempo real)
 					strokeGradient.Transparency = NumberSequence.new({
 						NumberSequenceKeypoint.new(0, 0),
 						NumberSequenceKeypoint.new(p1, 0.1),
-						NumberSequenceKeypoint.new(p2, 0.55), -- Reflejo semi-transparente cristalino
+						NumberSequenceKeypoint.new(p2, 0.55),
 						NumberSequenceKeypoint.new(p3, 0.1),
 						NumberSequenceKeypoint.new(1, 0)
 					})
 				end
 			else
-				-- Estado Reposo: Paleta Flashing a 210 Speed con Inversión cada 10ms
+				-- Estado Reposo: Posicionamiento con margen 0.300
 				strokeGradient.Transparency = NumberSequence.new(0)
 				strokeGradient.Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1])),
-					ColorSequenceKeypoint.new(0.2, getPolarityColor(baseColors[2])),
-					ColorSequenceKeypoint.new(0.4, getPolarityColor(baseColors[3])),
-					ColorSequenceKeypoint.new(0.6, getPolarityColor(baseColors[4])),
-					ColorSequenceKeypoint.new(0.8, getPolarityColor(baseColors[5])),
-					ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6]))
+					ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1])),          -- Negro Base
+					ColorSequenceKeypoint.new(0.300, getPolarityColor(baseColors[2])),      -- Inicio de Neón en 0.300
+					ColorSequenceKeypoint.new(0.500, getPolarityColor(baseColors[3])),      -- Centro Cyan
+					ColorSequenceKeypoint.new(0.700, getPolarityColor(baseColors[4])),      -- Cierre Neón en 0.700
+					ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6]))           -- Negro Final
 				})
 			end
 		end)
 		
-		print("Trasher Debug | ¡Motor Hypnotic V8 inyectado con éxito!")
+		print("Trasher Debug | ¡Motor Hypnotic V8.1 inyectado con éxito!")
 	end)
-	-- [FIN] INYECCIÓN HYPNOTIC V8
+	-- [FIN] INYECCIÓN HYPNOTIC V8.1
 
 -- =============================================================================
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
