@@ -1382,7 +1382,7 @@ LoadingFrame.Version.Text = Release
 			strokeGradient.Rotation = (strokeGradient.Rotation + (rotationSpeed * dt)) % 360
 			
 			-- B. Alternancia Negativo/Positivo cada 10ms (Solo afecta colores vivos)
-			if (now - lastInvertCheck) >= 0.300 then
+			if (now - lastInvertCheck) >= 0.460 then
 				isNegative = not isNegative
 				lastInvertCheck = now
 			end
