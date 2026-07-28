@@ -978,18 +978,16 @@ local dragOffsetMobile = 150
 Rayfield.DisplayOrder = 100
 LoadingFrame.Version.Text = Release
 
-												-- [INICIO] INYECCIÓN DE FONDO ANIMADO TRASHER (SÚPER CONTROLADO V2)
+													-- [INICIO] MOTOR UNIFICADO TRASHER (FONDO V3 + DESTELLO HYPNOTIC V9.0)
 	task.spawn(function()
-		print("Trasher Debug | Inicializando motor de fondo V2 (Anti-Colapso)...")
+		print("Trasher Debug | Inicializando motor unificado anti-colisión...")
 		
-		-- 0. LIMPIEZA PROFUNDA (ANTI-RE-EJECUCIÓN EN DELTA)
-		-- Si ya existía un motor corriendo por una ejecución anterior, lo aniquilamos.
-		if getgenv().TrasherBgConn then
-			getgenv().TrasherBgConn:Disconnect()
-			getgenv().TrasherBgConn = nil
+		-- Limpieza profunda de instancias anteriores
+		if getgenv().TrasherMasterConn then
+			getgenv().TrasherMasterConn:Disconnect()
+			getgenv().TrasherMasterConn = nil
 		end
 		
-		-- 1. Enlaces RAW de GitHub y Rutas en Delta
 		local urlScene1 = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/refs/heads/main/assets/Scene1.jpg" 
 		local urlScene2 = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/refs/heads/main/assets/Scene2.jpg"
 		
@@ -1010,8 +1008,8 @@ LoadingFrame.Version.Text = Release
 						if url:match("^http") then
 							local success, req = pcall(function() return requestFunc({Url = url, Method = "GET"}) end)
 							if success and req and type(req) == "table" and req.Body then
-                                writefile(path, req.Body)
-                            end
+								writefile(path, req.Body)
+							end
 						end
 					end
 				end
@@ -1022,30 +1020,43 @@ LoadingFrame.Version.Text = Release
 			local asset1 = ensureAndLoadImage(urlScene1, pathImage1)
 			local asset2 = ensureAndLoadImage(urlScene2, pathImage2)
 			
-			-- 2. Empujar los elementos originales de Rayfield al frente
-			for _, obj in ipairs(Main:GetDescendants()) do
-				if obj:IsA("GuiObject") then
-					obj.ZIndex = obj.ZIndex + 10
-				end
-			end
+			-- 1. Preparar contenedor principal de Rayfield
+			Main.BackgroundTransparency = 1
 			
 			local mainCorner = Main:FindFirstChildOfClass("UICorner")
 			local exactRadius = mainCorner and mainCorner.CornerRadius or UDim2.new(0, 8)
 			
-			-- 3. Contenedor Maestro (ZIndex negativo para evitar a Rayfield)
-			local bgContainer = Instance.new("Frame")
+			-- 2. Asegurar el UIStroke para el Destello de Luz (Hypnotic V9.0) en la capa correcta
+			local stroke = Main:FindFirstChildOfClass("UIStroke")
+			if not stroke then
+				stroke = Instance.new("UIStroke")
+				stroke.Parent = Main
+			end
+			stroke.Thickness = 2.5
+			stroke.Transparency = 0
+			
+			local strokeGrad = stroke:FindFirstChildOfClass("UIGradient")
+			if not strokeGrad then
+				strokeGrad = Instance.new("UIGradient")
+				strokeGrad.Parent = stroke
+			end
+
+			-- 3. Contenedor Maestro del Fondo Animado (Detrás de todo)
+			local bgContainer = Main:FindFirstChild("CustomAnimatedBackground") or Instance.new("Frame")
 			bgContainer.Name = "CustomAnimatedBackground"
 			bgContainer.Parent = Main
 			bgContainer.Size = UDim2.new(1, 0, 1, 0)
 			bgContainer.BackgroundTransparency = 1
 			bgContainer.ZIndex = -5
+			bgContainer.BorderSizePixel = 0
 			
-			local cornerContainer = Instance.new("UICorner")
+			local cornerContainer = bgContainer:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
 			cornerContainer.CornerRadius = exactRadius
 			cornerContainer.Parent = bgContainer
 			
 			-- 4. Imagen 1 (Base)
-			local bgImage1 = Instance.new("ImageLabel")
+			local bgImage1 = bgContainer:FindFirstChild("BgImage1") or Instance.new("ImageLabel")
+			bgImage1.Name = "BgImage1"
 			bgImage1.Parent = bgContainer
 			bgImage1.Size = UDim2.new(1, 0, 1, 0)
 			bgImage1.BackgroundTransparency = 1
@@ -1053,16 +1064,18 @@ LoadingFrame.Version.Text = Release
 			bgImage1.ClipsDescendants = true
 			bgImage1.Image = asset1
 			bgImage1.ZIndex = -4
+			bgImage1.BorderSizePixel = 0
 			
-			local corner1 = Instance.new("UICorner")
+			local corner1 = bgImage1:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
 			corner1.CornerRadius = exactRadius
 			corner1.Parent = bgImage1
 			
-			local grad1 = Instance.new("UIGradient")
+			local grad1 = bgImage1:FindFirstChildOfClass("UIGradient") or Instance.new("UIGradient")
 			grad1.Parent = bgImage1
 			
 			-- 5. Imagen 2 (Superior)
-			local bgImage2 = Instance.new("ImageLabel")
+			local bgImage2 = bgContainer:FindFirstChild("BgImage2") or Instance.new("ImageLabel")
+			bgImage2.Name = "BgImage2"
 			bgImage2.Parent = bgContainer
 			bgImage2.Size = UDim2.new(1, 0, 1, 0)
 			bgImage2.BackgroundTransparency = 1
@@ -1071,16 +1084,17 @@ LoadingFrame.Version.Text = Release
 			bgImage2.Image = asset2
 			bgImage2.ImageTransparency = 1 
 			bgImage2.ZIndex = -3
+			bgImage2.BorderSizePixel = 0
 			
-			local corner2 = Instance.new("UICorner")
+			local corner2 = bgImage2:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
 			corner2.CornerRadius = exactRadius
 			corner2.Parent = bgImage2
 			
-			local grad2 = Instance.new("UIGradient")
+			local grad2 = bgImage2:FindFirstChildOfClass("UIGradient") or Instance.new("UIGradient")
 			grad2.Parent = bgImage2
 			
 			-- 6. Filtro oscuro de legibilidad
-			local darkTint = Instance.new("Frame")
+			local darkTint = bgContainer:FindFirstChild("DarkOverlay") or Instance.new("Frame")
 			darkTint.Name = "DarkOverlay"
 			darkTint.Parent = bgContainer
 			darkTint.Size = UDim2.new(1, 0, 1, 0)
@@ -1089,11 +1103,11 @@ LoadingFrame.Version.Text = Release
 			darkTint.ZIndex = -2
 			darkTint.BorderSizePixel = 0
 			
-			local tintCorner = Instance.new("UICorner")
+			local tintCorner = darkTint:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
 			tintCorner.CornerRadius = exactRadius
 			tintCorner.Parent = darkTint
 			
-			-- 7. Motor de Animación Matemático V2
+			-- 7. Motor Matemático Unificado (Controla el Destello y el Fondo al mismo tiempo)
 			local speed = 3.0
 			local rotationSpeed = 30        
 			local crossfadeSpeed = 3        
@@ -1115,31 +1129,29 @@ LoadingFrame.Version.Text = Release
 			
 			local RunService = game:GetService("RunService")
 			
-			-- Asignamos la conexión a una variable global de Delta
-			getgenv().TrasherBgConn = RunService.Heartbeat:Connect(function(dt)
-				-- Auto-destrucción del motor si cierras o re-ejecutas la UI (Evita el lag y bugs visuales)
-				if not bgContainer or not bgContainer.Parent then 
-					if getgenv().TrasherBgConn then getgenv().TrasherBgConn:Disconnect() end
+			getgenv().TrasherMasterConn = RunService.Heartbeat:Connect(function(dt)
+				if not Main or not Main.Parent then 
+					if getgenv().TrasherMasterConn then getgenv().TrasherMasterConn:Disconnect() end
 					return 
 				end
 				
-				if not Main.Visible then return end
-				
-				-- [!] DEFENSA CONTRA LA EXPANSIÓN DE RAYFIELD [!]
-				-- Forzamos a que el fondo base de Rayfield sea transparente en CADA frame.
-				-- Así, cuando Rayfield intente poner su fondo sólido al abrirse, lo volvemos invisible.
+				-- Mantener el fondo de Rayfield siempre transparente ante expansiones
 				Main.BackgroundTransparency = 1
 				
 				local now = tick()
 				
+				-- Animación de las imágenes de fondo
 				local fadeFactor = (math.cos(now * speed) + 1) / 2
 				bgImage1.ImageTransparency = fadeFactor
 				bgImage2.ImageTransparency = 1 - fadeFactor
 				
+				-- Rotación sincronizada para el borde y el fondo
 				local currentRotation = (grad1.Rotation + (rotationSpeed * dt)) % 360
 				grad1.Rotation = currentRotation
 				grad2.Rotation = currentRotation
+				strokeGrad.Rotation = currentRotation -- Aplica el destello de luz dinámico
 				
+				-- Cálculo de polaridad (negativo)
 				local invertAlpha = (math.sin(now * crossfadeSpeed) + 1) / 2
 				
 				local colorSeq = ColorSequence.new({
@@ -1150,16 +1162,18 @@ LoadingFrame.Version.Text = Release
 					ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6], invertAlpha))
 				})
 				
+				-- Aplicar colores al fondo y al borde simultáneamente sin romper switches
 				grad1.Color = colorSeq
 				grad2.Color = colorSeq
+				strokeGrad.Color = colorSeq
 			end)
 			
-			print("Trasher Debug | ¡Motor V2 activado y blindado contra Rayfield!")
+			print("Trasher Debug | ¡Motor unificado de fondo y destello aplicado con éxito!")
 		else
-			warn("Trasher Debug | Tu ejecutor no es compatible.")
+			warn("Trasher Debug | Tu ejecutor no soporta getcustomasset.")
 		end
 	end)
-	-- [FIN] INYECCIÓN DE FONDO ANIMADO TRASHER (SÚPER CONTROLADO V2)
+	-- [FIN] MOTOR UNIFICADO TRASHER
 
 	-- [INICIO] EFECTO HIPNÓTICO DE COLORES EN TEXTO
 	task.spawn(function()
