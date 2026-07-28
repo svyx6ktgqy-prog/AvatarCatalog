@@ -1311,9 +1311,9 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V8.4 (SIN DESTELLO + CROSSFADE POLARIDAD)
+						-- [INICIO] INYECCIÓN HYPNOTIC V8.5 (FUNDO SPECTRUM + DESTELLO REALISTA RÁPIDO)
 task.spawn(function()
-	print("Trasher Debug | Inicializando motor Hypnotic V8.4 (Crossfade Suave)...")
+	print("Trasher Debug | Inicializando motor Hypnotic V8.5 (Dual Stroke + Real Flash V2)...")
 	local RunService = game:GetService("RunService")
 	
 	if not Main then 
@@ -1321,30 +1321,72 @@ task.spawn(function()
 		return 
 	end
 	
-	-- 1. UIStroke Base
-	local animatedStroke = Main:FindFirstChild("AnimatedBorder")
-	if not animatedStroke then
-		animatedStroke = Instance.new("UIStroke")
-		animatedStroke.Name = "AnimatedBorder"
-		animatedStroke.Thickness = 2.5
-		animatedStroke.Color = Color3.fromRGB(255, 255, 255)
-		animatedStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		animatedStroke.Parent = Main
-	end
-	
-	-- 2. UIGradient Base
-	local strokeGradient = animatedStroke:FindFirstChildOfClass("UIGradient")
-	if not strokeGradient then
-		strokeGradient = Instance.new("UIGradient")
-		strokeGradient.Name = "BorderGradient"
-		strokeGradient.Parent = animatedStroke
+	-------------------------------------------------------
+	-- 1. CONFIGURACIÓN DE LOS DOS BORDES (CAPAS)
+	-------------------------------------------------------
+	local function setupStroke(name, thickness, zindex)
+		local stroke = Main:FindFirstChild(name)
+		if not stroke then
+			stroke = Instance.new("UIStroke")
+			stroke.Name = name
+			stroke.Thickness = thickness
+			stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+			stroke.Parent = Main
+		end
+		-- Nota: ZIndex en UIStroke a veces es temperamental dependiendo de la jerarquía,
+		-- nos aseguramos de que el flash se cree después para que se dibuje encima si es posible.
+		return stroke
 	end
 
-	-- 3. Parámetros de Rendimiento y Efectos
-	local rotationSpeed = 30     -- Velocidad del giro del espectro
-	local crossfadeSpeed = 3     -- Velocidad de la transición Positivo <-> Negativo
+	-- Capa 1: Espectro Hipnótico (Fondo)
+	local animatedStroke = setupStroke("AnimatedBorderBase", 2.5)
 	
-	-- Paleta Base
+	-- Capa 2: Destello Realista (Superposición)
+	local flashStroke = setupStroke("AnimatedBorderFlash", 2.7, 2) -- Un poco más grueso para efecto halo
+	flashStroke.Color = Color3.fromRGB(255, 255, 255) -- El flash es blanco
+
+	-------------------------------------------------------
+	-- 2. CONFIGURACIÓN DE GRADIENTES
+	-------------------------------------------------------
+	local function getGradient(parent)
+		local grad = parent:FindFirstChildOfClass("UIGradient")
+		if not grad then
+			grad = Instance.new("UIGradient")
+			grad.Parent = parent
+		end
+		return grad
+	end
+
+	local spectrumGradient = getGradient(animatedStroke)
+	local flashGradient = getGradient(flashStroke)
+
+	-- Diseño del Destello Realista (Núcleo Blanco + Halos blancos opacos)
+	-- Usamos la Transparencia del gradiente para crear el haz de luz
+	flashGradient.Color = ColorSequence.new(Color3.new(1, 1, 1)) -- Todo blanco
+	
+	-- Secuencia de Transparencia del Haz:
+	-- Totalmente Transparente -> Halo Opaco (0.5) -> Núcleo Sólido (0) -> Halo Opaco (0.5) -> Totalmente Transparente
+	flashGradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),           -- Invisible
+		NumberSequenceKeypoint.new(0.42, 1),        -- Invisible inicio
+		NumberSequenceKeypoint.new(0.47, 0.6),      -- Halo izquierdo (60% visible)
+		NumberSequenceKeypoint.new(0.5, 0),         -- Núcleo Blanco Puro (0% transparente)
+		NumberSequenceKeypoint.new(0.53, 0.6),      -- Halo derecho (60% visible)
+		NumberSequenceKeypoint.new(0.58, 1),        -- Invisible fin
+		NumberSequenceKeypoint.new(1, 1)            -- Invisible
+	})
+
+	-------------------------------------------------------
+	-- 3. PARÁMETROS DE RENDIMIENTO
+	-------------------------------------------------------
+	-- Fondo (Spectrum)
+	local rotationSpeed = 30     -- Velocidad del giro
+	local crossfadeSpeed = 3     -- Velocidad de transición color
+
+	-- Destello (Flash Rápido)
+	local flashDuration = 0.5    -- Súper rápido: Completa el viaje en medio segundo
+	
+	-- Paleta Base del Fondo
 	local baseColors = {
 		Color3.fromRGB(0, 0, 0),        -- Negro Protegido
 		Color3.fromRGB(130, 0, 255),    -- Morado Neón
@@ -1354,47 +1396,69 @@ task.spawn(function()
 		Color3.fromRGB(0, 0, 0)         -- Negro Protegido
 	}
 	
-	-- Filtro de Polaridad con Crossfade (Interpolar de Original a Negativo)
+	-------------------------------------------------------
+	-- 4. LOGICA INTERNA
+	-------------------------------------------------------
+	
+	-- Auxiliar: Filtro de Polaridad Fondo (kept from previous V)
 	local function getPolarityColor(color, alpha)
-		-- Mantener el negro protegido intacto
 		if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
 			return Color3.fromRGB(0, 0, 0)
 		end
-		
-		-- Calcular el color negativo real
 		local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
-		
-		-- Lerp (Linear Interpolation) mezcla suavemente el original y el negativo
 		return color:Lerp(negativeColor, alpha)
 	end
 
-	-- Bucle Principal
+	-- Control de tiempo del destello continuo
+	local lastFlashStart = tick()
+
+	-------------------------------------------------------
+	-- 5. BUCLE PRINCIPAL (RUNSERVICE)
+	-------------------------------------------------------
 	RunService.Heartbeat:Connect(function(dt)
 		if not Main or not Main.Parent or not Main.Visible then return end
 		
 		local now = tick()
 		
-		-- A. Rotación constante
-		strokeGradient.Rotation = (strokeGradient.Rotation + (rotationSpeed * dt)) % 360
-		
-		-- B. Cálculo del nivel de Crossfade (0 = Original, 1 = Negativo)
-		-- math.sin oscila suavemente, le sumamos 1 y lo dividimos por 2 para que no baje de 0.
+		-----------------------------------------------
+		-- A. Lógica de la Capa de Fondo (Spectrum)
+		-----------------------------------------------
+		-- Rotación
+		spectrumGradient.Rotation = (spectrumGradient.Rotation + (rotationSpeed * dt)) % 360
+		-- Crossfade Polaridad
 		local invertAlpha = (math.sin(now * crossfadeSpeed) + 1) / 2
-		
-		-- C. Aplicar colores interpolados en tiempo real
-		strokeGradient.Transparency = NumberSequence.new(0)
-		strokeGradient.Color = ColorSequence.new({
+		spectrumGradient.Transparency = NumberSequence.new(0)
+		spectrumGradient.Color = ColorSequence.new({
 			ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1], invertAlpha)),
 			ColorSequenceKeypoint.new(0.300, getPolarityColor(baseColors[2], invertAlpha)),
 			ColorSequenceKeypoint.new(0.500, getPolarityColor(baseColors[3], invertAlpha)),
 			ColorSequenceKeypoint.new(0.700, getPolarityColor(baseColors[4], invertAlpha)),
 			ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6], invertAlpha))
 		})
+
+		-----------------------------------------------
+		-- B. Lógica de la Capa de Destello Rápido
+		-----------------------------------------------
+		-- Calcular progreso del destello (0 a 1)
+		local flashProgress = (now - lastFlashStart) / flashDuration
+		
+		if flashProgress >= 1 then
+			-- Reiniciar el ciclo inmediatamente al llegar a la meta
+			lastFlashStart = now
+			flashProgress = 0
+		end
+		
+		-- Efecto de viaje realista por el contorno usando OFFSET.
+		-- Movemos el offset de la transparencia desde 1 (completamente fuera a un lado) 
+		-- hasta -1 (completamente fuera al otro lado).
+		local movementOffset = math.lerp(1, -1, flashProgress)
+		flashGradient.Offset = Vector2.new(movementOffset, 0)
+		
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V8.4 listo con crossfade activo!")
+	print("Trasher Debug | ¡Motor Hypnotic V8.5 listo! (Spectrum suave + Real Flash rápido activo)")
 end)
--- [FIN] INYECCIÓN HYPNOTIC V8.4
+-- [FIN] INYECCIÓN HYPNOTIC V8.5
 
 -- =============================================================================
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
