@@ -1367,8 +1367,8 @@ task.spawn(function()
 	local rotationSpeed = 30        -- Velocidad de giro del espectro
 	local crossfadeSpeed = 3        -- Velocidad de inversión de color
 	local flashDuration = 2.5       -- Duración de cada trayecto (2.8s ida / 2.8s vuelta)
-	local fadeWindow = 0.08         -- Transición de entrada/salida (15% del trayecto)
-	local cornerSlowdown = 1.00     -- Fuerza de desaceleración en esquinas (0.0 a 0.8 max)
+	local fadeWindow = 0.02         -- Transición de entrada/salida (15% del trayecto)
+	local cornerSlowdown = 0.80     -- Fuerza de desaceleración en esquinas (0.0 a 0.8 max)
 	
 	-- Paleta de colores para el espectro
 	local baseColors = {
