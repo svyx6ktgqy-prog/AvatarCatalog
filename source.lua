@@ -4997,3 +4997,5 @@ task.delay(4, function()
 end)
 
 return RayfieldLibrary
+
+getgenv().TrasherMenuLoaded = true
