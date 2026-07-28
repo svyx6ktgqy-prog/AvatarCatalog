@@ -1338,18 +1338,18 @@ LoadingFrame.Version.Text = Release
 			strokeGradient.Parent = animatedStroke
 		end
 		
-				-- 3. Configurar colores: Base negra con colores "viajando"
+						-- 3. Configurar colores: Base negra con línea de luz MUCHO MÁS ESTIRADA
 		strokeGradient.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),        -- 0% a 40%: Base Negra
-			ColorSequenceKeypoint.new(0.4, Color3.fromRGB(0, 0, 0)),      -- Mantiene el negro
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),        -- Inicio Negro
+			ColorSequenceKeypoint.new(0.15, Color3.fromRGB(0, 0, 0)),     -- Se mantiene negro (solo un 15% de margen)
 			
-			-- [ZONA DEL COMETA / LUZ VIAJERA]
-			ColorSequenceKeypoint.new(0.45, Color3.fromRGB(0, 255, 255)), -- Empieza el color (Ej: Cyan)
-			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 0, 255)),  -- Centro brillante (Ej: Magenta)
-			ColorSequenceKeypoint.new(0.55, Color3.fromRGB(0, 255, 255)), -- Termina el color (Ej: Cyan)
-			-- [/ZONA DEL COMETA]
+			-- [ZONA DEL COMETA ESTIRADA Y GRUESA]
+			ColorSequenceKeypoint.new(0.25, Color3.fromRGB(0, 255, 255)), -- Empieza a iluminarse mucho antes (Ej: Cyan)
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 0, 255)),  -- Centro brillante y expansivo (Ej: Magenta)
+			ColorSequenceKeypoint.new(0.75, Color3.fromRGB(0, 255, 255)), -- Termina de iluminarse mucho después (Ej: Cyan)
+			-- [/ZONA DEL COMETA ESTIRADA]
 
-			ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 0, 0)),      -- 60% a 100%: Vuelve a Negro
+			ColorSequenceKeypoint.new(0.85, Color3.fromRGB(0, 0, 0)),     -- Vuelve a Negro (dejando otro 15% de margen)
 			ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))         -- Final Negro
 		})
 		
