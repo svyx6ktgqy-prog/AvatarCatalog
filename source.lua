@@ -978,7 +978,7 @@ local dragOffsetMobile = 150
 Rayfield.DisplayOrder = 100
 LoadingFrame.Version.Text = Release
 
-									-- [INICIO] INYECCIÓN DE FONDO ANIMADO TRASHER + POLARIDAD HIPNÓTICA (SÚPER CONTROLADO)
+										-- [INICIO] INYECCIÓN DE FONDO ANIMADO TRASHER + POLARIDAD HIPNÓTICA (SÚPER CONTROLADO)
 	task.spawn(function()
 		print("Trasher Debug | Inicializando motor de fondo ultra-controlado con Efecto Polaridad...")
 		
@@ -1021,23 +1021,16 @@ LoadingFrame.Version.Text = Release
 			local asset1 = ensureAndLoadImage(urlScene1, pathImage1)
 			local asset2 = ensureAndLoadImage(urlScene2, pathImage2)
 			
-			-- 2. Empujar los elementos originales de Rayfield al frente
-			for _, obj in ipairs(Main:GetDescendants()) do
-				if obj:IsA("GuiObject") then
-					obj.ZIndex = obj.ZIndex + 10
-				end
-			end
-			
 			local mainCorner = Main:FindFirstChildOfClass("UICorner")
 			local exactRadius = mainCorner and mainCorner.CornerRadius or UDim2.new(0, 8)
 			
-			-- 3. Contenedor Maestro
+			-- 3. Contenedor Maestro (Hundido al fondo)
 			local bgContainer = Instance.new("Frame")
 			bgContainer.Name = "CustomAnimatedBackground"
 			bgContainer.Parent = Main
 			bgContainer.Size = UDim2.new(1, 0, 1, 0)
 			bgContainer.BackgroundTransparency = 1
-			bgContainer.ZIndex = 1
+			bgContainer.ZIndex = -10
 			
 			local cornerContainer = Instance.new("UICorner")
 			cornerContainer.CornerRadius = exactRadius
@@ -1051,7 +1044,7 @@ LoadingFrame.Version.Text = Release
 			bgImage1.ScaleType = Enum.ScaleType.Crop
 			bgImage1.ClipsDescendants = true
 			bgImage1.Image = asset1
-			bgImage1.ZIndex = 1
+			bgImage1.ZIndex = -9
 			
 			local corner1 = Instance.new("UICorner")
 			corner1.CornerRadius = exactRadius
@@ -1069,7 +1062,7 @@ LoadingFrame.Version.Text = Release
 			bgImage2.ClipsDescendants = true
 			bgImage2.Image = asset2
 			bgImage2.ImageTransparency = 1 
-			bgImage2.ZIndex = 2
+			bgImage2.ZIndex = -8
 			
 			local corner2 = Instance.new("UICorner")
 			corner2.CornerRadius = exactRadius
@@ -1078,21 +1071,21 @@ LoadingFrame.Version.Text = Release
 			local grad2 = Instance.new("UIGradient")
 			grad2.Parent = bgImage2
 			
-			-- 6. Filtro oscuro de legibilidad
+			-- 6. Filtro oscuro de legibilidad (Más fuerte)
 			local darkTint = Instance.new("Frame")
 			darkTint.Name = "DarkOverlay"
 			darkTint.Parent = bgContainer
 			darkTint.Size = UDim2.new(1, 0, 1, 0)
-			darkTint.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-			darkTint.BackgroundTransparency = 0.45 
-			darkTint.ZIndex = 3 
+			darkTint.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+			darkTint.BackgroundTransparency = 0.35 
+			darkTint.ZIndex = -7 
 			darkTint.BorderSizePixel = 0
 			
 			local tintCorner = Instance.new("UICorner")
 			tintCorner.CornerRadius = exactRadius
 			tintCorner.Parent = darkTint
 			
-			-- 7. Lógica de Colores (Clonada del Motor Stroke)
+			-- 7. Lógica de Colores (Clonada y MUTEADA para el fondo)
 			local baseColors = {
 				Color3.fromRGB(0, 0, 0),        -- Negro (Vignette)
 				Color3.fromRGB(130, 0, 255),    -- Morado Neón
@@ -1106,7 +1099,14 @@ LoadingFrame.Version.Text = Release
 				if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
 					return Color3.fromRGB(0, 0, 0)
 				end
-				local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
+				
+				-- Calculamos el negativo pero lo OSCURECEMOS multiplicando por 0.35
+				local negativeColor = Color3.new(
+					(1 - color.R) * 0.35, 
+					(1 - color.G) * 0.35, 
+					(1 - color.B) * 0.35
+				)
+				
 				return color:Lerp(negativeColor, alpha)
 			end
 			
@@ -1152,7 +1152,7 @@ LoadingFrame.Version.Text = Release
 			warn("Trasher Debug | Tu ejecutor no es compatible con 'getcustomasset'.")
 		end
 	end)
-	-- [FIN] INYECCIÓN DE FONDO ANIMADO TRASHER + POLARIDAD HIPNÓTICA TRASHER (SÚPER CONTROLADO)
+	-- [FIN] INYECCIÓN DE FONDO ANIMADO TRASHER + POLARIDAD HIPNÓTICA
 
 	-- [INICIO] EFECTO HIPNÓTICO DE COLORES EN TEXTO
 	task.spawn(function()
