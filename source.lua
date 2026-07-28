@@ -1311,144 +1311,91 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V8.4 (DOBLE CAPA SINCRONIZADA + BARRIDO LIMPIO)
+						-- [INICIO] INYECCIÓN HYPNOTIC V8.4 (SIN DESTELLO)
 task.spawn(function()
-	print("Trasher Debug | Inicializando motor Hypnotic V8.4 (Doble Capa Sincronizada)...")
+	print("Trasher Debug | Inicializando motor Hypnotic V8.4 (Espectro Continuo, Sin Destello)...")
 	local RunService = game:GetService("RunService")
 	
 	if not Main then 
 		warn("Trasher Debug | Error: No se encontró la variable 'Main'.")
 		return 
 	end
-
-	-- Función interna para generar capas limpias sin Z-Fighting
-	local function getOrCreateLayer(name, zIndexOffset)
-		local frame = Main:FindFirstChild(name)
-		if not frame then
-			frame = Instance.new("Frame")
-			frame.Name = name
-			frame.Size = UDim2.new(1, 0, 1, 0)
-			frame.Position = UDim2.new(0, 0, 0, 0)
-			frame.BackgroundTransparency = 1
-			frame.ZIndex = Main.ZIndex + zIndexOffset
-			frame.Parent = Main
-			
-			local stroke = Instance.new("UIStroke")
-			stroke.Thickness = 2.5
-			stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-			stroke.Parent = frame
-			
-			local gradient = Instance.new("UIGradient")
-			gradient.Parent = stroke
-		end
-		return frame:FindFirstChildOfClass("UIStroke"):FindFirstChildOfClass("UIGradient")
+	
+	-- 1. UIStroke Base
+	local animatedStroke = Main:FindFirstChild("AnimatedBorder")
+	if not animatedStroke then
+		animatedStroke = Instance.new("UIStroke")
+		animatedStroke.Name = "AnimatedBorder"
+		animatedStroke.Thickness = 2.5
+		animatedStroke.Color = Color3.fromRGB(255, 255, 255)
+		animatedStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		animatedStroke.Parent = Main
+	end
+	
+	-- 2. UIGradient Base
+	local strokeGradient = animatedStroke:FindFirstChildOfClass("UIGradient")
+	if not strokeGradient then
+		strokeGradient = Instance.new("UIGradient")
+		strokeGradient.Name = "BorderGradient"
+		strokeGradient.Parent = animatedStroke
 	end
 
-	-- 1. Setup de Capas
-	local baseGradient = getOrCreateLayer("Hypnotic_BaseLayer", 1)
-	local flashGradient = getOrCreateLayer("Hypnotic_FlashLayer", 2)
-
-	-- 2. Configuración Estática del Destello (Overlay)
-	flashGradient.Rotation = 45 -- Ángulo diagonal para un barrido cinematográfico de un solo pase
-	flashGradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 230, 255)),    -- Halo Cian
-		ColorSequenceKeypoint.new(0.48, Color3.fromRGB(180, 230, 255)), 
-		ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 255, 255)), -- Núcleo Blanco Puro
-		ColorSequenceKeypoint.new(0.52, Color3.fromRGB(255, 180, 230)), 
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 180, 230))     -- Halo Magenta
-	})
-	
-	-- El destello es muy fino y el resto del overlay es 100% invisible para mostrar el arcoíris de fondo
-	local flashTransparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 1),
-		NumberSequenceKeypoint.new(0.48, 1),
-		NumberSequenceKeypoint.new(0.50, 0), -- Haz de luz visible
-		NumberSequenceKeypoint.new(0.52, 1),
-		NumberSequenceKeypoint.new(1, 1)
-	})
-
 	-- 3. Parámetros de Rendimiento
-	local rotationSpeed = 30
-	local cooldownInterval = 3
-	local flashDuration = 1.2
+	local rotationSpeed = 30     -- Velocidad del espectro
 	
+	-- Paleta Base
 	local baseColors = {
-		Color3.fromRGB(0, 0, 0),        
-		Color3.fromRGB(130, 0, 255),    
-		Color3.fromRGB(0, 230, 255),    
-		Color3.fromRGB(255, 0, 150),    
-		Color3.fromRGB(255, 180, 0),    
-		Color3.fromRGB(0, 0, 0)         
+		Color3.fromRGB(0, 0, 0),        -- Negro Protegido
+		Color3.fromRGB(130, 0, 255),    -- Morado Neón
+		Color3.fromRGB(0, 230, 255),    -- Cyan Ciberpunk
+		Color3.fromRGB(255, 0, 150),    -- Magenta
+		Color3.fromRGB(255, 180, 0),    -- Dorado
+		Color3.fromRGB(0, 0, 0)         -- Negro Protegido
 	}
 	
-	local lastReflectionCheck = tick()
-	local isReflecting = true
-	local rawProgress = 0
+	-- Control de Tiempos y Estados
 	local lastInvertCheck = tick()
 	local isNegative = false
 	
-	-- Curva Matemática
-	local function cubicBezierEasing(t)
-		return t < 0.5 and (4 * t * t * t) or (1 - math.pow(-2 * t + 2, 3) / 2)
-	end
-	
+	-- Filtro de Polaridad (Negro Protegido)
 	local function getPolarityColor(color)
 		if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
 			return Color3.fromRGB(0, 0, 0)
 		end
+		
 		if isNegative then
 			return Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
 		end
 		return color
 	end
 
-	-- 4. Bucle Principal del Motor
+	-- Bucle Principal
 	RunService.Heartbeat:Connect(function(dt)
 		if not Main or not Main.Parent or not Main.Visible then return end
+		
 		local now = tick()
 		
-		-- A. Animación Base Constante (Rainbow Hipnótico)
-		baseGradient.Rotation = (baseGradient.Rotation + (rotationSpeed * dt)) % 360
+		-- A. Rotación constante
+		strokeGradient.Rotation = (strokeGradient.Rotation + (rotationSpeed * dt)) % 360
 		
+		-- B. Alternancia Negativo/Positivo
 		if (now - lastInvertCheck) >= 0.500 then
 			isNegative = not isNegative
 			lastInvertCheck = now
 		end
 		
-		baseGradient.Color = ColorSequence.new({
+		-- C. Estado Reposo Constante: Espectro Hipnótico
+		strokeGradient.Transparency = NumberSequence.new(0)
+		strokeGradient.Color = ColorSequence.new({
 			ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1])),
 			ColorSequenceKeypoint.new(0.300, getPolarityColor(baseColors[2])),
 			ColorSequenceKeypoint.new(0.500, getPolarityColor(baseColors[3])),
 			ColorSequenceKeypoint.new(0.700, getPolarityColor(baseColors[4])),
 			ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6]))
 		})
-		
-		-- B. Lógica del Destello Único
-		if not isReflecting and (now - lastReflectionCheck) >= cooldownInterval then
-			isReflecting = true
-			rawProgress = 0
-		end
-		
-		if isReflecting then
-			rawProgress = math.clamp(rawProgress + (dt / flashDuration), 0, 1)
-			local easedProgress = cubicBezierEasing(rawProgress)
-			
-			-- Usamos 'Offset' para un barrido limpio desde fuera de la UI hacia el otro lado
-			-- Mapeamos el progreso (0 a 1) para que vaya de -1.2 a 1.2
-			flashGradient.Offset = Vector2.new(-1.2 + (easedProgress * 2.4), 0)
-			flashGradient.Transparency = flashTransparency
-			
-			if rawProgress >= 1 then
-				isReflecting = false
-				lastReflectionCheck = now
-				flashGradient.Transparency = NumberSequence.new(1) -- Ocultar al terminar
-			end
-		else
-			flashGradient.Transparency = NumberSequence.new(1) -- Mantener oculto en reposo
-		end
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V8.4 listo y estabilizado!")
+	print("Trasher Debug | ¡Motor Hypnotic V8.4 listo sin destello!")
 end)
 -- [FIN] INYECCIÓN HYPNOTIC V8.4
 
