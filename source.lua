@@ -1368,7 +1368,7 @@ task.spawn(function()
 	local crossfadeSpeed = 3        -- Velocidad de inversión de color
 	local flashDuration = 2.8       -- Duración de cada trayecto (2.8s ida / 2.8s vuelta)
 	local fadeWindow = 0.15         -- Transición de entrada/salida (15% del trayecto)
-	local cornerSlowdown = 0.50     -- Fuerza de desaceleración en esquinas (0.0 a 0.7 max)
+	local cornerSlowdown = 0.70     -- Fuerza de desaceleración en esquinas (0.0 a 0.7 max)
 	
 	-- Paleta de colores para el espectro
 	local baseColors = {
@@ -1434,7 +1434,7 @@ task.spawn(function()
 		-- Física de curvatura armónica
 		local easedProgress = flashProgress
 		if cornerSlowdown > 0 then
-			easedProgress = flashProgress - (cornerSlowdown / (4 * math.pi)) * math.sin(flashProgress * 4 * math.pi)
+			easedProgress = flashProgress - (cornerSlowdown / (2 * math.pi)) * math.sin(flashProgress * 2 * math.pi)
 		end
 
 		-- Mapeo ajustado a la zona visible del menú (de 0.55 a -0.55)
