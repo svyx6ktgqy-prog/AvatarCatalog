@@ -1311,9 +1311,9 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-						-- [INICIO] INYECCIÓN HYPNOTIC V8.5 (SPECTUM CON SOMBRA NEGRA PROTEGIDA)
+						-- [INICIO] INYECCIÓN HYPNOTIC V8.6 (SPECTUM CON SOMBRA NEGRA + DESTELLO SUAVE)
 task.spawn(function()
-	print("Trasher Debug | Inicializando motor Hypnotic V8.5 (Dual Stroke + Real Flash V2)...")
+	print("Trasher Debug | Inicializando motor Hypnotic V8.6 (Dual Stroke + Real Flash V2 + Smooth Fade)...")
 	local RunService = game:GetService("RunService")
 	
 	if not Main then 
@@ -1333,8 +1333,7 @@ task.spawn(function()
 			stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			stroke.Parent = Main
 		end
-		-- EL FIX REAL: Ambos strokes deben ser 255,255,255 para que Roblox 
-		-- no multiplique el gradiente por negro produciendo bordes oscuros indeseados.
+		-- Ambos strokes en 255,255,255 para evitar bordes oscuros indeseados por multiplicación
 		stroke.Color = Color3.fromRGB(255, 255, 255)
 		return stroke
 	end
@@ -1362,23 +1361,14 @@ task.spawn(function()
 
 	-- Diseño del Destello Realista (Blanco Puro)
 	flashGradient.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
-	
-	flashGradient.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 1),           -- Invisible
-		NumberSequenceKeypoint.new(0.42, 1),        -- Invisible inicio
-		NumberSequenceKeypoint.new(0.47, 0.6),      -- Halo izquierdo (60% visible)
-		NumberSequenceKeypoint.new(0.5, 0),         -- Núcleo Blanco Puro (0% transparente)
-		NumberSequenceKeypoint.new(0.53, 0.6),      -- Halo derecho (60% visible)
-		NumberSequenceKeypoint.new(0.58, 1),        -- Invisible fin
-		NumberSequenceKeypoint.new(1, 1)            -- Invisible
-	})
 
 	-------------------------------------------------------
 	-- 3. PARÁMETROS DE RENDIMIENTO
 	-------------------------------------------------------
 	local rotationSpeed = 30     -- Velocidad del giro
 	local crossfadeSpeed = 3     -- Velocidad de transición color
-	local flashDuration = 2.599    -- Velocidad del destello
+	local flashDuration = 2.599   -- Duración completa del destello
+	local fadeWindow = 0.20      -- Porcentaje del ciclo (20%) dedicado al Fade In y Fade Out
 	
 	-- Paleta recuperada: Incluye los tramos de sombra negra viajera
 	local baseColors = {
@@ -1438,14 +1428,37 @@ task.spawn(function()
 			flashProgress = 0
 		end
 		
+		-- Movimiento de desplazamiento
 		local movementOffset = math.lerp(1, -1, flashProgress)
 		flashGradient.Offset = Vector2.new(movementOffset, 0)
 		
+		-- Cálculo de multiplicador de visibilidad (Crossfade Fade In/Out)
+		local fadeRamp = 1
+		if flashProgress < fadeWindow then
+			fadeRamp = flashProgress / fadeWindow
+		elseif flashProgress > (1 - fadeWindow) then
+			fadeRamp = (1 - flashProgress) / fadeWindow
+		end
+		
+		-- Curva sinusoidal para suavizado de bordes (entre 0 y 1)
+		local opacity = math.sin(fadeRamp * (math.pi / 2))
+		
+		-- Modulación dinámica de transparencia para evitar apariciones/desapariciones secas
+		flashGradient.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(0.42, 1),
+			NumberSequenceKeypoint.new(0.47, 1 - (0.4 * opacity)), -- Halo (pasa suavemente de 1 a 0.6)
+			NumberSequenceKeypoint.new(0.5, 1 - opacity),          -- Núcleo (pasa suavemente de 1 a 0)
+			NumberSequenceKeypoint.new(0.53, 1 - (0.4 * opacity)), -- Halo (pasa suavemente de 1 a 0.6)
+			NumberSequenceKeypoint.new(0.58, 1),
+			NumberSequenceKeypoint.new(1, 1)
+		})
+		
 	end)
 	
-	print("Trasher Debug | ¡Motor Hypnotic V8.5 listo! (Spectrum con negro protegido + UIStroke blanco)")
+	print("Trasher Debug | ¡Motor Hypnotic V8.6 listo! (Destello con Crossfade Suave)")
 end)
--- [FIN] INYECCIÓN HYPNOTIC V8.5
+-- [FIN] INYECCIÓN HYPNOTIC V8.6
 
 -- =============================================================================
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
