@@ -1438,7 +1438,8 @@ task.spawn(function()
 		end
 
 		-- Mapeo ajustado a la zona visible del menú (de 0.55 a -0.55)
-		local movementOffset = lerp(0.55, -0.55, easedProgress)
+		-- Limitamos el trayecto a 0.45 para que la luz no se salga del UI
+  local movementOffset = lerp(0.45, -0.45, easedProgress) 
 		flashGradient.Offset = Vector2.new(movementOffset, 0)
 		
 		-- Transición suave de transparencia en extremos
