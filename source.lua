@@ -1338,11 +1338,19 @@ LoadingFrame.Version.Text = Release
 			strokeGradient.Parent = animatedStroke
 		end
 		
-		-- 3. Configurar los colores (Puedes cambiarlos por los que tenías en triangleHood)
+				-- 3. Configurar colores: Base negra con colores "viajando"
 		strokeGradient.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),     -- Rojo
-			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(153, 0, 255)), -- Morado
-			ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))      -- Rojo (Para un bucle perfecto)
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),        -- 0% a 40%: Base Negra
+			ColorSequenceKeypoint.new(0.4, Color3.fromRGB(0, 0, 0)),      -- Mantiene el negro
+			
+			-- [ZONA DEL COMETA / LUZ VIAJERA]
+			ColorSequenceKeypoint.new(0.45, Color3.fromRGB(0, 255, 255)), -- Empieza el color (Ej: Cyan)
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 0, 255)),  -- Centro brillante (Ej: Magenta)
+			ColorSequenceKeypoint.new(0.55, Color3.fromRGB(0, 255, 255)), -- Termina el color (Ej: Cyan)
+			-- [/ZONA DEL COMETA]
+
+			ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 0, 0)),      -- 60% a 100%: Vuelve a Negro
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))         -- Final Negro
 		})
 		
 		-- 4. Bucle Matemático de Rotación
