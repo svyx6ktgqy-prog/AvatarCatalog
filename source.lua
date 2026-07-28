@@ -1338,7 +1338,7 @@ LoadingFrame.Version.Text = Release
 		end
 
 		-- 3. Parámetros de Rendimiento Ajustados
-		local rotationSpeed = 210
+		local rotationSpeed = 80
 		local cooldownInterval = 3    -- ¡Ahora espera solo 3 segundos!
 		local flashStepSpeed = 4.5    -- Velocidad rápida del destello
 		
