@@ -1323,7 +1323,7 @@ LoadingFrame.Version.Text = Release
 		if not animatedStroke then
 			animatedStroke = Instance.new("UIStroke")
 			animatedStroke.Name = "AnimatedBorder"
-			animatedStroke.Thickness = 3
+			animatedStroke.Thickness = 1
 			animatedStroke.Color = Color3.fromRGB(255, 255, 255)
 			animatedStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			animatedStroke.Parent = Main
