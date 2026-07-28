@@ -1366,7 +1366,7 @@ task.spawn(function()
 	-------------------------------------------------------
 	local rotationSpeed = 30        -- Velocidad de giro del espectro
 	local crossfadeSpeed = 3        -- Velocidad de inversión de color
-	local flashDuration = 2.90       -- Duración de cada trayecto (2.8s ida / 2.8s vuelta)
+	local flashDuration = 2.69       -- Duración de cada trayecto (2.8s ida / 2.8s vuelta)
 	local fadeWindow = 0.08         -- Transición de entrada/salida (15% del trayecto)
 	local cornerSlowdown = 0.70     -- Fuerza de desaceleración en esquinas (0.0 a 0.7 max)
 	
@@ -1439,7 +1439,7 @@ task.spawn(function()
 
 		-- Mapeo ajustado a la zona visible del menú (de 0.55 a -0.55) fix1
 		-- Limitamos el trayecto a 0.45 para que la luz no se salga del UI
-  local movementOffset = lerp(0.80, -0.80, easedProgress) 
+  local movementOffset = lerp(0.55, -0.55, easedProgress) 
 		flashGradient.Offset = Vector2.new(movementOffset, 0)
 		
 		-- Transición suave de transparencia en extremos
