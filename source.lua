@@ -1325,6 +1325,7 @@ LoadingFrame.Version.Text = Release
 			animatedStroke = Instance.new("UIStroke")
 			animatedStroke.Name = "AnimatedBorder"
 			animatedStroke.Thickness = 2.5 -- Grosor del borde (ajústalo a tu gusto)
+   animatedStroke.Color = Color3.fromRGB(255, 255, 255) -- <<< ¡AGREGA ESTA LÍNEA!
 			animatedStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			animatedStroke.Parent = Main
 		end
