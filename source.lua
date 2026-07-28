@@ -1311,9 +1311,9 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-					-- [INICIO] INYECCIÓN HYPNOTIC V8.2 (INSTANT FLASH + 3 SEC COOLDOWN)
+						-- [INICIO] INYECCIÓN HYPNOTIC V8.3 (PERFECT OPACITY FLASH + SOLID CORE)
 	task.spawn(function()
-		print("Trasher Debug | Aplicando reflejo instantáneo y ciclo de 3 segundos...")
+		print("Trasher Debug | Aplicando destello óptico de núcleo sólido...")
 		local RunService = game:GetService("RunService")
 		
 		if not Main then return end
@@ -1323,7 +1323,7 @@ LoadingFrame.Version.Text = Release
 		if not animatedStroke then
 			animatedStroke = Instance.new("UIStroke")
 			animatedStroke.Name = "AnimatedBorder"
-			animatedStroke.Thickness = 1
+			animatedStroke.Thickness = 3
 			animatedStroke.Color = Color3.fromRGB(255, 255, 255)
 			animatedStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			animatedStroke.Parent = Main
@@ -1337,30 +1337,30 @@ LoadingFrame.Version.Text = Release
 			strokeGradient.Parent = animatedStroke
 		end
 
-		-- 3. Parámetros de Rendimiento Ajustados
+		-- 3. Parámetros de Rendimiento
 		local rotationSpeed = 80
-		local cooldownInterval = 3    -- ¡Ahora espera solo 3 segundos!
-		local flashStepSpeed = 4.5    -- Velocidad rápida del destello
+		local cooldownInterval = 1.5    -- 3 Segundos entre destellos
+		local flashStepSpeed = 4.0    -- Velocidad fluida del haz
 		
-		-- Paleta Base con fondo Negro Protegido
+		-- Paleta Base
 		local baseColors = {
-			Color3.fromRGB(0, 0, 0),        -- Negro Protegido (0.000)
+			Color3.fromRGB(0, 0, 0),        -- Negro Protegido
 			Color3.fromRGB(130, 0, 255),    -- Morado Neón
 			Color3.fromRGB(0, 230, 255),    -- Cyan Ciberpunk
 			Color3.fromRGB(255, 0, 150),    -- Magenta
 			Color3.fromRGB(255, 180, 0),    -- Dorado
-			Color3.fromRGB(0, 0, 0)         -- Negro Protegido (1.000)
+			Color3.fromRGB(0, 0, 0)         -- Negro Protegido
 		}
 		
-		-- VARIABLES DE CONTROL (Inician activadas para ejecución instantánea)
+		-- Variables de Control
 		local lastReflectionCheck = tick()
-		local isReflecting = true        -- ¡INICIA DE INMEDIATO AL ABRIR EL MENÚ!
+		local isReflecting = true        -- Inicio instantáneo al abrir
 		local reflectionProgress = 0
 		
 		local lastInvertCheck = tick()
 		local isNegative = false
 		
-		-- Algoritmo Protector de Negros
+		-- Filtro de Polaridad (Negro Protegido)
 		local function getPolarityColor(color)
 			if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
 				return Color3.fromRGB(0, 0, 0)
@@ -1387,43 +1387,53 @@ LoadingFrame.Version.Text = Release
 				lastInvertCheck = now
 			end
 			
-			-- C. Temporizador de 3 Segundos entre reflejos
+			-- C. Temporizador de 3 Segundos
 			if not isReflecting and (now - lastReflectionCheck) >= cooldownInterval then
 				isReflecting = true
 				reflectionProgress = 0
 			end
 			
-			-- D. Renderizado del Reflejo Traslúcido Cristalino
+			-- D. DESTELLO PERFECTO DE NÚCLEO SÓLIDO Y OPACIDADES DEGRADADAS
 			if isReflecting then
 				reflectionProgress = reflectionProgress + (dt * flashStepSpeed)
 				
 				if reflectionProgress >= 1 then
 					isReflecting = false
-					lastReflectionCheck = now -- Marca el tiempo para esperar 3 segundos
+					lastReflectionCheck = now
 					strokeGradient.Transparency = NumberSequence.new(0)
 				else
-					local p2 = math.clamp(reflectionProgress, 0.002, 0.998)
-					local p1 = math.clamp(p2 - 0.08, 0.001, p2 - 0.001)
-					local p3 = math.clamp(p2 + 0.08, p2 + 0.001, 0.999)
+					-- Puntos de clave calculados en cascada simétrica
+					local pCenter = math.clamp(reflectionProgress, 0.005, 0.995)
+					local pInL = math.clamp(pCenter - 0.035, 0.003, pCenter - 0.001)
+					local pOutL = math.clamp(pCenter - 0.080, 0.001, pInL - 0.001)
 					
+					local pInR = math.clamp(pCenter + 0.035, pCenter + 0.001, 0.997)
+					local pOutR = math.clamp(pCenter + 0.080, pInR + 0.001, 0.999)
+					
+					-- Gradiente de Colores: Halo suave de color -> NÚCLEO BLANCO PURO -> Halo suave
 					strokeGradient.Color = ColorSequence.new({
 						ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1])),
-						ColorSequenceKeypoint.new(p1, getPolarityColor(baseColors[3])),
-						ColorSequenceKeypoint.new(p2, Color3.fromRGB(255, 255, 255)), -- Haz cristalino
-						ColorSequenceKeypoint.new(p3, getPolarityColor(baseColors[4])),
+						ColorSequenceKeypoint.new(pOutL, getPolarityColor(baseColors[3])),
+						ColorSequenceKeypoint.new(pInL, Color3.fromRGB(230, 245, 255)),  -- Halo blanco-cyan suave
+						ColorSequenceKeypoint.new(pCenter, Color3.fromRGB(255, 255, 255)),-- NÚCLEO BLANCO SÓLIDO PURO
+						ColorSequenceKeypoint.new(pInR, Color3.fromRGB(255, 230, 245)),  -- Halo blanco-magenta suave
+						ColorSequenceKeypoint.new(pOutR, getPolarityColor(baseColors[4])),
 						ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6]))
 					})
 					
+					-- Curva de Opacidad: Núcleo 100% Sólido (0.0) -> Halos Difuminados Traslúcidos (0.5)
 					strokeGradient.Transparency = NumberSequence.new({
-						NumberSequenceKeypoint.new(0, 0),
-						NumberSequenceKeypoint.new(p1, 0.1),
-						NumberSequenceKeypoint.new(p2, 0.55),
-						NumberSequenceKeypoint.new(p3, 0.1),
-						NumberSequenceKeypoint.new(1, 0)
+						NumberSequenceKeypoint.new(0, 0),             -- Borde base visible
+						NumberSequenceKeypoint.new(pOutL, 0.15),      -- Entrada suave
+						NumberSequenceKeypoint.new(pInL, 0.50),       -- Halo de aura traslúcido
+						NumberSequenceKeypoint.new(pCenter, 0.00),    -- NÚCLEO BLANCO 100% SÓLIDO (Sin opacidad)
+						NumberSequenceKeypoint.new(pInR, 0.50),       -- Halo de aura traslúcido
+						NumberSequenceKeypoint.new(pOutR, 0.15),      -- Salida suave
+						NumberSequenceKeypoint.new(1, 0)              -- Borde base visible
 					})
 				end
 			else
-				-- Estado Reposo: Posicionamiento con margen 0.300
+				-- Estado Reposo: Espectro Hipnótico a 210 con Inversión cada 10ms
 				strokeGradient.Transparency = NumberSequence.new(0)
 				strokeGradient.Color = ColorSequence.new({
 					ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1])),
@@ -1435,9 +1445,9 @@ LoadingFrame.Version.Text = Release
 			end
 		end)
 		
-		print("Trasher Debug | ¡Motor Hypnotic V8.2 (3 Sec Loop) listo!")
+		print("Trasher Debug | ¡Motor Hypnotic V8.3 (Solid Core Flash) activo!")
 	end)
-	-- [FIN] INYECCIÓN HYPNOTIC V8.2
+	-- [FIN] INYECCIÓN HYPNOTIC V8.3
 
 -- =============================================================================
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
