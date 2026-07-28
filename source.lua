@@ -978,9 +978,16 @@ local dragOffsetMobile = 150
 Rayfield.DisplayOrder = 100
 LoadingFrame.Version.Text = Release
 
-											-- [INICIO] INYECCIÓN DE FONDO ANIMADO TRASHER (SÚPER CONTROLADO)
+												-- [INICIO] INYECCIÓN DE FONDO ANIMADO TRASHER (SÚPER CONTROLADO V2)
 	task.spawn(function()
-		print("Trasher Debug | Inicializando motor de fondo ultra-controlado con EFECTO POLARIDAD...")
+		print("Trasher Debug | Inicializando motor de fondo V2 (Anti-Colapso)...")
+		
+		-- 0. LIMPIEZA PROFUNDA (ANTI-RE-EJECUCIÓN EN DELTA)
+		-- Si ya existía un motor corriendo por una ejecución anterior, lo aniquilamos.
+		if getgenv().TrasherBgConn then
+			getgenv().TrasherBgConn:Disconnect()
+			getgenv().TrasherBgConn = nil
+		end
 		
 		-- 1. Enlaces RAW de GitHub y Rutas en Delta
 		local urlScene1 = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/refs/heads/main/assets/Scene1.jpg" 
@@ -993,24 +1000,18 @@ LoadingFrame.Version.Text = Release
 		if type(getcustomasset) == "function" then
 			local requestFunc = request or http_request or (syn and syn.request)
 			
-			-- Asegurar que exista la carpeta 'trasher'
 			if type(makefolder) == "function" and type(isfolder) == "function" then
-				if not isfolder(folderPath) then
-					makefolder(folderPath)
-				end
+				if not isfolder(folderPath) then makefolder(folderPath) end
 			end
 			
-			-- Descarga segura de imágenes
 			local function ensureAndLoadImage(url, path)
 				if type(isfile) == "function" and type(writefile) == "function" and requestFunc then
 					if not isfile(path) then
 						if url:match("^http") then
-							local success, req = pcall(function()
-								return requestFunc({Url = url, Method = "GET"})
-							end)
+							local success, req = pcall(function() return requestFunc({Url = url, Method = "GET"}) end)
 							if success and req and type(req) == "table" and req.Body then
-								writefile(path, req.Body)
-							end
+                                writefile(path, req.Body)
+                            end
 						end
 					end
 				end
@@ -1031,13 +1032,13 @@ LoadingFrame.Version.Text = Release
 			local mainCorner = Main:FindFirstChildOfClass("UICorner")
 			local exactRadius = mainCorner and mainCorner.CornerRadius or UDim2.new(0, 8)
 			
-			-- 3. Contenedor Maestro
+			-- 3. Contenedor Maestro (ZIndex negativo para evitar a Rayfield)
 			local bgContainer = Instance.new("Frame")
 			bgContainer.Name = "CustomAnimatedBackground"
 			bgContainer.Parent = Main
 			bgContainer.Size = UDim2.new(1, 0, 1, 0)
 			bgContainer.BackgroundTransparency = 1
-			bgContainer.ZIndex = 1
+			bgContainer.ZIndex = -5
 			
 			local cornerContainer = Instance.new("UICorner")
 			cornerContainer.CornerRadius = exactRadius
@@ -1051,13 +1052,12 @@ LoadingFrame.Version.Text = Release
 			bgImage1.ScaleType = Enum.ScaleType.Crop
 			bgImage1.ClipsDescendants = true
 			bgImage1.Image = asset1
-			bgImage1.ZIndex = 1
+			bgImage1.ZIndex = -4
 			
 			local corner1 = Instance.new("UICorner")
 			corner1.CornerRadius = exactRadius
 			corner1.Parent = bgImage1
 			
-			-- > NUEVO: Gradiente para inyectar la polaridad en la Imagen 1
 			local grad1 = Instance.new("UIGradient")
 			grad1.Parent = bgImage1
 			
@@ -1069,14 +1069,13 @@ LoadingFrame.Version.Text = Release
 			bgImage2.ScaleType = Enum.ScaleType.Crop
 			bgImage2.ClipsDescendants = true
 			bgImage2.Image = asset2
-			bgImage2.ImageTransparency = 1 -- Empieza oculta
-			bgImage2.ZIndex = 2
+			bgImage2.ImageTransparency = 1 
+			bgImage2.ZIndex = -3
 			
 			local corner2 = Instance.new("UICorner")
 			corner2.CornerRadius = exactRadius
 			corner2.Parent = bgImage2
 			
-			-- > NUEVO: Gradiente para inyectar la polaridad en la Imagen 2
 			local grad2 = Instance.new("UIGradient")
 			grad2.Parent = bgImage2
 			
@@ -1087,19 +1086,18 @@ LoadingFrame.Version.Text = Release
 			darkTint.Size = UDim2.new(1, 0, 1, 0)
 			darkTint.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 			darkTint.BackgroundTransparency = 0.45
-			darkTint.ZIndex = 3
+			darkTint.ZIndex = -2
 			darkTint.BorderSizePixel = 0
 			
 			local tintCorner = Instance.new("UICorner")
 			tintCorner.CornerRadius = exactRadius
 			tintCorner.Parent = darkTint
 			
-			-- 7. Motor de Animación Matemático (Fondo animado + Polaridad)
+			-- 7. Motor de Animación Matemático V2
 			local speed = 3.0
-			local rotationSpeed = 30        -- Sincronizado exactamente con el borde (Hypnotic)
-			local crossfadeSpeed = 3        -- Sincronizado exactamente con la velocidad de polaridad
+			local rotationSpeed = 30        
+			local crossfadeSpeed = 3        
 			
-			-- Los mismos colores base del borde espectral para mantener simetría visual
 			local baseColors = {
 				Color3.fromRGB(0, 0, 0),        
 				Color3.fromRGB(130, 0, 255),    
@@ -1109,31 +1107,35 @@ LoadingFrame.Version.Text = Release
 				Color3.fromRGB(0, 0, 0)         
 			}
 			
-			-- Matemáticas independientes de inversión (protegidas en este Task.Spawn)
 			local function getPolarityColor(color, alpha)
-				if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
-					-- Protege el color negro para que el fondo no se ponga blanco de golpe 
-					return Color3.fromRGB(0, 0, 0)
-				end
+				if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then return Color3.fromRGB(0, 0, 0) end
 				local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
 				return color:Lerp(negativeColor, alpha)
 			end
 			
 			local RunService = game:GetService("RunService")
 			
-			RunService.Heartbeat:Connect(function(dt)
-				-- Protecciones anti-crasheo
-				if not bgContainer or not bgContainer.Parent then return end
+			-- Asignamos la conexión a una variable global de Delta
+			getgenv().TrasherBgConn = RunService.Heartbeat:Connect(function(dt)
+				-- Auto-destrucción del motor si cierras o re-ejecutas la UI (Evita el lag y bugs visuales)
+				if not bgContainer or not bgContainer.Parent then 
+					if getgenv().TrasherBgConn then getgenv().TrasherBgConn:Disconnect() end
+					return 
+				end
+				
 				if not Main.Visible then return end
+				
+				-- [!] DEFENSA CONTRA LA EXPANSIÓN DE RAYFIELD [!]
+				-- Forzamos a que el fondo base de Rayfield sea transparente en CADA frame.
+				-- Así, cuando Rayfield intente poner su fondo sólido al abrirse, lo volvemos invisible.
+				Main.BackgroundTransparency = 1
 				
 				local now = tick()
 				
-				-- A. Transición de opacidad original de Trasher
 				local fadeFactor = (math.cos(now * speed) + 1) / 2
 				bgImage1.ImageTransparency = fadeFactor
 				bgImage2.ImageTransparency = 1 - fadeFactor
 				
-				-- B. Transición de color y rotación del filtro polarizado
 				local currentRotation = (grad1.Rotation + (rotationSpeed * dt)) % 360
 				grad1.Rotation = currentRotation
 				grad2.Rotation = currentRotation
@@ -1148,17 +1150,16 @@ LoadingFrame.Version.Text = Release
 					ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6], invertAlpha))
 				})
 				
-				-- Aplicar el efecto de color negativo a las imágenes de fondo
 				grad1.Color = colorSeq
 				grad2.Color = colorSeq
 			end)
 			
-			print("Trasher Debug | ¡Motor de transición e inyección de POLARIDAD activados!")
+			print("Trasher Debug | ¡Motor V2 activado y blindado contra Rayfield!")
 		else
-			warn("Trasher Debug | Tu ejecutor no es compatible con 'getcustomasset'.")
+			warn("Trasher Debug | Tu ejecutor no es compatible.")
 		end
 	end)
-	-- [FIN] INYECCIÓN DE FONDO ANIMADO TRASHER (SÚPER CONTROLADO)
+	-- [FIN] INYECCIÓN DE FONDO ANIMADO TRASHER (SÚPER CONTROLADO V2)
 
 	-- [INICIO] EFECTO HIPNÓTICO DE COLORES EN TEXTO
 	task.spawn(function()
