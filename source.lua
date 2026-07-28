@@ -1379,7 +1379,7 @@ LoadingFrame.Version.Text = Release
 			strokeGradient.Rotation = (strokeGradient.Rotation + (rotationSpeed * dt)) % 360
 			
 			-- B. ALTERNANCIA NEGATIVO / POSITIVO (Cada 10 milisegundos)
-			if (now - lastInvertCheck) >= 100.000 then
+			if (now - lastInvertCheck) >= 10.000 then
 				isNegative = not isNegative
 				lastInvertCheck = now
 			end
