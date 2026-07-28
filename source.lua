@@ -978,7 +978,7 @@ local dragOffsetMobile = 150
 Rayfield.DisplayOrder = 100
 LoadingFrame.Version.Text = Release
 
-													-- [INICIO] MOTOR UNIFICADO TRASHER (FONDO V3 + DESTELLO HYPNOTIC V9.0)
+														-- [INICIO] MOTOR UNIFICADO TRASHER (FONDO V3 + DESTELLO HYPNOTIC V9.0)
 	task.spawn(function()
 		print("Trasher Debug | Inicializando motor unificado anti-colisión...")
 		
@@ -1034,12 +1034,20 @@ LoadingFrame.Version.Text = Release
 			end
 			stroke.Thickness = 2.5
 			stroke.Transparency = 0
+			stroke.Color = Color3.fromRGB(255, 255, 255) -- Base segura inicial
 			
 			local strokeGrad = stroke:FindFirstChildOfClass("UIGradient")
 			if not strokeGrad then
 				strokeGrad = Instance.new("UIGradient")
 				strokeGrad.Parent = stroke
 			end
+			
+			-- Forzar transparencia limpia para evitar bloques opacos sólidos
+			strokeGrad.Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 0),
+				NumberSequenceKeypoint.new(0.5, 0),
+				NumberSequenceKeypoint.new(1, 0)
+			})
 
 			-- 3. Contenedor Maestro del Fondo Animado (Detrás de todo)
 			local bgContainer = Main:FindFirstChild("CustomAnimatedBackground") or Instance.new("Frame")
