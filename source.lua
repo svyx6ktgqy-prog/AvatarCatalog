@@ -1184,7 +1184,7 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] EFECTO HIPNÓTICO DE COLORES EN TEXTO
 
-					-- [INICIO] INYECCIÓN BLINDADA COMPLETA (V7 - SOLO TRASLUCIDEZ Y TOPBAR BLANCO)
+					-- [INICIO] INYECCIÓN BLINDADA COMPLETA (V8 - SOLO TRASLUCIDEZ Y TOPBAR BLANCO)
 	task.spawn(function()
 		local colorRojo = Color3.fromRGB(255, 0, 0)
 		local transparenciaRojo = 0.6
@@ -1309,7 +1309,55 @@ LoadingFrame.Version.Text = Release
 			
 		end
 	end)
-	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V7)
+	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
+
+	-- [INICIO] INYECCIÓN DE BORDES ANIMADOS (ESTILO TRIANGLEHOOD)
+	task.spawn(function()
+		print("Trasher Debug | Inicializando motor de bordes animados...")
+		local RunService = game:GetService("RunService")
+		
+		-- Esperar a que exista la ventana principal
+		if not Main then return end
+		
+		-- 1. Crear el Borde (UIStroke)
+		local animatedStroke = Main:FindFirstChildOfClass("UIStroke")
+		if not animatedStroke then
+			animatedStroke = Instance.new("UIStroke")
+			animatedStroke.Name = "AnimatedBorder"
+			animatedStroke.Thickness = 2.5 -- Grosor del borde (ajústalo a tu gusto)
+			animatedStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+			animatedStroke.Parent = Main
+		end
+		
+		-- 2. Crear el Gradiente de Colores
+		local strokeGradient = animatedStroke:FindFirstChildOfClass("UIGradient")
+		if not strokeGradient then
+			strokeGradient = Instance.new("UIGradient")
+			strokeGradient.Name = "BorderGradient"
+			strokeGradient.Parent = animatedStroke
+		end
+		
+		-- 3. Configurar los colores (Puedes cambiarlos por los que tenías en triangleHood)
+		strokeGradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),     -- Rojo
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(153, 0, 255)), -- Morado
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))      -- Rojo (Para un bucle perfecto)
+		})
+		
+		-- 4. Bucle Matemático de Rotación
+		local rotationSpeed = 100 -- Velocidad de la animación
+		
+		RunService.Heartbeat:Connect(function()
+			-- Protecciones anti-lag: solo animar si el menú existe y es visible
+			if not Main or not Main.Parent or not Main.Visible then return end
+			
+			-- Girar el gradiente constantemente para crear el efecto de borde animado
+			strokeGradient.Rotation = (tick() * rotationSpeed) % 360
+		end)
+		
+		print("Trasher Debug | ¡Bordes animados activados con éxito!")
+	end)
+	-- [FIN] INYECCIÓN DE BORDES ANIMADOS
 
 -- =============================================================================
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
