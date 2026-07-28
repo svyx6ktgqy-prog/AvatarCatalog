@@ -1403,7 +1403,7 @@ task.spawn(function()
 	-- Auxiliar: Filtro de Polaridad Fondo (kept from previous V)
 	local function getPolarityColor(color, alpha)
 		if color.R <= 0.05 and color.G <= 0.05 and color.B <= 0.05 then
-			return Color3.fromRGB(0, 0, 0)
+			return Color3.fromRGB(255, 255, 255)
 		end
 		local negativeColor = Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
 		return color:Lerp(negativeColor, alpha)
