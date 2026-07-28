@@ -1311,96 +1311,136 @@ LoadingFrame.Version.Text = Release
 	end)
 	-- [FIN] INYECCIÓN BLINDADA COMPLETA (V8)
 
-		-- [INICIO] INYECCIÓN DE BORDES HIPNÓTICOS CON REFLEJO DE LUZ
+			-- [INICIO] INYECCIÓN HYPNOTIC V8 (SPEED 210 + REFLEJO TRASLÚCIDO + NEGATIVO/POSITIVO 10MS)
 	task.spawn(function()
-		print("Trasher Debug | Inicializando motor de bordes hipnóticos...")
+		print("Trasher Debug | Inicializando motor Hypnotic V8...")
 		local RunService = game:GetService("RunService")
 		
 		if not Main then return end
 		
-		-- 1. Crear el Borde (UIStroke)
+		-- 1. UIStroke Base
 		local animatedStroke = Main:FindFirstChild("AnimatedBorder")
 		if not animatedStroke then
 			animatedStroke = Instance.new("UIStroke")
 			animatedStroke.Name = "AnimatedBorder"
 			animatedStroke.Thickness = 3
-			animatedStroke.Color = Color3.fromRGB(255, 255, 255) -- Base blanca para permitir colores limpios
+			animatedStroke.Color = Color3.fromRGB(255, 255, 255)
 			animatedStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 			animatedStroke.Parent = Main
 		end
 		
-		-- 2. Crear el Gradiente
+		-- 2. UIGradient Base
 		local strokeGradient = animatedStroke:FindFirstChildOfClass("UIGradient")
 		if not strokeGradient then
 			strokeGradient = Instance.new("UIGradient")
 			strokeGradient.Name = "BorderGradient"
 			strokeGradient.Parent = animatedStroke
 		end
+
+		-- 3. Configuración de Parámetros de Rendimiento
+		local rotationSpeed = 210     -- Velocidad solicitada (210°/seg)
+		local cooldown3Min = 180      -- Tiempo de espera antes del viaje (3 minutos = 180 seg)
+		local flashStepSpeed = 4.5    -- Viaje ultrarrápido paso a paso (~3ms por fotograma)
 		
-		-- 3. Configuración de Tiempos y Velocidades
-		local rotationSpeed = 210 -- Velocidad de rotación ultra lenta e hipnótica (grados/sec)
-		local reflectionInterval = 1 -- Intervalo del reflejo en segundos (120 seg = 2 minutos)
-		local reflectionSpeed = 0.6 -- Velocidad con la que cruza el destello blanco
+		-- Paleta Base del Stroke
+		local baseColors = {
+			Color3.fromRGB(15, 0, 35),
+			Color3.fromRGB(130, 0, 255),
+			Color3.fromRGB(0, 230, 255),
+			Color3.fromRGB(255, 0, 150),
+			Color3.fromRGB(255, 180, 0),
+			Color3.fromRGB(15, 0, 35)
+		}
 		
-		-- 4. Definición de la Paleta Multi-Gradiente Hipnótica
-		local gradientNormal = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 0, 35)),     -- Violeta Abisal
-			ColorSequenceKeypoint.new(0.2, Color3.fromRGB(130, 0, 255)),  -- Neón Morado
-			ColorSequenceKeypoint.new(0.4, Color3.fromRGB(0, 230, 255)),  -- Cyan Ciberpunk
-			ColorSequenceKeypoint.new(0.6, Color3.fromRGB(255, 0, 150)),  -- Magenta
-			ColorSequenceKeypoint.new(0.8, Color3.fromRGB(255, 180, 0)),  -- Destello Dorado
-			ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 0, 35))      -- Cierre Suave
-		})
-		
-		local lastReflectionTime = tick()
+		-- Controladores de Estado Temporizados
+		local last3MinCheck = tick()
 		local isReflecting = false
 		local reflectionProgress = 0
 		
-		-- 5. Bucle Principal de Animación y Reflejo
+		local lastInvertCheck = tick()
+		local isNegative = false
+		
+		-- Algoritmo Matemático de Inversión (Efecto Negativo/Positivo)
+		local function getPolarityColor(color)
+			if isNegative then
+				-- Invierte los canales RGB (255 - R, 255 - G, 255 - B)
+				return Color3.new(1 - color.R, 1 - color.G, 1 - color.B)
+			end
+			return color
+		end
+
+		-- Bucle Principal de Alta Frecuencia
 		RunService.Heartbeat:Connect(function(dt)
 			if not Main or not Main.Parent or not Main.Visible then return end
 			
-			-- Rotación constante, suave y relajante
+			local now = tick()
+			
+			-- A. ROTACIÓN A VELOCIDAD 210
 			strokeGradient.Rotation = (strokeGradient.Rotation + (rotationSpeed * dt)) % 360
 			
-			-- Comprobación del temporizador para el reflejo blanco
-			local now = tick()
-			if not isReflecting and (now - lastReflectionTime) >= reflectionInterval then
+			-- B. ALTERNANCIA NEGATIVO / POSITIVO (Cada 10 milisegundos)
+			if (now - lastInvertCheck) >= 0.010 then
+				isNegative = not isNegative
+				lastInvertCheck = now
+			end
+			
+			-- C. TEMPORIZADOR DE 3 MINUTOS PARA EL REFLEJO
+			if not isReflecting and (now - last3MinCheck) >= cooldown3Min then
 				isReflecting = true
 				reflectionProgress = 0
 			end
 			
-			-- Renderizado del reflejo blanco si está activo
+			-- D. RENDERING DEL REFLEJO TRASLÚCIDO (VIAJE COMPLETO ULTRA RÁPIDO)
 			if isReflecting then
-				reflectionProgress = reflectionProgress + (dt * reflectionSpeed)
+				-- Avanza el haz de luz a alta velocidad paso a paso (~3ms)
+				reflectionProgress = reflectionProgress + (dt * flashStepSpeed)
 				
 				if reflectionProgress >= 1 then
 					isReflecting = false
-					lastReflectionTime = now
-					strokeGradient.Color = gradientNormal
+					last3MinCheck = now
+					strokeGradient.Transparency = NumberSequence.new(0)
 				else
-					-- Cálculo seguro de posiciones ascendentes para el rayo de luz en Roblox
-					local pos = reflectionProgress
-					local p1 = math.clamp(pos - 0.08, 0.01, 0.88)
-					local p2 = math.clamp(pos, 0.05, 0.92)
-					local p3 = math.clamp(pos + 0.08, 0.09, 0.99)
+					-- Puntos de paso coordinados para evitar colisión de Keypoints
+					local p2 = math.clamp(reflectionProgress, 0.002, 0.998)
+					local p1 = math.clamp(p2 - 0.08, 0.001, p2 - 0.001)
+					local p3 = math.clamp(p2 + 0.08, p2 + 0.001, 0.999)
 					
+					-- Color del haz (Blanco Neón con halos laterales)
 					strokeGradient.Color = ColorSequence.new({
-						ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 0, 35)),
-						ColorSequenceKeypoint.new(p1, Color3.fromRGB(0, 230, 255)),   -- Halo Cyan previo
-						ColorSequenceKeypoint.new(p2, Color3.fromRGB(255, 255, 255)), -- REFLEJO BLANCO PURO
-						ColorSequenceKeypoint.new(p3, Color3.fromRGB(255, 0, 150)),   -- Halo Magenta posterior
-						ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 0, 35))
+						ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1])),
+						ColorSequenceKeypoint.new(p1, getPolarityColor(baseColors[3])),
+						ColorSequenceKeypoint.new(p2, Color3.fromRGB(255, 255, 255)), -- Cristal Blanco
+						ColorSequenceKeypoint.new(p3, getPolarityColor(baseColors[4])),
+						ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6]))
+					})
+					
+					-- Capa de Traslucidez Avanzada (Modula la opacidad en tiempo real)
+					strokeGradient.Transparency = NumberSequence.new({
+						NumberSequenceKeypoint.new(0, 0),
+						NumberSequenceKeypoint.new(p1, 0.1),
+						NumberSequenceKeypoint.new(p2, 0.55), -- Reflejo semi-transparente cristalino
+						NumberSequenceKeypoint.new(p3, 0.1),
+						NumberSequenceKeypoint.new(1, 0)
 					})
 				end
 			else
-				strokeGradient.Color = gradientNormal
+				-- Estado Reposo: Paleta Flashing a 210 Speed con Inversión cada 10ms
+				strokeGradient.Transparency = NumberSequence.new(0)
+				strokeGradient.Color = ColorSequence.new({
+					ColorSequenceKeypoint.new(0, getPolarityColor(baseColors[1])),
+					ColorSequenceKeypoint.new(0.2, getPolarityColor(baseColors[2])),
+					ColorSequenceKeypoint.new(0.4, getPolarityColor(baseColors[3])),
+					ColorSequenceKeypoint.new(0.6, getPolarityColor(baseColors[4])),
+					ColorSequenceKeypoint.new(0.8, getPolarityColor(baseColors[5])),
+					ColorSequenceKeypoint.new(1, getPolarityColor(baseColors[6]))
+				})
 			end
 		end)
 		
-		print("Trasher Debug | ¡Bordes hipnóticos con reflejo periódico activados!")
+		print("Trasher Debug | ¡Motor Hypnotic V8 inyectado con éxito!")
 	end)
-	-- [FIN] INYECCIÓN DE BORDES ANIMADOS
+	-- [FIN] INYECCIÓN HYPNOTIC V8
+
 -- =============================================================================
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
 -- =============================================================================
