@@ -943,10 +943,14 @@ getgenv().TrasherCleanup = function()
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER: ROTACIÓN INVERSA Y GRADIENTE PRISMA
+-- 🚀 BOTÓN TRASHER ACTUALIZADO
 -- =================================================================
 local function SetupCustomPrompt()
 	if not MPrompt then return end
+	
+	local TweenService = game:GetService("TweenService")
+	local RunService = game:GetService("RunService")
+	local UserInputService = game:GetService("UserInputService")
 
 	-- 1. DESTRUIR LA CÁPSULA NATIVA
 	MPrompt.Size = PROMPT_SIZE
@@ -972,7 +976,7 @@ local function SetupCustomPrompt()
 	VisualCircle.Size = CIRCLE_SIZE
 	VisualCircle.AnchorPoint = Vector2.new(0.5, 0.5)
 	VisualCircle.BackgroundTransparency = 1 
-	VisualCircle.ClipsDescendants = false -- Sin cortes forzados
+	VisualCircle.ClipsDescendants = false 
 	VisualCircle.ZIndex = 50
 	VisualCircle.Parent = MPrompt
 
@@ -983,7 +987,7 @@ local function SetupCustomPrompt()
 	AspectRatio.AspectRatio = 1
 	AspectRatio.Parent = VisualCircle
 
-	-- 3. IMAGEN ROTATORIA (Sticker Original Completo)
+	-- 3. IMAGEN ROTATORIA CON RECORTE CIRCULAR
 	local RotatingImage = VisualCircle:FindFirstChild("RotatingImage") or Instance.new("ImageLabel")
 	RotatingImage.Name = "RotatingImage"
 	RotatingImage.Size = UDim2.new(1, 0, 1, 0)
@@ -991,36 +995,53 @@ local function SetupCustomPrompt()
 	RotatingImage.Position = UDim2.new(0.5, 0, 0.5, 0)
 	RotatingImage.BackgroundTransparency = 1
 	RotatingImage.Image = "rbxassetid://107137560718417"
-	RotatingImage.ClipsDescendants = false -- Dejamos el sticker sin recortes de esquina
+	RotatingImage.ClipsDescendants = true 
 	RotatingImage.ZIndex = 51
 	RotatingImage.Parent = VisualCircle
-	-- (Eliminamos el UICorner de aquí para no afectar el borde natural del sticker)
+	
+	-- 🟢 Aplicamos el recorte 100% circular a la textura
+	local ImageCorner = RotatingImage:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+	ImageCorner.CornerRadius = UDim.new(1, 0) 
+	ImageCorner.Parent = RotatingImage
 
-	-- 4. TEXTO ESTÁTICO MÁS PEQUEÑO CON COLOR BLANCO BASE
+	-- 4. TEXTO ESTÁTICO (MÁS PEQUEÑO Y AL FONDO)
 	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
 	CustomText.Name = "CustomText"
-	CustomText.Size = UDim2.new(1, 0, 1, 0)
+	-- 🟢 Tamaño reducido y centrado para simular lejanía/fondo
+	CustomText.Size = UDim2.new(0.65, 0, 0.3, 0) 
+	CustomText.AnchorPoint = Vector2.new(0.5, 0.5)
+	CustomText.Position = UDim2.new(0.5, 0, 0.5, 0)
 	CustomText.BackgroundTransparency = 1
 	CustomText.Text = "TRASHER"
-	CustomText.TextColor3 = Color3.fromRGB(255, 255, 255) -- Base blanca para que el gradiente pinte todo
+	CustomText.TextColor3 = Color3.fromRGB(255, 255, 255) 
 	CustomText.Font = Enum.Font.GothamBold
 	CustomText.TextScaled = true
 	CustomText.ZIndex = 52
 	CustomText.Parent = VisualCircle
 
-	-- Contorno para que resalte
+	-- Limpieza de UIPadding viejo por si existía de la versión anterior
+	local oldPadding = CustomText:FindFirstChildOfClass("UIPadding")
+	if oldPadding then oldPadding:Destroy() end
+
+	-- 🟢 CONTORNO ANIMADO (AMARILLO -> VERDE)
 	local TextStroke = CustomText:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
-	TextStroke.Color = Color3.fromRGB(255, 255, 255)
-	TextStroke.Thickness = 0.5
+	TextStroke.Color = Color3.fromRGB(255, 230, 0) -- Amarillo fuerte
+	TextStroke.Thickness = 1.5 -- Ligeramente más grueso para notar el color
 	TextStroke.Parent = CustomText
 	
-	-- Reducción del tamaño del texto aumentando los márgenes
-	local UIPadding = CustomText:FindFirstChildOfClass("UIPadding") or Instance.new("UIPadding")
-	UIPadding.PaddingTop = UDim.new(0.38, 0)    -- Más espacio = letra más chica
-	UIPadding.PaddingBottom = UDim.new(0.38, 0) -- Más espacio = letra más chica
-	UIPadding.PaddingLeft = UDim.new(0.05, 0)
-	UIPadding.PaddingRight = UDim.new(0.05, 0)
-	UIPadding.Parent = CustomText
+	-- Animación del contorno
+	local strokeTweenInfo = TweenInfo.new(
+		2.5, -- Duración: 2.5s (Suave y lento)
+		Enum.EasingStyle.Sine,
+		Enum.EasingDirection.InOut,
+		-1,  -- Infinito
+		true -- Crossfade ping-pong (ida y vuelta)
+	)
+	local strokeTween = TweenService:Create(TextStroke, strokeTweenInfo, {
+		Color = Color3.fromRGB(0, 255, 50) -- Verde neón
+	})
+	strokeTween:Play()
+	table.insert(Connections, {Disconnect = function() strokeTween:Cancel() end}) -- Guardar en kill-switch
 
 	-- GRADIENTE DE PRISMA EN EL TEXTO
 	local TextGradient = CustomText:FindFirstChildOfClass("UIGradient") or Instance.new("UIGradient")
@@ -1041,15 +1062,11 @@ local function SetupCustomPrompt()
 	ClickTrigger.ZIndex = 55
 	ClickTrigger.Parent = VisualCircle
 
-	-- 6. ANIMACIONES CONSTANTES (Rotación en reversa + Gradiente fluido)
-	local RunService = game:GetService("RunService")
+	-- 6. ANIMACIONES CONSTANTES (Rotación + Gradiente)
 	local rotationConnection = RunService.RenderStepped:Connect(function(deltaTime)
-		-- Sentido antihorario para la imagen (restamos en vez de sumar)
 		if RotatingImage then
 			RotatingImage.Rotation = (RotatingImage.Rotation - (ROTATION_SPEED * deltaTime)) % 360
 		end
-		
-		-- Giramos el UIGradient del texto para crear el flujo de colores (sentido horario)
 		if TextGradient then
 			TextGradient.Rotation = (TextGradient.Rotation + (GRADIENT_SPEED * deltaTime)) % 360
 		end
@@ -1057,16 +1074,13 @@ local function SetupCustomPrompt()
 	table.insert(Connections, rotationConnection)
 
 	-- 7. LÓGICA DE CLIC, ARRASTRE Y APERTURA
-	local TweenService = game:GetService("TweenService")
-	local UserInputService = game:GetService("UserInputService")
-	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-
+	local clickTweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 	local dragging = false
 	local hasMoved = false
 	local dragStart, startPos
 
 	table.insert(Connections, ClickTrigger.MouseButton1Down:Connect(function()
-		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(CIRCLE_SIZE.X.Scale, CIRCLE_SIZE.X.Offset * 0.85, CIRCLE_SIZE.Y.Scale, CIRCLE_SIZE.Y.Offset * 0.85)}):Play()
+		TweenService:Create(VisualCircle, clickTweenInfo, {Size = UDim2.new(CIRCLE_SIZE.X.Scale, CIRCLE_SIZE.X.Offset * 0.85, CIRCLE_SIZE.Y.Scale, CIRCLE_SIZE.Y.Offset * 0.85)}):Play()
 	end))
 
 	table.insert(Connections, ClickTrigger.InputBegan:Connect(function(input)
@@ -1152,7 +1166,7 @@ local function SetupCustomPrompt()
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if dragging then
 				dragging = false
-				TweenService:Create(VisualCircle, tweenInfo, {Size = CIRCLE_SIZE}):Play()
+				TweenService:Create(VisualCircle, clickTweenInfo, {Size = CIRCLE_SIZE}):Play()
 
 				if not hasMoved then
 					OpenMenu()
