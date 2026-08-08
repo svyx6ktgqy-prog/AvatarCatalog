@@ -909,7 +909,6 @@ end
 
 
 -- Object Variables
-
 local Main = Rayfield.Main
 local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
 local Topbar = Main.Topbar
@@ -1068,44 +1067,62 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Función para restaurar y desplegar el menú
+	-- Función para restaurar y desplegar el menú [CORREGIDA]
 	local function OpenMenu()
 		local fired = false
-
-		-- Identificar el botón objetivo (MPrompt o sus hijos)
 		local targetButton = MPrompt:IsA("GuiButton") and MPrompt or MPrompt:FindFirstChildWhichIsA("GuiButton", true)
 
-		if targetButton and getconnections then
+		-- Método 1: Intentar usar firesignal (más directo si el ejecutor lo permite)
+		if targetButton and firesignal then
+			pcall(function()
+				firesignal(targetButton.MouseButton1Click)
+				fired = true
+			end)
+		end
+
+		-- Método 2: Uso seguro de getconnections (SIN disparos múltiples)
+		if targetButton and getconnections and not fired then
 			pcall(function()
 				local c1 = getconnections(targetButton.MouseButton1Click)
-				if #c1 > 0 then
-					for _, c in ipairs(c1) do c:Fire() end
+				if c1 and #c1 > 0 then
+					c1[1]:Fire() -- SOLO disparamos el primero para evitar bugs de estado
 					fired = true
+					return
 				end
+				
 				local c2 = getconnections(targetButton.Activated)
-				if #c2 > 0 then
-					for _, c in ipairs(c2) do c:Fire() end
+				if c2 and #c2 > 0 then
+					c2[1]:Fire()
 					fired = true
 				end
 			end)
 		end
 
-		-- Respaldo si no hay getconnections o falló la llamada
+		-- Fallback extremo si el ejecutor no soporta eventos nativos
 		if not fired then
-			Main.Visible = not Main.Visible
-			if Main.Visible then
-				Main.AnchorPoint = Vector2.new(0.5, 0.5)
-				Main.Position = UDim2.new(0.5, 0, 0.5, 0)
-				Main.Size = OriginalMainSize
+			Main.Visible = true
+			MPrompt.Visible = false -- Ocultamos el prompt de forma manual
+			Main.AnchorPoint = Vector2.new(0.5, 0.5)
+			Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+			Main.Size = OriginalMainSize
 
-				if Main:IsA("CanvasGroup") then
-					Main.GroupTransparency = 0
+			if Main:IsA("CanvasGroup") then
+				Main.GroupTransparency = 0
+			end
+			for _, desc in ipairs(Main:GetDescendants()) do
+				if desc:IsA("CanvasGroup") then
+					desc.GroupTransparency = 0
 				end
-				for _, desc in ipairs(Main:GetDescendants()) do
-					if desc:IsA("CanvasGroup") then
-						desc.GroupTransparency = 0
-					end
-				end
+			end
+			
+			-- Parche: Forzamos el botón de cerrado interno del menú
+			local closeBtn = Topbar and (Topbar:FindFirstChild("Close") or Topbar:FindFirstChildWhichIsA("GuiButton", true))
+			if closeBtn and not getgenv().TrasherFallbackBound then
+				getgenv().TrasherFallbackBound = true
+				table.insert(Connections, closeBtn.MouseButton1Click:Connect(function()
+					Main.Visible = false
+					MPrompt.Visible = true
+				end))
 			end
 		end
 	end
