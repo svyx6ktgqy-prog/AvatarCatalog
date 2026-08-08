@@ -921,7 +921,7 @@ local OriginalMainSize = (Main.Size.X.Offset > 100) and Main.Size or UDim2.new(0
 local PROMPT_SIZE = UDim2.new(0, 85, 0, 85)
 local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70)
 local ROTATION_SPEED = 25 -- Velocidad de giro del sticker
-local GRADIENT_SPEED = 45 -- Velocidad a la que fluyen los colores en el texto
+local GRADIENT_SPEED = 45 -- Velocidad a la que fluyen las porciones de color
 
 -- =================================================================
 -- 🧹 SISTEMA KILL-SWITCH
@@ -943,7 +943,7 @@ getgenv().TrasherCleanup = function()
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER ACTUALIZADO
+-- 🚀 BOTÓN TRASHER: TEXTURA ANIMADA Y GRADIENTE PIZZA
 -- =================================================================
 local function SetupCustomPrompt()
 	if not MPrompt then return end
@@ -987,7 +987,7 @@ local function SetupCustomPrompt()
 	AspectRatio.AspectRatio = 1
 	AspectRatio.Parent = VisualCircle
 
-	-- 3. IMAGEN ROTATORIA CON RECORTE CIRCULAR
+	-- 3. IMAGEN ROTATORIA (Con Crossfade de Verde a Rojo)
 	local RotatingImage = VisualCircle:FindFirstChild("RotatingImage") or Instance.new("ImageLabel")
 	RotatingImage.Name = "RotatingImage"
 	RotatingImage.Size = UDim2.new(1, 0, 1, 0)
@@ -997,17 +997,30 @@ local function SetupCustomPrompt()
 	RotatingImage.Image = "rbxassetid://107137560718417"
 	RotatingImage.ClipsDescendants = true 
 	RotatingImage.ZIndex = 51
+	RotatingImage.ImageColor3 = Color3.fromRGB(255, 255, 255) -- Base blanca (muestra el verde matrix original)
 	RotatingImage.Parent = VisualCircle
 	
-	-- 🟢 Aplicamos el recorte 100% circular a la textura
 	local ImageCorner = RotatingImage:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
 	ImageCorner.CornerRadius = UDim.new(1, 0) 
 	ImageCorner.Parent = RotatingImage
 
-	-- 4. TEXTO ESTÁTICO (MÁS PEQUEÑO Y AL FONDO)
+	-- 🟢 Animación Crossfade difusa de la textura (Hacia Rojo)
+	local textureTweenInfo = TweenInfo.new(
+		3.5, -- Duración: 3.5s (Muy suave y difuso)
+		Enum.EasingStyle.Sine,
+		Enum.EasingDirection.InOut,
+		-1,  -- Infinito
+		true -- Crossfade ping-pong (ida y vuelta)
+	)
+	local textureTween = TweenService:Create(RotatingImage, textureTweenInfo, {
+		ImageColor3 = Color3.fromRGB(255, 30, 30) -- Tinte Rojo
+	})
+	textureTween:Play()
+	table.insert(Connections, {Disconnect = function() textureTween:Cancel() end}) -- Guardar en kill-switch
+
+	-- 4. TEXTO ESTÁTICO AL FONDO
 	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
 	CustomText.Name = "CustomText"
-	-- 🟢 Tamaño reducido y centrado para simular lejanía/fondo
 	CustomText.Size = UDim2.new(0.65, 0, 0.3, 0) 
 	CustomText.AnchorPoint = Vector2.new(0.5, 0.5)
 	CustomText.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -1019,37 +1032,34 @@ local function SetupCustomPrompt()
 	CustomText.ZIndex = 52
 	CustomText.Parent = VisualCircle
 
-	-- Limpieza de UIPadding viejo por si existía de la versión anterior
-	local oldPadding = CustomText:FindFirstChildOfClass("UIPadding")
-	if oldPadding then oldPadding:Destroy() end
-
-	-- 🟢 CONTORNO ANIMADO (AMARILLO -> VERDE)
+	-- CONTORNO ANIMADO (AMARILLO -> VERDE)
 	local TextStroke = CustomText:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
-	TextStroke.Color = Color3.fromRGB(255, 230, 0) -- Amarillo fuerte
-	TextStroke.Thickness = 1.5 -- Ligeramente más grueso para notar el color
+	TextStroke.Color = Color3.fromRGB(255, 230, 0) 
+	TextStroke.Thickness = 0.5 -- 🟢 Bordes finos para notar el texto base
 	TextStroke.Parent = CustomText
 	
-	-- Animación del contorno
-	local strokeTweenInfo = TweenInfo.new(
-		2.5, -- Duración: 2.5s (Suave y lento)
-		Enum.EasingStyle.Sine,
-		Enum.EasingDirection.InOut,
-		-1,  -- Infinito
-		true -- Crossfade ping-pong (ida y vuelta)
-	)
+	local strokeTweenInfo = TweenInfo.new(2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
 	local strokeTween = TweenService:Create(TextStroke, strokeTweenInfo, {
-		Color = Color3.fromRGB(0, 255, 50) -- Verde neón
+		Color = Color3.fromRGB(0, 255, 50)
 	})
 	strokeTween:Play()
-	table.insert(Connections, {Disconnect = function() strokeTween:Cancel() end}) -- Guardar en kill-switch
+	table.insert(Connections, {Disconnect = function() strokeTween:Cancel() end})
 
-	-- GRADIENTE DE PRISMA EN EL TEXTO
+	-- 🟢 GRADIENTE TIPO "PORCIONES DE PIZZA" 🍕
+	-- Hacemos "cortes" más rectos en el color para que parezcan rebanadas al girar
 	local TextGradient = CustomText:FindFirstChildOfClass("UIGradient") or Instance.new("UIGradient")
 	TextGradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0.00, Color3.fromRGB(160, 32, 240)), -- Púrpura
-		ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 0, 0)),      -- Negro
-		ColorSequenceKeypoint.new(0.66, Color3.fromRGB(45, 60, 90)),   -- Azul apagado
-		ColorSequenceKeypoint.new(1.00, Color3.fromRGB(138, 3, 3))     -- Rojo sangre
+		ColorSequenceKeypoint.new(0.00, Color3.fromRGB(160, 32, 240)), 
+		ColorSequenceKeypoint.new(0.20, Color3.fromRGB(160, 32, 240)), -- Fin rebanada púrpura
+
+		ColorSequenceKeypoint.new(0.25, Color3.fromRGB(0, 0, 0)),      
+		ColorSequenceKeypoint.new(0.45, Color3.fromRGB(0, 0, 0)),      -- Fin rebanada negra
+
+		ColorSequenceKeypoint.new(0.50, Color3.fromRGB(45, 120, 255)), 
+		ColorSequenceKeypoint.new(0.70, Color3.fromRGB(45, 120, 255)), -- Fin rebanada azul
+
+		ColorSequenceKeypoint.new(0.75, Color3.fromRGB(180, 10, 10)),  
+		ColorSequenceKeypoint.new(1.00, Color3.fromRGB(180, 10, 10))   -- Fin rebanada roja
 	})
 	TextGradient.Parent = CustomText
 
@@ -1062,11 +1072,13 @@ local function SetupCustomPrompt()
 	ClickTrigger.ZIndex = 55
 	ClickTrigger.Parent = VisualCircle
 
-	-- 6. ANIMACIONES CONSTANTES (Rotación + Gradiente)
+	-- 6. ANIMACIONES CONSTANTES (Rotación en reversa + Gradiente fluido)
 	local rotationConnection = RunService.RenderStepped:Connect(function(deltaTime)
 		if RotatingImage then
 			RotatingImage.Rotation = (RotatingImage.Rotation - (ROTATION_SPEED * deltaTime)) % 360
 		end
+		
+		-- Al rotar constantemente este gradiente, las "rebanadas" barren el texto de forma orgánica
 		if TextGradient then
 			TextGradient.Rotation = (TextGradient.Rotation + (GRADIENT_SPEED * deltaTime)) % 360
 		end
