@@ -914,37 +914,71 @@ local Main = Rayfield.Main
 local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
 local Topbar = Main.Topbar
 
--- [INICIO] BOTÓN TRASHER CIRCULAR Y ARRASTRABLE
+-- =================================================================
+-- ⚙️ PARÁMETROS CONFIGURABLES
+-- =================================================================
+local PROMPT_SIZE = UDim2.new(0, 65, 0, 65)  -- Tamaño del botón circular
+
+-- =================================================================
+-- 🧹 SISTEMA KILL-SWITCH (Detiene ejecuciones antiguas al recargar)
+-- =================================================================
+if getgenv().TrasherCleanup then
+	getgenv().TrasherCleanup()
+end
+
+local Connections = {}
+getgenv().TrasherCleanup = function()
+	for _, conn in ipairs(Connections) do
+		if conn then conn:Disconnect() end
+	end
+	table.clear(Connections)
+	if MPrompt then
+		local oldCircle = MPrompt:FindFirstChild("VisualCircle")
+		if oldCircle then oldCircle:Destroy() end
+		MPrompt.BackgroundTransparency = 0
+	end
+end
+
+-- =================================================================
+-- 🚀 BOTÓN TRASHER MEJORADO
+-- =================================================================
 local function SetupCustomPrompt()
 	if not MPrompt then return end
 
-	-- 1. Asegurar contenedor transparente y de tamaño fijo
-	MPrompt.Size = UDim2.new(0, 55, 0, 55)
+	-- 1. Ocultar la cápsula base de Rayfield
+	MPrompt.Size = PROMPT_SIZE
 	MPrompt.BackgroundTransparency = 1
 	MPrompt.ClipsDescendants = false
 
-	-- Limpiar elementos antiguos
-	for _, child in ipairs(MPrompt:GetChildren()) do
-		if child:IsA("UIListLayout") or child:IsA("UIGridLayout") then
-			child:Destroy()
-		elseif child:IsA("Frame") or child:IsA("TextLabel") or child:IsA("ImageLabel") or child:IsA("ImageButton") then
-			child.Visible = false
+	-- Forzar ocultamiento de cápsula y carrito
+	local function HideCapsule()
+		MPrompt.BackgroundTransparency = 1
+		for _, child in ipairs(MPrompt:GetChildren()) do
+			if child.Name ~= "VisualCircle" then
+				if child:IsA("UIListLayout") or child:IsA("UIGridLayout") or child:IsA("UICorner") then
+					child:Destroy()
+				elseif child:IsA("GuiObject") then
+					child.Visible = false
+					child.BackgroundTransparency = 1
+				end
+			end
 		end
 	end
 
-	-- 2. Máscara circular perfecta
+	HideCapsule()
+	table.insert(Connections, MPrompt.ChildAdded:Connect(HideCapsule))
+
+	-- 2. Máscara circular estricta
 	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("Frame")
 	VisualCircle.Name = "VisualCircle"
 	VisualCircle.Size = UDim2.new(1, 0, 1, 0)
-	VisualCircle.Position = UDim2.new(0, 0, 0, 0)
 	VisualCircle.AnchorPoint = Vector2.new(0.5, 0.5)
 	VisualCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
 	VisualCircle.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 	VisualCircle.BackgroundTransparency = 0.15
-	VisualCircle.ZIndex = 5
+	VisualCircle.ZIndex = 50
 	VisualCircle.Parent = MPrompt
 
-	-- Fuerza el aspecto 1:1 para un círculo perfecto
 	local AspectRatio = VisualCircle:FindFirstChildOfClass("UIAspectRatioConstraint") or Instance.new("UIAspectRatioConstraint")
 	AspectRatio.AspectRatio = 1
 	AspectRatio.Parent = VisualCircle
@@ -954,12 +988,21 @@ local function SetupCustomPrompt()
 	Corner.Parent = VisualCircle
 
 	local Stroke = VisualCircle:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
-	Stroke.Color = Color3.fromRGB(180, 130, 255) -- Tono morado para combinar con el emoji
+	Stroke.Color = Color3.fromRGB(180, 130, 255)
 	Stroke.Thickness = 1.5
 	Stroke.Transparency = 0.3
 	Stroke.Parent = VisualCircle
 
-	-- 3. Texto personalizado
+	-- 3. Botón de interacción e inclinación/hundido
+	local ClickTrigger = VisualCircle:FindFirstChild("ClickTrigger") or Instance.new("TextButton")
+	ClickTrigger.Name = "ClickTrigger"
+	ClickTrigger.Size = UDim2.new(1, 0, 1, 0)
+	ClickTrigger.BackgroundTransparency = 1
+	ClickTrigger.Text = ""
+	ClickTrigger.ZIndex = 52
+	ClickTrigger.Parent = VisualCircle
+
+	-- 4. Texto "🚬 TRASHER 💜"
 	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
 	CustomText.Name = "CustomText"
 	CustomText.Size = UDim2.new(1, 0, 1, 0)
@@ -972,10 +1015,9 @@ local function SetupCustomPrompt()
 	CustomText.TextScaled = true
 	CustomText.TextXAlignment = Enum.TextXAlignment.Center
 	CustomText.TextYAlignment = Enum.TextYAlignment.Center
-	CustomText.ZIndex = 6
+	CustomText.ZIndex = 51
 	CustomText.Parent = VisualCircle
 
-	-- Margen de texto para que no toque los bordes
 	local UIPadding = CustomText:FindFirstChildOfClass("UIPadding") or Instance.new("UIPadding")
 	UIPadding.PaddingTop = UDim.new(0.2, 0)
 	UIPadding.PaddingBottom = UDim.new(0.2, 0)
@@ -983,59 +1025,72 @@ local function SetupCustomPrompt()
 	UIPadding.PaddingRight = UDim.new(0.1, 0)
 	UIPadding.Parent = CustomText
 
-	-- 4. Arrastre, persistencia de posición y efecto de hundido
+	-- 5. Animación de Hundido y Arrastre Persistente
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
-	local tweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
+	-- Bloqueo de posición guardada
+	getgenv().TrasherSavedPos = getgenv().TrasherSavedPos or MPrompt.Position
+	MPrompt.Position = getgenv().TrasherSavedPos
+
+	local lockPosition = false
+	table.insert(Connections, MPrompt:GetPropertyChangedSignal("Position"):Connect(function()
+		if lockPosition or not getgenv().TrasherSavedPos then return end
+		if MPrompt.Position ~= getgenv().TrasherSavedPos then
+			lockPosition = true
+			MPrompt.Position = getgenv().TrasherSavedPos
+			lockPosition = false
+		end
+	end))
+
+	-- Eventos de Hundido
+	table.insert(Connections, ClickTrigger.MouseButton1Down:Connect(function()
+		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(0.85, 0, 0.85, 0)}):Play()
+	end))
+
+	table.insert(Connections, ClickTrigger.MouseButton1Up:Connect(function()
+		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(1, 0, 1, 0)}):Play()
+	end))
+
+	table.insert(Connections, ClickTrigger.MouseLeave:Connect(function()
+		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(1, 0, 1, 0)}):Play()
+	end))
+
+	-- Lógica de arrastre
 	local dragging = false
-	local hasMoved = false
 	local dragStart, startPos
 
-	VisualCircle.InputBegan:Connect(function(input)
+	table.insert(Connections, ClickTrigger.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
-			hasMoved = false
 			dragStart = input.Position
 			startPos = MPrompt.Position
-
-			-- Efecto de hundido (Achicar)
-			TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(0.85, 0, 0.85, 0)}):Play()
-
-			local connection
-			connection = input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-					
-					-- Restaurar tamaño original (Efecto soltar)
-					TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(1, 0, 1, 0)}):Play()
-					
-					connection:Disconnect()
-				end
-			end)
 		end
-	end)
+	end))
 
-	UserInputService.InputChanged:Connect(function(input)
+	table.insert(Connections, UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
-			
-			-- Si se movió más de 5 píxeles, cuenta como arrastre y no como clic
-			if delta.Magnitude > 5 then
-				hasMoved = true
-			end
-
-			-- Actualizar posición de forma fija
-			MPrompt.Position = UDim2.new(
+			local newPos = UDim2.new(
 				startPos.X.Scale, startPos.X.Offset + delta.X,
 				startPos.Y.Scale, startPos.Y.Offset + delta.Y
 			)
+			lockPosition = true
+			MPrompt.Position = newPos
+			getgenv().TrasherSavedPos = newPos
+			lockPosition = false
 		end
-	end)
+	end))
+
+	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = false
+		end
+	end))
 end
 
 task.defer(SetupCustomPrompt)
--- [FIN] BOTÓN TRASHER CIRCULAR Y ARRASTRABLE
 
 local Elements = Main.Elements
 local LoadingFrame = Main.LoadingFrame
