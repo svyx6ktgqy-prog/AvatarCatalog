@@ -1095,41 +1095,53 @@ local function SetupCustomPrompt()
 
 	-- Función de apertura limpia sin romper layouts
 	local function OpenMenu()
-		Main.Visible = not Main.Visible
+	Main.Visible = not Main.Visible
 
-		if Main.Visible then
-			-- Forzar centrado y dimensiones exactas
-			Main.AnchorPoint = Vector2.new(0.5, 0.5)
-			Main.Position = UDim2.new(0.5, 0, 0.5, 0)
-			Main.Size = OriginalMainSize
-			Main.BackgroundTransparency = 0
+	if Main.Visible then
+		-- 1. Restaurar marco principal y recortar desbordamientos
+		Main.AnchorPoint = Vector2.new(0.5, 0.5)
+		Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+		Main.Size = OriginalMainSize
+		Main.BackgroundTransparency = 0
+		Main.ClipsDescendants = true 
 
-			-- Restaurar visibilidad de contenedores
-			local Elements = Main:FindFirstChild("Elements")
-			local TabList = Main:FindFirstChild("TabList")
-			if Elements then Elements.Visible = true end
-			if TabList then TabList.Visible = true end
+		-- 2. Ajustar la Barra Superior y separar las pestañas del Título
+		local Topbar = Main:FindFirstChild("Topbar") or Main:FindFirstChild("Header")
+		local TabList = Main:FindFirstChild("TabList") or (Topbar and Topbar:FindFirstChild("TabList"))
 
-			-- Reordenar los elementos de la Topbar para reparar elementos mal ajustados
-			if Topbar then
-				Topbar.Size = UDim2.new(1, 0, 0, 45)
-				local layout = Topbar:FindFirstChildOfClass("UIListLayout")
-				if layout then
-					layout:ApplyLayout()
-				end
-			end
+		if Topbar then
+			Topbar.Visible = true
+			Topbar.Size = UDim2.new(1, 0, 0, 45)
+		end
 
-			-- Resetear transparencias de CanvasGroup
-			if Main:IsA("CanvasGroup") then
-				Main.GroupTransparency = 0
-			end
-			for _, desc in ipairs(Main:GetDescendants()) do
-				if desc:IsA("CanvasGroup") then
-					desc.GroupTransparency = 0
-				end
+		if TabList then
+			TabList.Visible = true
+			-- Desplaza las pestañas a la derecha para dejar ver "Opciones"
+			TabList.Position = UDim2.new(0, 110, 0, 0) 
+			TabList.Size = UDim2.new(1, -110, 1, 0)
+		end
+
+		-- 3. Empujar el contenedor de contenido (Elements) debajo de la Topbar
+		local Elements = Main:FindFirstChild("Elements") or Main:FindFirstChild("Content") or Main:FindFirstChild("Container")
+		if Elements then
+			Elements.Visible = true
+			Elements.ClipsDescendants = true
+			-- Inicia 45px abajo para no empalmarse con las pestañas
+			Elements.Position = UDim2.new(0, 0, 0, 45)
+			Elements.Size = UDim2.new(1, 0, 1, -45)
+		end
+
+		-- 4. Resetear opacidades de CanvasGroup
+		if Main:IsA("CanvasGroup") then
+			Main.GroupTransparency = 0
+		end
+		for _, desc in ipairs(Main:GetDescendants()) do
+			if desc:IsA("CanvasGroup") then
+				desc.GroupTransparency = 0
 			end
 		end
 	end
+end
 
 	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
