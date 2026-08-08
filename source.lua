@@ -973,12 +973,12 @@ if TopbarMinBtn then
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER Y APERTURA GARANTIZADA
+-- 🚀 BOTÓN TRASHER Y APERTURA GARANTIZADA (CORREGIDO)
 -- =================================================================
 local function SetupCustomPrompt()
 	if not MPrompt then return end
 
-	-- 1. Ajustar contenedor
+	-- 1. Ajustar contenedor del prompt
 	MPrompt.Size = PROMPT_SIZE
 	MPrompt.BackgroundTransparency = 1
 	MPrompt.ClipsDescendants = false
@@ -987,10 +987,8 @@ local function SetupCustomPrompt()
 		MPrompt.BackgroundTransparency = 1
 		MPrompt.ClipsDescendants = false
 		for _, child in ipairs(MPrompt:GetChildren()) do
-			if child.Name ~= "VisualCircle" then
-				if child:IsA("GuiObject") then
-					child.Visible = false
-				end
+			if child.Name ~= "VisualCircle" and child:IsA("GuiObject") then
+				child.Visible = false
 			end
 		end
 	end
@@ -998,7 +996,7 @@ local function SetupCustomPrompt()
 	HideCapsule()
 	table.insert(Connections, MPrompt.ChildAdded:Connect(HideCapsule))
 
-	-- 2. Círculo estético con Contorno Púrpura
+	-- 2. Círculo estético
 	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("Frame")
 	VisualCircle.Name = "VisualCircle"
 	VisualCircle.Size = CIRCLE_SIZE
@@ -1058,7 +1056,7 @@ local function SetupCustomPrompt()
 	ClickTrigger.ZIndex = 52
 	ClickTrigger.Parent = VisualCircle
 
-	-- 5. Animaciones, Arrastre y Método de Apertura Seguro
+	-- 5. Animaciones, Arrastre y Método de Apertura Restaurado
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
 	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -1067,12 +1065,10 @@ local function SetupCustomPrompt()
 	local hasMoved = false
 	local dragStart, startPos
 
-	-- Efecto Hundido
 	table.insert(Connections, ClickTrigger.MouseButton1Down:Connect(function()
 		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(CIRCLE_SIZE.X.Scale, CIRCLE_SIZE.X.Offset * 0.85, CIRCLE_SIZE.Y.Scale, CIRCLE_SIZE.Y.Offset * 0.85)}):Play()
 	end))
 
-	-- Iniciar Arrastre
 	table.insert(Connections, ClickTrigger.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
@@ -1082,7 +1078,6 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Movimiento
 	table.insert(Connections, UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
@@ -1098,21 +1093,33 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Función para restaurar y desplegar el menú de forma limpia
+	-- Función de apertura limpia sin romper layouts
 	local function OpenMenu()
 		Main.Visible = not Main.Visible
 
 		if Main.Visible then
+			-- Forzar centrado y dimensiones exactas
 			Main.AnchorPoint = Vector2.new(0.5, 0.5)
 			Main.Position = UDim2.new(0.5, 0, 0.5, 0)
 			Main.Size = OriginalMainSize
 			Main.BackgroundTransparency = 0
 
+			-- Restaurar visibilidad de contenedores
 			local Elements = Main:FindFirstChild("Elements")
 			local TabList = Main:FindFirstChild("TabList")
 			if Elements then Elements.Visible = true end
 			if TabList then TabList.Visible = true end
 
+			-- Reordenar los elementos de la Topbar para reparar elementos mal ajustados
+			if Topbar then
+				Topbar.Size = UDim2.new(1, 0, 0, 45)
+				local layout = Topbar:FindFirstChildOfClass("UIListLayout")
+				if layout then
+					layout:ApplyLayout()
+				end
+			end
+
+			-- Resetear transparencias de CanvasGroup
 			if Main:IsA("CanvasGroup") then
 				Main.GroupTransparency = 0
 			end
@@ -1124,7 +1131,6 @@ local function SetupCustomPrompt()
 		end
 	end
 
-	-- Soltar y desplegar
 	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if dragging then
