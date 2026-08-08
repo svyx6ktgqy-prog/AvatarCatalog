@@ -909,95 +909,73 @@ end
 
 
 -- Object Variables
-
 local Main = Rayfield.Main
 local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
-
--- Referencias seguras a servicios
-local CoreGui = game:GetService("CoreGui")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
+local Topbar = Main.Topbar
 
 -- =================================================================
 -- ⚙️ PARÁMETROS CONFIGURABLES
 -- =================================================================
+local PROMPT_SIZE = UDim2.new(0, 85, 0, 85)
 local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70)
-local MAX_MENU_SIZE = Vector2.new(620, 380)
 
 -- =================================================================
 -- 🧹 SISTEMA KILL-SWITCH
 -- =================================================================
 if getgenv().TrasherCleanup then
-	pcall(getgenv().TrasherCleanup)
+	getgenv().TrasherCleanup()
 end
 
 local Connections = {}
 getgenv().TrasherCleanup = function()
 	for _, conn in ipairs(Connections) do
-		if conn and conn.Connected then
-			conn:Disconnect()
-		end
+		if conn then conn:Disconnect() end
 	end
 	table.clear(Connections)
-	
-	local rayfieldGui = CoreGui:FindFirstChild("Rayfield")
-	if rayfieldGui then
-		local oldButton = rayfieldGui:FindFirstChild("TrasherFloatingButton", true)
-		if oldButton then oldButton:Destroy() end
+	if MPrompt then
+		local oldCircle = MPrompt:FindFirstChild("VisualCircle")
+		if oldCircle then oldCircle:Destroy() end
 	end
 end
 
 -- =================================================================
--- 🚀 INICIALIZACIÓN SEGURA Y BOTÓN FLOTANTE
+-- 🚀 BOTÓN TRASHER Y APERTURA GARANTIZADA
 -- =================================================================
-local function InitCustomPrompt()
-	-- Búsqueda segura del menú Main y ScreenGui
-	local Main = nil
-	if typeof(Rayfield) == "table" and Rayfield.Main then
-		Main = Rayfield.Main
-	else
-		local rayfieldGui = CoreGui:FindFirstChild("Rayfield")
-		if rayfieldGui then
-			Main = rayfieldGui:FindFirstChild("Main", true)
+local function SetupCustomPrompt()
+	if not MPrompt then return end
+
+	-- 1. Ajustar contenedor
+	MPrompt.Size = PROMPT_SIZE
+	MPrompt.BackgroundTransparency = 1
+	MPrompt.ClipsDescendants = false
+
+	local function HideCapsule()
+		MPrompt.BackgroundTransparency = 1
+		MPrompt.ClipsDescendants = false
+		for _, child in ipairs(MPrompt:GetChildren()) do
+			if child.Name ~= "VisualCircle" then
+				if child:IsA("GuiObject") then
+					child.Visible = false
+				end
+			end
 		end
 	end
 
-	if not Main then return end
+	HideCapsule()
+	table.insert(Connections, MPrompt.ChildAdded:Connect(HideCapsule))
 
-	local ScreenGui = Main:FindFirstAncestorOfClass("ScreenGui") or Main.Parent
-	local MPrompt = ScreenGui:FindFirstChild("Prompt", true) or ScreenGui:FindFirstChild("MPrompt", true)
-
-	-- 1. Candado de tamaño para evitar estiramiento
-	Main.AnchorPoint = Vector2.new(0.5, 0.5)
-	Main.Position = UDim2.new(0.5, 0, 0.5, 0)
-	Main.Size = UDim2.new(0, MAX_MENU_SIZE.X, 0, MAX_MENU_SIZE.Y)
-
-	local SizeConstraint = Main:FindFirstChild("FixSizeConstraint") or Instance.new("UISizeConstraint")
-	SizeConstraint.Name = "FixSizeConstraint"
-	SizeConstraint.MaxSize = MAX_MENU_SIZE
-	SizeConstraint.MinSize = Vector2.new(300, 200)
-	SizeConstraint.Parent = Main
-
-	-- 2. Ocultar botón nativo
-	if MPrompt then
-		MPrompt.Visible = false
-		table.insert(Connections, MPrompt:GetPropertyChangedSignal("Visible"):Connect(function()
-			if MPrompt.Visible then MPrompt.Visible = false end
-		end))
-	end
-
-	-- 3. Crear el botón circular Trasher
-	local VisualCircle = ScreenGui:FindFirstChild("TrasherFloatingButton") or Instance.new("Frame")
-	VisualCircle.Name = "TrasherFloatingButton"
+	-- 2. Círculo estético con Contorno Púrpura
+	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("Frame")
+	VisualCircle.Name = "VisualCircle"
 	VisualCircle.Size = CIRCLE_SIZE
 	VisualCircle.AnchorPoint = Vector2.new(0.5, 0.5)
 	VisualCircle.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 	VisualCircle.BackgroundTransparency = 0.15
 	VisualCircle.ClipsDescendants = false
-	VisualCircle.ZIndex = 1000
-	VisualCircle.Parent = ScreenGui
+	VisualCircle.ZIndex = 50
+	VisualCircle.Parent = MPrompt
 
-	getgenv().TrasherCircleOffset = getgenv().TrasherCircleOffset or UDim2.new(0.85, 0, 0.2, 0)
+	getgenv().TrasherCircleOffset = getgenv().TrasherCircleOffset or UDim2.new(0.5, 0, 0.5, 0)
 	VisualCircle.Position = getgenv().TrasherCircleOffset
 
 	local AspectRatio = VisualCircle:FindFirstChildOfClass("UIAspectRatioConstraint") or Instance.new("UIAspectRatioConstraint")
@@ -1014,10 +992,11 @@ local function InitCustomPrompt()
 	Stroke.Transparency = 0
 	Stroke.Parent = VisualCircle
 
-	-- Texto "🚬 TRASHER 💜"
+	-- 3. Texto
 	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
 	CustomText.Name = "CustomText"
 	CustomText.Size = UDim2.new(1, 0, 1, 0)
+	CustomText.Position = UDim2.new(0, 0, 0, 0)
 	CustomText.BackgroundTransparency = 1
 	CustomText.Text = "🚬 TRASHER 💜"
 	CustomText.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1026,7 +1005,7 @@ local function InitCustomPrompt()
 	CustomText.TextScaled = true
 	CustomText.TextXAlignment = Enum.TextXAlignment.Center
 	CustomText.TextYAlignment = Enum.TextYAlignment.Center
-	CustomText.ZIndex = 1001
+	CustomText.ZIndex = 51
 	CustomText.Parent = VisualCircle
 
 	local UIPadding = CustomText:FindFirstChildOfClass("UIPadding") or Instance.new("UIPadding")
@@ -1036,29 +1015,30 @@ local function InitCustomPrompt()
 	UIPadding.PaddingRight = UDim.new(0.1, 0)
 	UIPadding.Parent = CustomText
 
-	-- Disparador transparente
+	-- 4. Botón de Interacción
 	local ClickTrigger = VisualCircle:FindFirstChild("ClickTrigger") or Instance.new("TextButton")
 	ClickTrigger.Name = "ClickTrigger"
 	ClickTrigger.Size = UDim2.new(1, 0, 1, 0)
 	ClickTrigger.BackgroundTransparency = 1
 	ClickTrigger.Text = ""
-	ClickTrigger.ZIndex = 1002
+	ClickTrigger.ZIndex = 52
 	ClickTrigger.Parent = VisualCircle
 
-	-- Interacción y Arrastre
+	-- 5. Animaciones, Arrastre y Método de Apertura Seguro
+	local TweenService = game:GetService("TweenService")
+	local UserInputService = game:GetService("UserInputService")
 	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
 	local dragging = false
 	local hasMoved = false
 	local dragStart, startPos
 
 	-- Efecto Hundido
 	table.insert(Connections, ClickTrigger.MouseButton1Down:Connect(function()
-		TweenService:Create(VisualCircle, tweenInfo, {
-			Size = UDim2.new(CIRCLE_SIZE.X.Scale, CIRCLE_SIZE.X.Offset * 0.85, CIRCLE_SIZE.Y.Scale, CIRCLE_SIZE.Y.Offset * 0.85)
-		}):Play()
+		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(CIRCLE_SIZE.X.Scale, CIRCLE_SIZE.X.Offset * 0.85, CIRCLE_SIZE.Y.Scale, CIRCLE_SIZE.Y.Offset * 0.85)}):Play()
 	end))
 
-	-- Arrastrar
+	-- Iniciar Arrastre
 	table.insert(Connections, ClickTrigger.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
@@ -1068,6 +1048,7 @@ local function InitCustomPrompt()
 		end
 	end))
 
+	-- Movimiento
 	table.insert(Connections, UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
@@ -1083,7 +1064,7 @@ local function InitCustomPrompt()
 		end
 	end))
 
-	-- Soltar y conmutar menú
+	-- Soltar y alternar con las funciones nativas del script principal
 	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if dragging then
@@ -1091,10 +1072,10 @@ local function InitCustomPrompt()
 				TweenService:Create(VisualCircle, tweenInfo, {Size = CIRCLE_SIZE}):Play()
 
 				if not hasMoved then
-					Main.Visible = not Main.Visible
-					if Main.Visible then
-						Main.Size = UDim2.new(0, MAX_MENU_SIZE.X, 0, MAX_MENU_SIZE.Y)
-						Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+					if Hidden then
+						Unhide()
+					else
+						Hide(false)
 					end
 				end
 			end
@@ -1102,7 +1083,7 @@ local function InitCustomPrompt()
 	end))
 end
 
-task.defer(InitCustomPrompt)
+task.defer(SetupCustomPrompt)
 
 local Elements = Main.Elements
 local LoadingFrame = Main.LoadingFrame
