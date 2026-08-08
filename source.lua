@@ -917,7 +917,7 @@ local Topbar = Main.Topbar
 -- =================================================================
 -- ⚙️ PARÁMETROS CONFIGURABLES
 -- =================================================================
-local PROMPT_SIZE = UDim2.new(0, 85, 0, 85) -- Cápsula contenedora más amplia
+local PROMPT_SIZE = UDim2.new(0, 85, 0, 85) -- Cápsula contenedora
 local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70) -- Tamaño del círculo visible
 
 -- =================================================================
@@ -941,12 +941,12 @@ getgenv().TrasherCleanup = function()
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER MEJORADO Y FUNCIONAL
+-- 🚀 BOTÓN TRASHER CON APERTURA NATIVA
 -- =================================================================
 local function SetupCustomPrompt()
 	if not MPrompt then return end
 
-	-- 1. Ampliar el contenedor de Rayfield y eliminar recortes
+	-- 1. Ampliar el contenedor de Rayfield y ocultar la cápsula gris
 	MPrompt.Size = PROMPT_SIZE
 	MPrompt.BackgroundTransparency = 1
 	MPrompt.ClipsDescendants = false
@@ -1015,7 +1015,7 @@ local function SetupCustomPrompt()
 	UIPadding.PaddingRight = UDim.new(0.1, 0)
 	UIPadding.Parent = CustomText
 
-	-- 4. Botón de interacción para recuperar la apertura del menú
+	-- 4. Botón de interacción
 	local ClickTrigger = VisualCircle:FindFirstChild("ClickTrigger") or Instance.new("TextButton")
 	ClickTrigger.Name = "ClickTrigger"
 	ClickTrigger.Size = UDim2.new(1, 0, 1, 0)
@@ -1024,12 +1024,12 @@ local function SetupCustomPrompt()
 	ClickTrigger.ZIndex = 52
 	ClickTrigger.Parent = VisualCircle
 
-	-- 5. Animación, Arrastre Persistente y Acción de Abrir Menú
+	-- 5. Animación, Arrastre Persistente y Apertura Nativa
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
 	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
-	-- Recuperar posición guardada
+	-- Recuperar posición guardada del botón flotante
 	getgenv().TrasherSavedPos = getgenv().TrasherSavedPos or MPrompt.Position
 	MPrompt.Position = getgenv().TrasherSavedPos
 
@@ -1080,17 +1080,29 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Soltar botón y ejecutar acción de Rayfield si no hubo arrastre
+	-- Soltar botón y ejecutar la acción nativa de apertura de Rayfield
 	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if dragging then
 				dragging = false
 				TweenService:Create(VisualCircle, tweenInfo, {Size = CIRCLE_SIZE}):Play()
 
-				-- Si solo fue un toque rápido (clic), abrimos la interfaz de Rayfield
+				-- Si solo fue un toque/clic rápido (sin arrastre)
 				if not hasMoved then
-					if Main then
-						Main.Visible = not Main.Visible
+					-- Disparar el evento nativo del botón Prompt original de Rayfield
+					local originalBtn = MPrompt:FindFirstChildOfClass("TextButton") or MPrompt:FindFirstChildOfClass("ImageButton")
+					if originalBtn then
+						for _, event in ipairs({"MouseButton1Click", "Activated"}) do
+							pcall(function()
+								firesignal(originalBtn[event])
+							end)
+						end
+					else
+						-- Respaldo de visibilidad nativa restaurando posiciones de Rayfield
+						Main.Visible = true
+						if Main:FindFirstChild("CanvasGroup") then
+							Main.CanvasGroup.GroupTransparency = 0
+						end
 					end
 				end
 			end
