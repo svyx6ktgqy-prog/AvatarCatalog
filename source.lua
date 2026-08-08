@@ -917,8 +917,8 @@ local Topbar = Main.Topbar
 -- =================================================================
 -- ⚙️ PARÁMETROS CONFIGURABLES
 -- =================================================================
-local PROMPT_SIZE = UDim2.new(0, 85, 0, 85) -- Cápsula contenedora
-local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70) -- Círculo visible
+local PROMPT_SIZE = UDim2.new(0, 85, 0, 85)
+local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70)
 
 -- =================================================================
 -- 🧹 SISTEMA KILL-SWITCH
@@ -936,12 +936,11 @@ getgenv().TrasherCleanup = function()
 	if MPrompt then
 		local oldCircle = MPrompt:FindFirstChild("VisualCircle")
 		if oldCircle then oldCircle:Destroy() end
-		MPrompt.BackgroundTransparency = 0
 	end
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER CERO DESPLAZAMIENTO DEL MENÚ
+-- 🚀 BOTÓN TRASHER CON DESPLEGADO NATIVO PERFECTO
 -- =================================================================
 local function SetupCustomPrompt()
 	if not MPrompt then return end
@@ -966,7 +965,7 @@ local function SetupCustomPrompt()
 	HideCapsule()
 	table.insert(Connections, MPrompt.ChildAdded:Connect(HideCapsule))
 
-	-- 2. Círculo estético con Contorno Púrpura Brillantemente Definido
+	-- 2. Círculo estético con Contorno Púrpura
 	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("Frame")
 	VisualCircle.Name = "VisualCircle"
 	VisualCircle.Size = CIRCLE_SIZE
@@ -977,7 +976,6 @@ local function SetupCustomPrompt()
 	VisualCircle.ZIndex = 50
 	VisualCircle.Parent = MPrompt
 
-	-- Recuperar posición relativa dentro del espacio de pantalla
 	getgenv().TrasherCircleOffset = getgenv().TrasherCircleOffset or UDim2.new(0.5, 0, 0.5, 0)
 	VisualCircle.Position = getgenv().TrasherCircleOffset
 
@@ -989,9 +987,8 @@ local function SetupCustomPrompt()
 	Corner.CornerRadius = UDim.new(1, 0)
 	Corner.Parent = VisualCircle
 
-	-- Contorno Púrpura (Purple Glow / Stroke)
 	local Stroke = VisualCircle:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
-	Stroke.Color = Color3.fromRGB(160, 32, 240) -- Púrpura Intenso / Purple
+	Stroke.Color = Color3.fromRGB(160, 32, 240)
 	Stroke.Thickness = 2.5
 	Stroke.Transparency = 0
 	Stroke.Parent = VisualCircle
@@ -1028,7 +1025,7 @@ local function SetupCustomPrompt()
 	ClickTrigger.ZIndex = 52
 	ClickTrigger.Parent = VisualCircle
 
-	-- 5. Animaciones y Arrastre que NO deforman el menú de Rayfield
+	-- 5. Lógica de Arrastre e Invocación Nativa
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
 	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -1068,7 +1065,7 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Soltar y Abrir Menú manteniendo la integridad de la UI
+	-- Soltar y desplegar nativamente
 	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if dragging then
@@ -1076,10 +1073,21 @@ local function SetupCustomPrompt()
 				TweenService:Create(VisualCircle, tweenInfo, {Size = CIRCLE_SIZE}):Play()
 
 				if not hasMoved then
-					-- Garantizar que el menú preserve su posición y estructura original al abrirse
-					Main.Position = UDim2.new(0.5, 0, 0.5, 0)
-					Main.AnchorPoint = Vector2.new(0.5, 0.5)
-					Main.Visible = not Main.Visible
+					-- Ejecución del método nativo de Rayfield para desminimizar/abrir
+					if Rayfield and Rayfield.Minimize then
+						Rayfield:Minimize()
+					else
+						-- Búsqueda del botón/evento original de activación si la función global no está mapeada
+						local promptButton = MPrompt:FindFirstChildOfClass("TextButton") or MPrompt:FindFirstChildOfClass("ImageButton")
+						if promptButton then
+							for _, connection in ipairs(getconnections(promptButton.MouseButton1Click)) do
+								connection:Fire()
+							end
+							for _, connection in ipairs(getconnections(promptButton.Activated)) do
+								connection:Fire()
+							end
+						end
+					end
 				end
 			end
 		end
