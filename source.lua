@@ -914,52 +914,55 @@ local Main = Rayfield.Main
 local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
 local Topbar = Main.Topbar
 
--- [INICIO] MODIFICACIÓN RADICAL Y SISTEMA ARRASTRABLE
+-- [INICIO] MODIFICACIÓN DEL BOTÓN MANTENIENDO SU FUNCIONALIDAD
 task.spawn(function()
 	local Prompt = MPrompt
 	if not Prompt then return end
 
-	-- Esperar a que Rayfield aplique sus estilos iniciales para sobrescribirlos
-	task.wait(0.2)
+	-- Pequeña espera para asegurar que Rayfield construyó todo el UI
+	task.wait(0.3)
 
-	-- 1. Limpieza total de elementos visuales antiguos (imágenes, textos e íconos originales)
+	-- 1. Ocultar los elementos visuales originales sin destruirlos para no romper la lógica
 	for _, child in ipairs(Prompt:GetChildren()) do
-		if child:IsA("TextLabel") or child:IsA("ImageLabel") or child:IsA("ImageButton") or child:IsA("UIStroke") then
-			child:Destroy()
+		if child:IsA("TextLabel") or child:IsA("ImageLabel") or child:IsA("ImageButton") then
+			child.Visible = false
+		elseif child:IsA("UIStroke") then
+			child.Enabled = false
 		end
 	end
 
-	-- 2. Convertir el botón contenedor en un círculo perfecto
+	-- 2. Convertir el contenedor en un círculo discreto
 	Prompt.Size = UDim2.new(0, 50, 0, 50)
 	Prompt.BackgroundTransparency = 0.2
-	Prompt.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+	Prompt.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 	Prompt.ClipsDescendants = false
 
 	local Corner = Prompt:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
 	Corner.CornerRadius = UDim.new(1, 0)
 	Corner.Parent = Prompt
 
-	-- Borde sutil para resaltar
-	local Stroke = Instance.new("UIStroke")
+	local Stroke = Prompt:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
+	Stroke.Enabled = true
 	Stroke.Color = Color3.fromRGB(255, 255, 255)
 	Stroke.Thickness = 1.5
 	Stroke.Transparency = 0.5
 	Stroke.Parent = Prompt
 
-	-- 3. Crear un único texto totalmente centrado
-	local NewText = Instance.new("TextLabel")
-	NewText.Name = "CustomPromptText"
-	NewText.Size = UDim2.new(1, 0, 1, 0)
-	NewText.Position = UDim2.new(0, 0, 0, 0)
-	NewText.BackgroundTransparency = 1
-	NewText.Text = "Show"
-	NewText.TextColor3 = Color3.fromRGB(255, 255, 255)
-	NewText.TextSize = 14
-	NewText.Font = Enum.Font.Garamond
-	NewText.TextXAlignment = Enum.TextXAlignment.Center
-	NewText.TextYAlignment = Enum.TextYAlignment.Center
-	NewText.ZIndex = 10
-	NewText.Parent = Prompt
+	-- 3. Crear el texto "Show" superpuesto sin bloquear el clic
+	local CustomText = Prompt:FindFirstChild("CustomPromptText") or Instance.new("TextLabel")
+	CustomText.Name = "CustomPromptText"
+	CustomText.Size = UDim2.new(1, 0, 1, 0)
+	CustomText.Position = UDim2.new(0, 0, 0, 0)
+	CustomText.BackgroundTransparency = 1
+	CustomText.Text = "Show"
+	CustomText.TextColor3 = Color3.fromRGB(255, 255, 255)
+	CustomText.TextSize = 14
+	CustomText.Font = Enum.Font.Garamond
+	CustomText.TextXAlignment = Enum.TextXAlignment.Center
+	CustomText.TextYAlignment = Enum.TextYAlignment.Center
+	CustomText.ZIndex = 10
+	CustomText.Active = false -- Permite que el clic atraviese hacia el botón Prompt
+	CustomText.Parent = Prompt
 
 	-- 4. Sistema para hacer el botón arrastrable (Draggable)
 	local UserInputService = game:GetService("UserInputService")
@@ -1000,7 +1003,7 @@ task.spawn(function()
 		end
 	end)
 end)
--- [FIN] MODIFICACIÓN RADICAL
+-- [FIN] MODIFICACIÓN DEL BOTÓN
 
 local Elements = Main.Elements
 local LoadingFrame = Main.LoadingFrame
