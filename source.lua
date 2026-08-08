@@ -911,65 +911,80 @@ end
 -- Object Variables
 
 local Main = Rayfield.Main
-local MPrompt = Rayfield:FindFirstChild('Prompt')
+local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
 local Topbar = Main.Topbar
 
-		-- [INICIO] MODIFICACIÓN DEL BOTÓN PROMPT (CÍRCULO CON ICON.PNG)
-	if MPrompt then
-		task.spawn(function()
-			-- 1. Darle tamaño cuadrado al botón original (55x55)
-			MPrompt.Size = UDim2.new(0, 55, 0, 55)
-			
-			-- 2. Hacer el fondo un círculo perfecto
-			local corner = MPrompt:FindFirstChildOfClass("UICorner")
-			if corner then 
-				corner.CornerRadius = UDim2.new(1, 0) 
-			end
-			
-			-- 3. DESTRUIR TODO EL TEXTO ("Show Rayfield", sombras, etc.)
-			for _, obj in ipairs(MPrompt:GetDescendants()) do
-				if obj:IsA("TextLabel") then
-					obj.Visible = false
-				end
-			end
-			
-			-- 4. Crear el contenedor para tu logo
-			local logoBtn = Instance.new("ImageLabel")
-			logoBtn.Name = "CustomPromptLogo"
-			logoBtn.Parent = MPrompt
-			logoBtn.Size = UDim2.new(1, 0, 1, 0) -- Llena los 55x55
-			logoBtn.BackgroundTransparency = 1
-			logoBtn.ScaleType = Enum.ScaleType.Fit
-			
-			-- Redondear la imagen para que coincida
-			local logoCorner = Instance.new("UICorner")
-			logoCorner.CornerRadius = UDim2.new(1, 0)
-			logoCorner.Parent = logoBtn
+-- [INICIO] MODIFICACIÓN Y SISTEMA ARRASTRABLE DEL BOTÓN PROMPT
+task.spawn(function()
+	local Prompt = MPrompt
 
-			-- 5. Descargar y aplicar icon.png desde tu GitHub
-			local iconUrl = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/main/assets/icon.png"
-			local iconName = "Rebug_Icon.png"
-			
-			if type(writefile) == "function" and type(getcustomasset) == "function" then
-				local requestFunc = request or http_request or (syn and syn.request)
-				
-				-- Descarga la imagen si no está guardada en la caché local
-				if not isfile(iconName) and requestFunc then
-					local req = requestFunc({Url = iconUrl, Method = "GET"})
-					if req and type(req) == "table" and req.Body then
-						writefile(iconName, req.Body)
+	if Prompt then
+		-- 1. Convertir a círculo perfecto
+		Prompt.Size = UDim2.new(0, 60, 0, 60)
+		
+		local Corner = Prompt:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+		Corner.CornerRadius = UDim.new(1, 0)
+		Corner.Parent = Prompt
+
+		-- 2. Configurar texto dentro del botón
+		local TitleLabel = Prompt:FindFirstChild("Title") or Prompt:FindFirstChildOfClass("TextLabel")
+		if TitleLabel then
+			TitleLabel.Text = "Show"
+			TitleLabel.Size = UDim2.new(1, 0, 1, 0)
+			TitleLabel.Position = UDim2.new(0, 0, 0, 0)
+			TitleLabel.TextScaled = true
+			TitleLabel.Font = Enum.Font.Garamond
+			TitleLabel.Visible = true
+		end
+
+		-- 3. Ajustar superposición de imágenes o íconos por defecto
+		for _, child in ipairs(Prompt:GetChildren()) do
+			if child:IsA("ImageLabel") or child:IsA("ImageButton") then
+				child.Size = UDim2.new(0.5, 0, 0.5, 0)
+				child.Position = UDim2.new(0.25, 0, 0.25, 0)
+			end
+		end
+
+		-- 4. Sistema para hacer el botón arrastrable (Draggable)
+		local dragging = false
+		local dragInput, dragStart, startPos
+
+		local function update(input)
+			local delta = input.Position - dragStart
+			Prompt.Position = UDim2.new(
+				startPos.X.Scale, startPos.X.Offset + delta.X,
+				startPos.Y.Scale, startPos.Y.Offset + delta.Y
+			)
+		end
+
+		Prompt.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = true
+				dragStart = input.Position
+				startPos = Prompt.Position
+
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						dragging = false
 					end
-				end
-				
-				-- Carga la imagen al botón
-				local success, asset = pcall(getcustomasset, iconName)
-				if success then 
-					logoBtn.Image = asset 
-				end
+				end)
+			end
+		end)
+
+		Prompt.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+				dragInput = input
+			end
+		end)
+
+		UserInputService.InputChanged:Connect(function(input)
+			if input == dragInput and dragging then
+				update(input)
 			end
 		end)
 	end
-	-- [FIN] MODIFICACIÓN DEL BOTÓN PROMPT
+end)
+-- [FIN] MODIFICACIÓN DEL BOTÓN PROMPT
 
 local Elements = Main.Elements
 local LoadingFrame = Main.LoadingFrame
