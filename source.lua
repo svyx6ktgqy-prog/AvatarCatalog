@@ -956,11 +956,8 @@ local function SetupCustomPrompt()
 		MPrompt.ClipsDescendants = false
 		for _, child in ipairs(MPrompt:GetChildren()) do
 			if child.Name ~= "VisualCircle" then
-				if child:IsA("UIListLayout") or child:IsA("UIGridLayout") or child:IsA("UICorner") then
-					child:Destroy()
-				elseif child:IsA("GuiObject") then
+				if child:IsA("GuiObject") then
 					child.Visible = false
-					child.BackgroundTransparency = 1
 				end
 			end
 		end
