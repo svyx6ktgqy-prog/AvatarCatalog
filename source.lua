@@ -913,6 +913,9 @@ local Main = Rayfield.Main
 local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
 local Topbar = Main.Topbar
 
+-- Guardar el tamaño original del menú antes de que Rayfield lo colapse
+local OriginalMainSize = (Main.Size.X.Offset > 100) and Main.Size or UDim2.new(0, 500, 0, 475)
+
 -- =================================================================
 -- ⚙️ PARÁMETROS CONFIGURABLES
 -- =================================================================
@@ -936,6 +939,37 @@ getgenv().TrasherCleanup = function()
 		local oldCircle = MPrompt:FindFirstChild("VisualCircle")
 		if oldCircle then oldCircle:Destroy() end
 	end
+end
+
+-- =================================================================
+-- 🔗 VINCULACIÓN DIRECTA DE BOTONES DE TOPBAR
+-- =================================================================
+local TopbarHideBtn = Topbar:FindFirstChild("Hide")
+local TopbarMinBtn = Topbar:FindFirstChild("ChangeSize")
+
+if TopbarHideBtn then
+	table.insert(Connections, TopbarHideBtn.MouseButton1Click:Connect(function()
+		Main.Visible = false
+	end))
+end
+
+if TopbarMinBtn then
+	local isMinimized = false
+	table.insert(Connections, TopbarMinBtn.MouseButton1Click:Connect(function()
+		isMinimized = not isMinimized
+		local Elements = Main:FindFirstChild("Elements")
+		local TabList = Main:FindFirstChild("TabList")
+		
+		if isMinimized then
+			if Elements then Elements.Visible = false end
+			if TabList then TabList.Visible = false end
+			Main.Size = UDim2.new(OriginalMainSize.X.Scale, OriginalMainSize.X.Offset, 0, 45)
+		else
+			Main.Size = OriginalMainSize
+			if Elements then Elements.Visible = true end
+			if TabList then TabList.Visible = true end
+		end
+	end))
 end
 
 -- =================================================================
@@ -1064,7 +1098,33 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Soltar y alternar con las funciones nativas del script principal
+	-- Función para restaurar y desplegar el menú de forma limpia
+	local function OpenMenu()
+		Main.Visible = not Main.Visible
+
+		if Main.Visible then
+			Main.AnchorPoint = Vector2.new(0.5, 0.5)
+			Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+			Main.Size = OriginalMainSize
+			Main.BackgroundTransparency = 0
+
+			local Elements = Main:FindFirstChild("Elements")
+			local TabList = Main:FindFirstChild("TabList")
+			if Elements then Elements.Visible = true end
+			if TabList then TabList.Visible = true end
+
+			if Main:IsA("CanvasGroup") then
+				Main.GroupTransparency = 0
+			end
+			for _, desc in ipairs(Main:GetDescendants()) do
+				if desc:IsA("CanvasGroup") then
+					desc.GroupTransparency = 0
+				end
+			end
+		end
+	end
+
+	-- Soltar y desplegar
 	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if dragging then
@@ -1072,11 +1132,7 @@ local function SetupCustomPrompt()
 				TweenService:Create(VisualCircle, tweenInfo, {Size = CIRCLE_SIZE}):Play()
 
 				if not hasMoved then
-					if Hidden then
-						Unhide()
-					else
-						Hide(false)
-					end
+					OpenMenu()
 				end
 			end
 		end
