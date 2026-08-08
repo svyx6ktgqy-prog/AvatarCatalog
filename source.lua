@@ -942,39 +942,24 @@ getgenv().TrasherCleanup = function()
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER Y APERTURA GARANTIZADA
+-- 🚀 BOTÓN TRASHER PERSONALIZADO (IMAGEN)
 -- =================================================================
 local function SetupCustomPrompt()
 	if not MPrompt then return end
 
-	-- 1. Ajustar contenedor
+	-- 1. Ajustar contenedor principal (Sin función oculta extra)
 	MPrompt.Size = PROMPT_SIZE
 	MPrompt.BackgroundTransparency = 1
 	MPrompt.ClipsDescendants = false
 
-	local function HideCapsule()
-		MPrompt.BackgroundTransparency = 1
-		MPrompt.ClipsDescendants = false
-		for _, child in ipairs(MPrompt:GetChildren()) do
-			if child.Name ~= "VisualCircle" then
-				if child:IsA("GuiObject") then
-					child.Visible = false
-				end
-			end
-		end
-	end
-
-	HideCapsule()
-	table.insert(Connections, MPrompt.ChildAdded:Connect(HideCapsule))
-
-	-- 2. Círculo estético con Contorno Púrpura
-	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("Frame")
+	-- 2. Círculo de Imagen (Reemplazo del Frame por ImageLabel)
+	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("ImageLabel")
 	VisualCircle.Name = "VisualCircle"
 	VisualCircle.Size = CIRCLE_SIZE
 	VisualCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-	VisualCircle.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	VisualCircle.BackgroundTransparency = 0.15
-	VisualCircle.ClipsDescendants = false
+	VisualCircle.BackgroundTransparency = 1 -- Fondo transparente para no mostrar bordes
+	VisualCircle.Image = "rbxassetid://107137560718417" -- Tu ID personalizada
+	VisualCircle.ClipsDescendants = true -- CRUCIAL: Recorta la imagen al borde del UICorner
 	VisualCircle.ZIndex = 50
 	VisualCircle.Parent = MPrompt
 
@@ -985,40 +970,12 @@ local function SetupCustomPrompt()
 	AspectRatio.AspectRatio = 1
 	AspectRatio.Parent = VisualCircle
 
+	-- El UICorner + ClipsDescendants del ImageLabel crean el recorte circular perfecto
 	local Corner = VisualCircle:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
-	Corner.CornerRadius = UDim.new(1, 0)
+	Corner.CornerRadius = UDim.new(1, 0) 
 	Corner.Parent = VisualCircle
 
-	local Stroke = VisualCircle:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
-	Stroke.Color = Color3.fromRGB(160, 32, 240)
-	Stroke.Thickness = 2.5
-	Stroke.Transparency = 0
-	Stroke.Parent = VisualCircle
-
-	-- 3. Texto
-	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
-	CustomText.Name = "CustomText"
-	CustomText.Size = UDim2.new(1, 0, 1, 0)
-	CustomText.Position = UDim2.new(0, 0, 0, 0)
-	CustomText.BackgroundTransparency = 1
-	CustomText.Text = "🚬 TRASHER 💜"
-	CustomText.TextColor3 = Color3.fromRGB(255, 255, 255)
-	CustomText.TextSize = 11
-	CustomText.Font = Enum.Font.Garamond
-	CustomText.TextScaled = true
-	CustomText.TextXAlignment = Enum.TextXAlignment.Center
-	CustomText.TextYAlignment = Enum.TextYAlignment.Center
-	CustomText.ZIndex = 51
-	CustomText.Parent = VisualCircle
-
-	local UIPadding = CustomText:FindFirstChildOfClass("UIPadding") or Instance.new("UIPadding")
-	UIPadding.PaddingTop = UDim.new(0.2, 0)
-	UIPadding.PaddingBottom = UDim.new(0.2, 0)
-	UIPadding.PaddingLeft = UDim.new(0.1, 0)
-	UIPadding.PaddingRight = UDim.new(0.1, 0)
-	UIPadding.Parent = CustomText
-
-	-- 4. Botón de Interacción
+	-- 3. Botón de Interacción (Invisible, por encima de la imagen)
 	local ClickTrigger = VisualCircle:FindFirstChild("ClickTrigger") or Instance.new("TextButton")
 	ClickTrigger.Name = "ClickTrigger"
 	ClickTrigger.Size = UDim2.new(1, 0, 1, 0)
@@ -1027,7 +984,7 @@ local function SetupCustomPrompt()
 	ClickTrigger.ZIndex = 52
 	ClickTrigger.Parent = VisualCircle
 
-	-- 5. Animaciones, Arrastre y Método de Apertura Seguro
+	-- 4. Animaciones, Arrastre y Método de Apertura Seguro
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
 	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -1036,7 +993,7 @@ local function SetupCustomPrompt()
 	local hasMoved = false
 	local dragStart, startPos
 
-	-- Efecto Hundido
+	-- Efecto Hundido al presionar
 	table.insert(Connections, ClickTrigger.MouseButton1Down:Connect(function()
 		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(CIRCLE_SIZE.X.Scale, CIRCLE_SIZE.X.Offset * 0.85, CIRCLE_SIZE.Y.Scale, CIRCLE_SIZE.Y.Offset * 0.85)}):Play()
 	end))
@@ -1051,7 +1008,7 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Movimiento
+	-- Movimiento (Arrastre)
 	table.insert(Connections, UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
@@ -1067,12 +1024,11 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Función para restaurar y desplegar el menú [CORREGIDA]
+	-- Función de apertura limpia
 	local function OpenMenu()
 		local fired = false
 		local targetButton = MPrompt:IsA("GuiButton") and MPrompt or MPrompt:FindFirstChildWhichIsA("GuiButton", true)
 
-		-- Método 1: Intentar usar firesignal (más directo si el ejecutor lo permite)
 		if targetButton and firesignal then
 			pcall(function()
 				firesignal(targetButton.MouseButton1Click)
@@ -1080,12 +1036,11 @@ local function SetupCustomPrompt()
 			end)
 		end
 
-		-- Método 2: Uso seguro de getconnections (SIN disparos múltiples)
 		if targetButton and getconnections and not fired then
 			pcall(function()
 				local c1 = getconnections(targetButton.MouseButton1Click)
 				if c1 and #c1 > 0 then
-					c1[1]:Fire() -- SOLO disparamos el primero para evitar bugs de estado
+					c1[1]:Fire()
 					fired = true
 					return
 				end
@@ -1098,10 +1053,10 @@ local function SetupCustomPrompt()
 			end)
 		end
 
-		-- Fallback extremo si el ejecutor no soporta eventos nativos
+		-- Fallback extremo
 		if not fired then
 			Main.Visible = true
-			MPrompt.Visible = false -- Ocultamos el prompt de forma manual
+			MPrompt.Visible = false
 			Main.AnchorPoint = Vector2.new(0.5, 0.5)
 			Main.Position = UDim2.new(0.5, 0, 0.5, 0)
 			Main.Size = OriginalMainSize
@@ -1115,7 +1070,6 @@ local function SetupCustomPrompt()
 				end
 			end
 			
-			-- Parche: Forzamos el botón de cerrado interno del menú
 			local closeBtn = Topbar and (Topbar:FindFirstChild("Close") or Topbar:FindFirstChildWhichIsA("GuiButton", true))
 			if closeBtn and not getgenv().TrasherFallbackBound then
 				getgenv().TrasherFallbackBound = true
