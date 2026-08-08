@@ -918,10 +918,10 @@ local Topbar = Main.Topbar
 -- ⚙️ PARÁMETROS CONFIGURABLES
 -- =================================================================
 local PROMPT_SIZE = UDim2.new(0, 85, 0, 85) -- Cápsula contenedora
-local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70) -- Tamaño del círculo visible
+local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70) -- Círculo visible
 
 -- =================================================================
--- 🧹 SISTEMA KILL-SWITCH (Limpia instancias previas al recargar)
+-- 🧹 SISTEMA KILL-SWITCH
 -- =================================================================
 if getgenv().TrasherCleanup then
 	getgenv().TrasherCleanup()
@@ -941,12 +941,12 @@ getgenv().TrasherCleanup = function()
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER CON APERTURA NATIVA
+-- 🚀 BOTÓN TRASHER CERO DESPLAZAMIENTO DEL MENÚ
 -- =================================================================
 local function SetupCustomPrompt()
 	if not MPrompt then return end
 
-	-- 1. Ampliar el contenedor de Rayfield y ocultar la cápsula gris
+	-- 1. Redimensionar contenedor
 	MPrompt.Size = PROMPT_SIZE
 	MPrompt.BackgroundTransparency = 1
 	MPrompt.ClipsDescendants = false
@@ -966,17 +966,20 @@ local function SetupCustomPrompt()
 	HideCapsule()
 	table.insert(Connections, MPrompt.ChildAdded:Connect(HideCapsule))
 
-	-- 2. Círculo estético ajustable
+	-- 2. Círculo estético con Contorno Púrpura Brillantemente Definido
 	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("Frame")
 	VisualCircle.Name = "VisualCircle"
 	VisualCircle.Size = CIRCLE_SIZE
 	VisualCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-	VisualCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
 	VisualCircle.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 	VisualCircle.BackgroundTransparency = 0.15
 	VisualCircle.ClipsDescendants = false
 	VisualCircle.ZIndex = 50
 	VisualCircle.Parent = MPrompt
+
+	-- Recuperar posición relativa dentro del espacio de pantalla
+	getgenv().TrasherCircleOffset = getgenv().TrasherCircleOffset or UDim2.new(0.5, 0, 0.5, 0)
+	VisualCircle.Position = getgenv().TrasherCircleOffset
 
 	local AspectRatio = VisualCircle:FindFirstChildOfClass("UIAspectRatioConstraint") or Instance.new("UIAspectRatioConstraint")
 	AspectRatio.AspectRatio = 1
@@ -986,13 +989,14 @@ local function SetupCustomPrompt()
 	Corner.CornerRadius = UDim.new(1, 0)
 	Corner.Parent = VisualCircle
 
+	-- Contorno Púrpura (Purple Glow / Stroke)
 	local Stroke = VisualCircle:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
-	Stroke.Color = Color3.fromRGB(180, 130, 255)
-	Stroke.Thickness = 2
-	Stroke.Transparency = 0.2
+	Stroke.Color = Color3.fromRGB(160, 32, 240) -- Púrpura Intenso / Purple
+	Stroke.Thickness = 2.5
+	Stroke.Transparency = 0
 	Stroke.Parent = VisualCircle
 
-	-- 3. Texto personalizado
+	-- 3. Texto
 	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
 	CustomText.Name = "CustomText"
 	CustomText.Size = UDim2.new(1, 0, 1, 0)
@@ -1015,7 +1019,7 @@ local function SetupCustomPrompt()
 	UIPadding.PaddingRight = UDim.new(0.1, 0)
 	UIPadding.Parent = CustomText
 
-	-- 4. Botón de interacción
+	-- 4. Botón de Interacción
 	local ClickTrigger = VisualCircle:FindFirstChild("ClickTrigger") or Instance.new("TextButton")
 	ClickTrigger.Name = "ClickTrigger"
 	ClickTrigger.Size = UDim2.new(1, 0, 1, 0)
@@ -1024,30 +1028,16 @@ local function SetupCustomPrompt()
 	ClickTrigger.ZIndex = 52
 	ClickTrigger.Parent = VisualCircle
 
-	-- 5. Animación, Arrastre Persistente y Apertura Nativa
+	-- 5. Animaciones y Arrastre que NO deforman el menú de Rayfield
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
 	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-
-	-- Recuperar posición guardada del botón flotante
-	getgenv().TrasherSavedPos = getgenv().TrasherSavedPos or MPrompt.Position
-	MPrompt.Position = getgenv().TrasherSavedPos
-
-	local lockPosition = false
-	table.insert(Connections, MPrompt:GetPropertyChangedSignal("Position"):Connect(function()
-		if lockPosition or not getgenv().TrasherSavedPos then return end
-		if MPrompt.Position ~= getgenv().TrasherSavedPos then
-			lockPosition = true
-			MPrompt.Position = getgenv().TrasherSavedPos
-			lockPosition = false
-		end
-	end))
 
 	local dragging = false
 	local hasMoved = false
 	local dragStart, startPos
 
-	-- Efecto de hundido
+	-- Efecto Hundido
 	table.insert(Connections, ClickTrigger.MouseButton1Down:Connect(function()
 		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(CIRCLE_SIZE.X.Scale, CIRCLE_SIZE.X.Offset * 0.85, CIRCLE_SIZE.Y.Scale, CIRCLE_SIZE.Y.Offset * 0.85)}):Play()
 	end))
@@ -1058,11 +1048,11 @@ local function SetupCustomPrompt()
 			dragging = true
 			hasMoved = false
 			dragStart = input.Position
-			startPos = MPrompt.Position
+			startPos = VisualCircle.Position
 		end
 	end))
 
-	-- Procesar Movimiento
+	-- Movimiento del Círculo
 	table.insert(Connections, UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
@@ -1073,37 +1063,23 @@ local function SetupCustomPrompt()
 				startPos.X.Scale, startPos.X.Offset + delta.X,
 				startPos.Y.Scale, startPos.Y.Offset + delta.Y
 			)
-			lockPosition = true
-			MPrompt.Position = newPos
-			getgenv().TrasherSavedPos = newPos
-			lockPosition = false
+			VisualCircle.Position = newPos
+			getgenv().TrasherCircleOffset = newPos
 		end
 	end))
 
-	-- Soltar botón y ejecutar la acción nativa de apertura de Rayfield
+	-- Soltar y Abrir Menú manteniendo la integridad de la UI
 	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if dragging then
 				dragging = false
 				TweenService:Create(VisualCircle, tweenInfo, {Size = CIRCLE_SIZE}):Play()
 
-				-- Si solo fue un toque/clic rápido (sin arrastre)
 				if not hasMoved then
-					-- Disparar el evento nativo del botón Prompt original de Rayfield
-					local originalBtn = MPrompt:FindFirstChildOfClass("TextButton") or MPrompt:FindFirstChildOfClass("ImageButton")
-					if originalBtn then
-						for _, event in ipairs({"MouseButton1Click", "Activated"}) do
-							pcall(function()
-								firesignal(originalBtn[event])
-							end)
-						end
-					else
-						-- Respaldo de visibilidad nativa restaurando posiciones de Rayfield
-						Main.Visible = true
-						if Main:FindFirstChild("CanvasGroup") then
-							Main.CanvasGroup.GroupTransparency = 0
-						end
-					end
+					-- Garantizar que el menú preserve su posición y estructura original al abrirse
+					Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+					Main.AnchorPoint = Vector2.new(0.5, 0.5)
+					Main.Visible = not Main.Visible
 				end
 			end
 		end
