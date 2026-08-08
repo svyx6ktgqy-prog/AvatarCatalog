@@ -987,7 +987,7 @@ local function SetupCustomPrompt()
 	AspectRatio.AspectRatio = 1
 	AspectRatio.Parent = VisualCircle
 
-	-- 3. IMAGEN ROTATORIA (Crossfade a Rojo)
+	-- 3. IMAGEN ROTATORIA (Verde Matrix Original intacto)
 	local RotatingImage = VisualCircle:FindFirstChild("RotatingImage") or Instance.new("ImageLabel")
 	RotatingImage.Name = "RotatingImage"
 	RotatingImage.Size = UDim2.new(1, 0, 1, 0)
@@ -997,19 +997,13 @@ local function SetupCustomPrompt()
 	RotatingImage.Image = "rbxassetid://107137560718417"
 	RotatingImage.ClipsDescendants = true 
 	RotatingImage.ZIndex = 51
+	-- Dejamos el color base en blanco para no teñir la imagen original
 	RotatingImage.ImageColor3 = Color3.fromRGB(255, 255, 255) 
 	RotatingImage.Parent = VisualCircle
 	
 	local ImageCorner = RotatingImage:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
 	ImageCorner.CornerRadius = UDim.new(1, 0) 
 	ImageCorner.Parent = RotatingImage
-
-	local textureTweenInfo = TweenInfo.new(3.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
-	local textureTween = TweenService:Create(RotatingImage, textureTweenInfo, {
-		ImageColor3 = Color3.fromRGB(255, 30, 30)
-	})
-	textureTween:Play()
-	table.insert(Connections, {Disconnect = function() textureTween:Cancel() end}) 
 
 	-- 4. TEXTO ESTÁTICO AL FONDO
 	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
@@ -1038,12 +1032,12 @@ local function SetupCustomPrompt()
 	strokeTween:Play()
 	table.insert(Connections, {Disconnect = function() strokeTween:Cancel() end})
 
-	-- 🟢 GRADIENTE SUAVIZADO PARA EL EFECTO ESPIRAL
+	-- 🟢 GRADIENTE SUAVIZADO PARA EL EFECTO ESPIRAL (Azul cambiado a Blanco)
 	local TextGradient = CustomText:FindFirstChildOfClass("UIGradient") or Instance.new("UIGradient")
 	TextGradient.Color = ColorSequence.new({
 		ColorSequenceKeypoint.new(0.00, Color3.fromRGB(160, 32, 240)), -- Púrpura
 		ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 0, 0)),      -- Negro
-		ColorSequenceKeypoint.new(0.66, Color3.fromRGB(45, 120, 255)), -- Azul
+		ColorSequenceKeypoint.new(0.66, Color3.fromRGB(255, 255, 255)),-- Blanco (Antes Azul)
 		ColorSequenceKeypoint.new(1.00, Color3.fromRGB(180, 10, 10))   -- Rojo
 	})
 	TextGradient.Parent = CustomText
@@ -1067,8 +1061,7 @@ local function SetupCustomPrompt()
 			-- Rotación estándar
 			TextGradient.Rotation = (TextGradient.Rotation + (GRADIENT_SPEED * deltaTime)) % 360
 			
-			-- 🟢 Truco hipnótico: Mover el centro del gradiente en un círculo sutil
-			-- Esto rompe la ilusión de las "líneas rectas" (fajas) simulando un remolino/cono.
+			-- Truco hipnótico: Mover el centro del gradiente en un círculo sutil
 			local timeTick = tick() * (GRADIENT_SPEED / 15)
 			TextGradient.Offset = Vector2.new(
 				math.cos(timeTick) * 0.25, 
