@@ -913,7 +913,6 @@ local Main = Rayfield.Main
 local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
 local Topbar = Main.Topbar
 
--- Guardar el tamaño original del menú antes de que Rayfield lo colapse
 local OriginalMainSize = (Main.Size.X.Offset > 100) and Main.Size or UDim2.new(0, 600, 0, 370)
 
 -- =================================================================
@@ -921,6 +920,7 @@ local OriginalMainSize = (Main.Size.X.Offset > 100) and Main.Size or UDim2.new(0
 -- =================================================================
 local PROMPT_SIZE = UDim2.new(0, 85, 0, 85)
 local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70)
+local ROTATION_SPEED = 25 -- Velocidad de giro (grados por segundo)
 
 -- =================================================================
 -- 🧹 SISTEMA KILL-SWITCH
@@ -942,24 +942,36 @@ getgenv().TrasherCleanup = function()
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER PERSONALIZADO (IMAGEN)
+-- 🚀 BOTÓN TRASHER: ROTACIÓN Y TEXTO ESTÁTICO
 -- =================================================================
 local function SetupCustomPrompt()
 	if not MPrompt then return end
 
-	-- 1. Ajustar contenedor principal (Sin función oculta extra)
+	-- 1. DESTRUIR LA CÁPSULA NATIVA (Hacerla "null")
 	MPrompt.Size = PROMPT_SIZE
 	MPrompt.BackgroundTransparency = 1
 	MPrompt.ClipsDescendants = false
 
-	-- 2. Círculo de Imagen (Reemplazo del Frame por ImageLabel)
-	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("ImageLabel")
+	local function NukeNativeUI()
+		MPrompt.BackgroundTransparency = 1
+		for _, child in ipairs(MPrompt:GetChildren()) do
+			-- Ocultamos todo lo que NO sea nuestro botón
+			if child.Name ~= "VisualCircle" and child:IsA("GuiObject") then
+				child.Visible = false
+				child.Transparency = 1
+			end
+		end
+	end
+
+	NukeNativeUI()
+	table.insert(Connections, MPrompt.ChildAdded:Connect(NukeNativeUI))
+
+	-- 2. CONTENEDOR MAESTRO (No rota, maneja la posición y los clics)
+	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("Frame")
 	VisualCircle.Name = "VisualCircle"
 	VisualCircle.Size = CIRCLE_SIZE
 	VisualCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-	VisualCircle.BackgroundTransparency = 1 -- Fondo transparente para no mostrar bordes
-	VisualCircle.Image = "rbxassetid://107137560718417" -- Tu ID personalizada
-	VisualCircle.ClipsDescendants = true -- CRUCIAL: Recorta la imagen al borde del UICorner
+	VisualCircle.BackgroundTransparency = 1 -- 100% invisible
 	VisualCircle.ZIndex = 50
 	VisualCircle.Parent = MPrompt
 
@@ -970,21 +982,67 @@ local function SetupCustomPrompt()
 	AspectRatio.AspectRatio = 1
 	AspectRatio.Parent = VisualCircle
 
-	-- El UICorner + ClipsDescendants del ImageLabel crean el recorte circular perfecto
-	local Corner = VisualCircle:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
-	Corner.CornerRadius = UDim.new(1, 0) 
-	Corner.Parent = VisualCircle
+	-- 3. IMAGEN ROTATORIA (Hija del contenedor maestro)
+	local RotatingImage = VisualCircle:FindFirstChild("RotatingImage") or Instance.new("ImageLabel")
+	RotatingImage.Name = "RotatingImage"
+	RotatingImage.Size = UDim2.new(1, 0, 1, 0) -- Ocupa todo el contenedor
+	RotatingImage.AnchorPoint = Vector2.new(0.5, 0.5)
+	RotatingImage.Position = UDim2.new(0.5, 0, 0.5, 0)
+	RotatingImage.BackgroundTransparency = 1
+	RotatingImage.Image = "rbxassetid://107137560718417"
+	RotatingImage.ClipsDescendants = true
+	RotatingImage.ZIndex = 51
+	RotatingImage.Parent = VisualCircle
 
-	-- 3. Botón de Interacción (Invisible, por encima de la imagen)
+	local Corner = RotatingImage:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+	Corner.CornerRadius = UDim.new(1, 0)
+	Corner.Parent = RotatingImage
+
+	-- 4. TEXTO ESTÁTICO AMARILLO (Hermano de la imagen, por lo tanto NO rota)
+	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
+	CustomText.Name = "CustomText"
+	CustomText.Size = UDim2.new(1, 0, 1, 0)
+	CustomText.BackgroundTransparency = 1
+	CustomText.Text = "TRASHER"
+	CustomText.TextColor3 = Color3.fromRGB(255, 235, 59) -- Amarillo vibrante
+	CustomText.Font = Enum.Font.GothamBold
+	CustomText.TextScaled = true
+	CustomText.ZIndex = 52 -- Por encima de la imagen
+	CustomText.Parent = VisualCircle
+
+	-- Agregamos un contorno negro al texto para que resalte encima de la imagen
+	local TextStroke = CustomText:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
+	TextStroke.Color = Color3.fromRGB(0, 0, 0)
+	TextStroke.Thickness = 2
+	TextStroke.Parent = CustomText
+	
+	local UIPadding = CustomText:FindFirstChildOfClass("UIPadding") or Instance.new("UIPadding")
+	UIPadding.PaddingTop = UDim.new(0.3, 0)
+	UIPadding.PaddingBottom = UDim.new(0.3, 0)
+	UIPadding.PaddingLeft = UDim.new(0.1, 0)
+	UIPadding.PaddingRight = UDim.new(0.1, 0)
+	UIPadding.Parent = CustomText
+
+	-- 5. BOTÓN DE INTERACCIÓN (Capa superior invisible)
 	local ClickTrigger = VisualCircle:FindFirstChild("ClickTrigger") or Instance.new("TextButton")
 	ClickTrigger.Name = "ClickTrigger"
 	ClickTrigger.Size = UDim2.new(1, 0, 1, 0)
 	ClickTrigger.BackgroundTransparency = 1
 	ClickTrigger.Text = ""
-	ClickTrigger.ZIndex = 52
+	ClickTrigger.ZIndex = 55
 	ClickTrigger.Parent = VisualCircle
 
-	-- 4. Animaciones, Arrastre y Método de Apertura Seguro
+	-- 6. LÓGICA DE ROTACIÓN INFINITA Y SUAVE
+	local RunService = game:GetService("RunService")
+	local rotationConnection = RunService.RenderStepped:Connect(function(deltaTime)
+		if RotatingImage then
+			-- Gira la imagen progresivamente basado en los FPS para que sea siempre suave
+			RotatingImage.Rotation = (RotatingImage.Rotation + (ROTATION_SPEED * deltaTime)) % 360
+		end
+	end)
+	table.insert(Connections, rotationConnection)
+
+	-- 7. ANIMACIONES Y ARRASTRE
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
 	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -993,12 +1051,10 @@ local function SetupCustomPrompt()
 	local hasMoved = false
 	local dragStart, startPos
 
-	-- Efecto Hundido al presionar
 	table.insert(Connections, ClickTrigger.MouseButton1Down:Connect(function()
 		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(CIRCLE_SIZE.X.Scale, CIRCLE_SIZE.X.Offset * 0.85, CIRCLE_SIZE.Y.Scale, CIRCLE_SIZE.Y.Offset * 0.85)}):Play()
 	end))
 
-	-- Iniciar Arrastre
 	table.insert(Connections, ClickTrigger.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
@@ -1008,7 +1064,6 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Movimiento (Arrastre)
 	table.insert(Connections, UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
@@ -1024,7 +1079,7 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Función de apertura limpia
+	-- Función de apertura
 	local function OpenMenu()
 		local fired = false
 		local targetButton = MPrompt:IsA("GuiButton") and MPrompt or MPrompt:FindFirstChildWhichIsA("GuiButton", true)
@@ -1053,7 +1108,6 @@ local function SetupCustomPrompt()
 			end)
 		end
 
-		-- Fallback extremo
 		if not fired then
 			Main.Visible = true
 			MPrompt.Visible = false
@@ -1081,7 +1135,6 @@ local function SetupCustomPrompt()
 		end
 	end
 
-	-- Soltar y desplegar
 	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if dragging then
