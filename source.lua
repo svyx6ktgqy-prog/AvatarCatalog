@@ -914,77 +914,93 @@ local Main = Rayfield.Main
 local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
 local Topbar = Main.Topbar
 
--- [INICIO] MODIFICACIÓN Y SISTEMA ARRASTRABLE DEL BOTÓN PROMPT
+-- [INICIO] MODIFICACIÓN RADICAL Y SISTEMA ARRASTRABLE
 task.spawn(function()
 	local Prompt = MPrompt
+	if not Prompt then return end
 
-	if Prompt then
-		-- 1. Convertir a círculo perfecto
-		Prompt.Size = UDim2.new(0, 60, 0, 60)
-		
-		local Corner = Prompt:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
-		Corner.CornerRadius = UDim.new(1, 0)
-		Corner.Parent = Prompt
+	-- Esperar a que Rayfield aplique sus estilos iniciales para sobrescribirlos
+	task.wait(0.2)
 
-		-- 2. Configurar texto dentro del botón
-		local TitleLabel = Prompt:FindFirstChild("Title") or Prompt:FindFirstChildOfClass("TextLabel")
-		if TitleLabel then
-			TitleLabel.Text = "Show"
-			TitleLabel.Size = UDim2.new(1, 0, 1, 0)
-			TitleLabel.Position = UDim2.new(0, 0, 0, 0)
-			TitleLabel.TextScaled = true
-			TitleLabel.Font = Enum.Font.Garamond
-			TitleLabel.Visible = true
+	-- 1. Limpieza total de elementos visuales antiguos (imágenes, textos e íconos originales)
+	for _, child in ipairs(Prompt:GetChildren()) do
+		if child:IsA("TextLabel") or child:IsA("ImageLabel") or child:IsA("ImageButton") or child:IsA("UIStroke") then
+			child:Destroy()
 		end
-
-		-- 3. Ajustar superposición de imágenes o íconos por defecto
-		for _, child in ipairs(Prompt:GetChildren()) do
-			if child:IsA("ImageLabel") or child:IsA("ImageButton") then
-				child.Size = UDim2.new(0.5, 0, 0.5, 0)
-				child.Position = UDim2.new(0.25, 0, 0.25, 0)
-			end
-		end
-
-		-- 4. Sistema para hacer el botón arrastrable (Draggable)
-		local dragging = false
-		local dragInput, dragStart, startPos
-
-		local function update(input)
-			local delta = input.Position - dragStart
-			Prompt.Position = UDim2.new(
-				startPos.X.Scale, startPos.X.Offset + delta.X,
-				startPos.Y.Scale, startPos.Y.Offset + delta.Y
-			)
-		end
-
-		Prompt.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-				dragging = true
-				dragStart = input.Position
-				startPos = Prompt.Position
-
-				input.Changed:Connect(function()
-					if input.UserInputState == Enum.UserInputState.End then
-						dragging = false
-					end
-				end)
-			end
-		end)
-
-		Prompt.InputChanged:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-				dragInput = input
-			end
-		end)
-
-		UserInputService.InputChanged:Connect(function(input)
-			if input == dragInput and dragging then
-				update(input)
-			end
-		end)
 	end
+
+	-- 2. Convertir el botón contenedor en un círculo perfecto
+	Prompt.Size = UDim2.new(0, 50, 0, 50)
+	Prompt.BackgroundTransparency = 0.2
+	Prompt.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+	Prompt.ClipsDescendants = false
+
+	local Corner = Prompt:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+	Corner.CornerRadius = UDim.new(1, 0)
+	Corner.Parent = Prompt
+
+	-- Borde sutil para resaltar
+	local Stroke = Instance.new("UIStroke")
+	Stroke.Color = Color3.fromRGB(255, 255, 255)
+	Stroke.Thickness = 1.5
+	Stroke.Transparency = 0.5
+	Stroke.Parent = Prompt
+
+	-- 3. Crear un único texto totalmente centrado
+	local NewText = Instance.new("TextLabel")
+	NewText.Name = "CustomPromptText"
+	NewText.Size = UDim2.new(1, 0, 1, 0)
+	NewText.Position = UDim2.new(0, 0, 0, 0)
+	NewText.BackgroundTransparency = 1
+	NewText.Text = "Show"
+	NewText.TextColor3 = Color3.fromRGB(255, 255, 255)
+	NewText.TextSize = 14
+	NewText.Font = Enum.Font.Garamond
+	NewText.TextXAlignment = Enum.TextXAlignment.Center
+	NewText.TextYAlignment = Enum.TextYAlignment.Center
+	NewText.ZIndex = 10
+	NewText.Parent = Prompt
+
+	-- 4. Sistema para hacer el botón arrastrable (Draggable)
+	local UserInputService = game:GetService("UserInputService")
+	local dragging = false
+	local dragInput, dragStart, startPos
+
+	local function update(input)
+		local delta = input.Position - dragStart
+		Prompt.Position = UDim2.new(
+			startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y
+		)
+	end
+
+	Prompt.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = Prompt.Position
+
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+
+	Prompt.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if input == dragInput and dragging then
+			update(input)
+		end
+	end)
 end)
--- [FIN] MODIFICACIÓN DEL BOTÓN PROMPT
+-- [FIN] MODIFICACIÓN RADICAL
 
 local Elements = Main.Elements
 local LoadingFrame = Main.LoadingFrame
