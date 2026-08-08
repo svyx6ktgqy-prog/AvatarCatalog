@@ -917,10 +917,11 @@ local Topbar = Main.Topbar
 -- =================================================================
 -- ⚙️ PARÁMETROS CONFIGURABLES
 -- =================================================================
-local PROMPT_SIZE = UDim2.new(0, 65, 0, 65)  -- Tamaño del botón circular
+local PROMPT_SIZE = UDim2.new(0, 85, 0, 85) -- Cápsula contenedora más amplia
+local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70) -- Tamaño del círculo visible
 
 -- =================================================================
--- 🧹 SISTEMA KILL-SWITCH (Detiene ejecuciones antiguas al recargar)
+-- 🧹 SISTEMA KILL-SWITCH (Limpia instancias previas al recargar)
 -- =================================================================
 if getgenv().TrasherCleanup then
 	getgenv().TrasherCleanup()
@@ -940,19 +941,19 @@ getgenv().TrasherCleanup = function()
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER MEJORADO
+-- 🚀 BOTÓN TRASHER MEJORADO Y FUNCIONAL
 -- =================================================================
 local function SetupCustomPrompt()
 	if not MPrompt then return end
 
-	-- 1. Ocultar la cápsula base de Rayfield
+	-- 1. Ampliar el contenedor de Rayfield y eliminar recortes
 	MPrompt.Size = PROMPT_SIZE
 	MPrompt.BackgroundTransparency = 1
 	MPrompt.ClipsDescendants = false
 
-	-- Forzar ocultamiento de cápsula y carrito
 	local function HideCapsule()
 		MPrompt.BackgroundTransparency = 1
+		MPrompt.ClipsDescendants = false
 		for _, child in ipairs(MPrompt:GetChildren()) do
 			if child.Name ~= "VisualCircle" then
 				if child:IsA("UIListLayout") or child:IsA("UIGridLayout") or child:IsA("UICorner") then
@@ -968,14 +969,15 @@ local function SetupCustomPrompt()
 	HideCapsule()
 	table.insert(Connections, MPrompt.ChildAdded:Connect(HideCapsule))
 
-	-- 2. Máscara circular estricta
+	-- 2. Círculo estético ajustable
 	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("Frame")
 	VisualCircle.Name = "VisualCircle"
-	VisualCircle.Size = UDim2.new(1, 0, 1, 0)
+	VisualCircle.Size = CIRCLE_SIZE
 	VisualCircle.AnchorPoint = Vector2.new(0.5, 0.5)
 	VisualCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
 	VisualCircle.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 	VisualCircle.BackgroundTransparency = 0.15
+	VisualCircle.ClipsDescendants = false
 	VisualCircle.ZIndex = 50
 	VisualCircle.Parent = MPrompt
 
@@ -989,20 +991,11 @@ local function SetupCustomPrompt()
 
 	local Stroke = VisualCircle:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
 	Stroke.Color = Color3.fromRGB(180, 130, 255)
-	Stroke.Thickness = 1.5
-	Stroke.Transparency = 0.3
+	Stroke.Thickness = 2
+	Stroke.Transparency = 0.2
 	Stroke.Parent = VisualCircle
 
-	-- 3. Botón de interacción e inclinación/hundido
-	local ClickTrigger = VisualCircle:FindFirstChild("ClickTrigger") or Instance.new("TextButton")
-	ClickTrigger.Name = "ClickTrigger"
-	ClickTrigger.Size = UDim2.new(1, 0, 1, 0)
-	ClickTrigger.BackgroundTransparency = 1
-	ClickTrigger.Text = ""
-	ClickTrigger.ZIndex = 52
-	ClickTrigger.Parent = VisualCircle
-
-	-- 4. Texto "🚬 TRASHER 💜"
+	-- 3. Texto personalizado
 	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
 	CustomText.Name = "CustomText"
 	CustomText.Size = UDim2.new(1, 0, 1, 0)
@@ -1010,7 +1003,7 @@ local function SetupCustomPrompt()
 	CustomText.BackgroundTransparency = 1
 	CustomText.Text = "🚬 TRASHER 💜"
 	CustomText.TextColor3 = Color3.fromRGB(255, 255, 255)
-	CustomText.TextSize = 10
+	CustomText.TextSize = 11
 	CustomText.Font = Enum.Font.Garamond
 	CustomText.TextScaled = true
 	CustomText.TextXAlignment = Enum.TextXAlignment.Center
@@ -1025,12 +1018,21 @@ local function SetupCustomPrompt()
 	UIPadding.PaddingRight = UDim.new(0.1, 0)
 	UIPadding.Parent = CustomText
 
-	-- 5. Animación de Hundido y Arrastre Persistente
+	-- 4. Botón de interacción para recuperar la apertura del menú
+	local ClickTrigger = VisualCircle:FindFirstChild("ClickTrigger") or Instance.new("TextButton")
+	ClickTrigger.Name = "ClickTrigger"
+	ClickTrigger.Size = UDim2.new(1, 0, 1, 0)
+	ClickTrigger.BackgroundTransparency = 1
+	ClickTrigger.Text = ""
+	ClickTrigger.ZIndex = 52
+	ClickTrigger.Parent = VisualCircle
+
+	-- 5. Animación, Arrastre Persistente y Acción de Abrir Menú
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
 	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
-	-- Bloqueo de posición guardada
+	-- Recuperar posición guardada
 	getgenv().TrasherSavedPos = getgenv().TrasherSavedPos or MPrompt.Position
 	MPrompt.Position = getgenv().TrasherSavedPos
 
@@ -1044,34 +1046,32 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Eventos de Hundido
-	table.insert(Connections, ClickTrigger.MouseButton1Down:Connect(function()
-		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(0.85, 0, 0.85, 0)}):Play()
-	end))
-
-	table.insert(Connections, ClickTrigger.MouseButton1Up:Connect(function()
-		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(1, 0, 1, 0)}):Play()
-	end))
-
-	table.insert(Connections, ClickTrigger.MouseLeave:Connect(function()
-		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(1, 0, 1, 0)}):Play()
-	end))
-
-	-- Lógica de arrastre
 	local dragging = false
+	local hasMoved = false
 	local dragStart, startPos
 
+	-- Efecto de hundido
+	table.insert(Connections, ClickTrigger.MouseButton1Down:Connect(function()
+		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(CIRCLE_SIZE.X.Scale, CIRCLE_SIZE.X.Offset * 0.85, CIRCLE_SIZE.Y.Scale, CIRCLE_SIZE.Y.Offset * 0.85)}):Play()
+	end))
+
+	-- Iniciar Arrastre
 	table.insert(Connections, ClickTrigger.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
+			hasMoved = false
 			dragStart = input.Position
 			startPos = MPrompt.Position
 		end
 	end))
 
+	-- Procesar Movimiento
 	table.insert(Connections, UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
+			if delta.Magnitude > 6 then
+				hasMoved = true
+			end
 			local newPos = UDim2.new(
 				startPos.X.Scale, startPos.X.Offset + delta.X,
 				startPos.Y.Scale, startPos.Y.Offset + delta.Y
@@ -1083,9 +1083,20 @@ local function SetupCustomPrompt()
 		end
 	end))
 
+	-- Soltar botón y ejecutar acción de Rayfield si no hubo arrastre
 	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
+			if dragging then
+				dragging = false
+				TweenService:Create(VisualCircle, tweenInfo, {Size = CIRCLE_SIZE}):Play()
+
+				-- Si solo fue un toque rápido (clic), abrimos la interfaz de Rayfield
+				if not hasMoved then
+					if Main then
+						Main.Visible = not Main.Visible
+					end
+				end
+			end
 		end
 	end))
 end
