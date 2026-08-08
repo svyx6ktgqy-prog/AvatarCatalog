@@ -914,7 +914,6 @@ local Main = Rayfield.Main
 local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
 local Topbar = Main.Topbar
 
--- Guardar el tamaño original del menú antes de que Rayfield lo colapse
 local OriginalMainSize = (Main.Size.X.Offset > 100) and Main.Size or UDim2.new(0, 600, 0, 370)
 
 -- =================================================================
@@ -943,12 +942,33 @@ getgenv().TrasherCleanup = function()
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER Y APERTURA GARANTIZADA
+-- 🚀 BOTÓN TRASHER + CONTROL TOTAL DE TOPBAR (CERRAR / MINIMIZAR)
 -- =================================================================
 local function SetupCustomPrompt()
 	if not MPrompt then return end
 
-	-- 1. Ajustar contenedor
+	-- 1. Re-vincular botones nativos de la barra superior (Topbar)
+	if Topbar then
+		for _, desc in ipairs(Topbar:GetDescendants()) do
+			if desc:IsA("GuiButton") then
+				local name = desc.Name:lower()
+				-- Detección de botón Minimizar
+				if name:find("min") or name:find("hide") then
+					table.insert(Connections, desc.MouseButton1Click:Connect(function()
+						Main.Visible = false
+					end))
+				-- Detección de botón Cerrar
+				elseif name:find("close") or name:find("exit") or name:find("cerrar") then
+					table.insert(Connections, desc.MouseButton1Click:Connect(function()
+						if getgenv().TrasherCleanup then getgenv().TrasherCleanup() end
+						if Main.Parent then Main.Parent:Destroy() end
+					end))
+				end
+			end
+		end
+	end
+
+	-- 2. Ajustar contenedor MPrompt
 	MPrompt.Size = PROMPT_SIZE
 	MPrompt.BackgroundTransparency = 1
 	MPrompt.ClipsDescendants = false
@@ -968,7 +988,7 @@ local function SetupCustomPrompt()
 	HideCapsule()
 	table.insert(Connections, MPrompt.ChildAdded:Connect(HideCapsule))
 
-	-- 2. Círculo estético con Contorno Púrpura
+	-- 3. Círculo estético con Contorno Púrpura
 	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("Frame")
 	VisualCircle.Name = "VisualCircle"
 	VisualCircle.Size = CIRCLE_SIZE
@@ -996,7 +1016,7 @@ local function SetupCustomPrompt()
 	Stroke.Transparency = 0
 	Stroke.Parent = VisualCircle
 
-	-- 3. Texto
+	-- 4. Texto "🚬 TRASHER 💜"
 	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
 	CustomText.Name = "CustomText"
 	CustomText.Size = UDim2.new(1, 0, 1, 0)
@@ -1019,7 +1039,7 @@ local function SetupCustomPrompt()
 	UIPadding.PaddingRight = UDim.new(0.1, 0)
 	UIPadding.Parent = CustomText
 
-	-- 4. Botón de Interacción
+	-- 5. Botón de Interacción
 	local ClickTrigger = VisualCircle:FindFirstChild("ClickTrigger") or Instance.new("TextButton")
 	ClickTrigger.Name = "ClickTrigger"
 	ClickTrigger.Size = UDim2.new(1, 0, 1, 0)
@@ -1028,7 +1048,7 @@ local function SetupCustomPrompt()
 	ClickTrigger.ZIndex = 52
 	ClickTrigger.Parent = VisualCircle
 
-	-- 5. Animaciones, Arrastre y Método de Apertura Seguro
+	-- 6. Animaciones, Arrastre y Toggle de Menú
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
 	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -1068,43 +1088,20 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Función para restaurar y desplegar el menú
-	local function OpenMenu()
-		local fired = false
+	-- Alternar menú limpiamente
+	local function ToggleMenu()
+		Main.Visible = not Main.Visible
+		if Main.Visible then
+			Main.AnchorPoint = Vector2.new(0.5, 0.5)
+			Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+			Main.Size = OriginalMainSize
 
-		-- Identificar el botón objetivo (MPrompt o sus hijos)
-		local targetButton = MPrompt:IsA("GuiButton") and MPrompt or MPrompt:FindFirstChildWhichIsA("GuiButton", true)
-
-		if targetButton and getconnections then
-			pcall(function()
-				local c1 = getconnections(targetButton.MouseButton1Click)
-				if #c1 > 0 then
-					for _, c in ipairs(c1) do c:Fire() end
-					fired = true
-				end
-				local c2 = getconnections(targetButton.Activated)
-				if #c2 > 0 then
-					for _, c in ipairs(c2) do c:Fire() end
-					fired = true
-				end
-			end)
-		end
-
-		-- Respaldo si no hay getconnections o falló la llamada
-		if not fired then
-			Main.Visible = not Main.Visible
-			if Main.Visible then
-				Main.AnchorPoint = Vector2.new(0.5, 0.5)
-				Main.Position = UDim2.new(0.5, 0, 0.5, 0)
-				Main.Size = OriginalMainSize
-
-				if Main:IsA("CanvasGroup") then
-					Main.GroupTransparency = 0
-				end
-				for _, desc in ipairs(Main:GetDescendants()) do
-					if desc:IsA("CanvasGroup") then
-						desc.GroupTransparency = 0
-					end
+			if Main:IsA("CanvasGroup") then
+				Main.GroupTransparency = 0
+			end
+			for _, desc in ipairs(Main:GetDescendants()) do
+				if desc:IsA("CanvasGroup") then
+					desc.GroupTransparency = 0
 				end
 			end
 		end
@@ -1118,7 +1115,7 @@ local function SetupCustomPrompt()
 				TweenService:Create(VisualCircle, tweenInfo, {Size = CIRCLE_SIZE}):Play()
 
 				if not hasMoved then
-					OpenMenu()
+					ToggleMenu()
 				end
 			end
 		end
