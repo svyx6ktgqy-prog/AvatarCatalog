@@ -914,68 +914,82 @@ local Main = Rayfield.Main
 local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
 local Topbar = Main.Topbar
 
--- [INICIO] ESTILIZADO DE BOTÓN PROMPT SIN ROMPER LÓGICA
+-- [INICIO] BOTÓN CIRCULAR + ARRASTRE MEJORADO
 local function SetupCustomPrompt()
 	if not MPrompt then return end
 
-	-- Configurar únicamente el contenedor del Prompt
+	-- 1. Redimensionar el botón base de Rayfield
 	MPrompt.Size = UDim2.new(0, 50, 0, 50)
-	MPrompt.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	MPrompt.BackgroundTransparency = 0.15
+	MPrompt.BackgroundTransparency = 1
 	MPrompt.ClipsDescendants = false
 
-	-- Asegurar forma circular
-	local Corner = MPrompt:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
-	Corner.CornerRadius = UDim.new(1, 0)
-	Corner.Parent = MPrompt
-
-	-- Cambiar o agregar el texto sin alterar la jerarquía de botones de la Topbar
-	local TextLabel = MPrompt:FindFirstChildOfClass("TextLabel")
-	if TextLabel then
-		TextLabel.Text = "Show"
-		TextLabel.Font = Enum.Font.Garamond
-		TextLabel.TextSize = 14
-		TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-		TextLabel.Size = UDim2.new(1, 0, 1, 0)
-		TextLabel.Position = UDim2.new(0, 0, 0, 0)
-		TextLabel.TextXAlignment = Enum.TextXAlignment.Center
-		TextLabel.TextYAlignment = Enum.TextYAlignment.Center
-		TextLabel.Visible = true
-	end
-
-	-- Ocultar imágenes/iconos dentro del prompt si molestan
-	for _, v in ipairs(MPrompt:GetChildren()) do
-		if v:IsA("ImageLabel") or v:IsA("ImageButton") then
-			v.Visible = false
+	-- 2. Ocultar layouts e íconos antiguos
+	for _, child in ipairs(MPrompt:GetChildren()) do
+		if child:IsA("UIListLayout") or child:IsA("UIGridLayout") then
+			child:Destroy()
+		elseif child:IsA("Frame") or child:IsA("TextLabel") or child:IsA("ImageLabel") or child:IsA("ImageButton") then
+			child.Visible = false
 		end
 	end
 
-	-- Sistema para hacer arrastrable únicamente el botón Prompt
-	local UserInputService = game:GetService("UserInputService")
-	local dragging, dragInput, dragStart, startPos
+	-- 3. Crear el diseño circular visible
+	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("Frame")
+	VisualCircle.Name = "VisualCircle"
+	VisualCircle.Size = UDim2.new(1, 0, 1, 0)
+	VisualCircle.Position = UDim2.new(0, 0, 0, 0)
+	VisualCircle.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+	VisualCircle.BackgroundTransparency = 0.15
+	VisualCircle.ZIndex = 5
+	VisualCircle.Parent = MPrompt
 
-	MPrompt.InputBegan:Connect(function(input)
+	local Corner = VisualCircle:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
+	Corner.CornerRadius = UDim.new(1, 0)
+	Corner.Parent = VisualCircle
+
+	local Stroke = VisualCircle:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
+	Stroke.Color = Color3.fromRGB(255, 255, 255)
+	Stroke.Thickness = 1.5
+	Stroke.Transparency = 0.5
+	Stroke.Parent = VisualCircle
+
+	-- 4. Texto "Show" totalmente centrado
+	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
+	CustomText.Name = "🚬 TRASHER 💜"
+	CustomText.Size = UDim2.new(1, 0, 1, 0)
+	CustomText.Position = UDim2.new(0, 0, 0, 0)
+	CustomText.BackgroundTransparency = 1
+	CustomText.Text = "Show"
+	CustomText.TextColor3 = Color3.fromRGB(255, 255, 255)
+	CustomText.TextSize = 14
+	CustomText.Font = Enum.Font.Garamond
+	CustomText.TextXAlignment = Enum.TextXAlignment.Center
+	CustomText.TextYAlignment = Enum.TextYAlignment.Center
+	CustomText.ZIndex = 6
+	CustomText.Parent = VisualCircle
+
+	-- 5. Lógica de arrastre directo usando UserInputService global
+	local UserInputService = game:GetService("UserInputService")
+	local dragging = false
+	local dragStart, startPos
+
+	VisualCircle.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			dragStart = input.Position
 			startPos = MPrompt.Position
 
-			input.Changed:Connect(function()
+			local connection
+			connection = input.Changed:Connect(function()
 				if input.UserInputState == Enum.UserInputState.End then
 					dragging = false
+					connection:Disconnect()
 				end
 			end)
 		end
 	end)
 
-	MPrompt.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			dragInput = input
-		end
-	end)
-
 	UserInputService.InputChanged:Connect(function(input)
-		if input == dragInput and dragging then
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
 			MPrompt.Position = UDim2.new(
 				startPos.X.Scale, startPos.X.Offset + delta.X,
@@ -985,9 +999,8 @@ local function SetupCustomPrompt()
 	end)
 end
 
--- Ejecutar cuando la UI esté lista
 task.defer(SetupCustomPrompt)
--- [FIN] ESTILIZADO DE BOTÓN
+-- [FIN] BOTÓN CIRCULAR + ARRASTRE MEJORADO
 
 local Elements = Main.Elements
 local LoadingFrame = Main.LoadingFrame
