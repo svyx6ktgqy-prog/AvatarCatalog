@@ -913,64 +913,80 @@ end
 local Main = Rayfield.Main
 local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
 
+-- Referencias seguras a servicios
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
 -- =================================================================
 -- ⚙️ PARÁMETROS CONFIGURABLES
 -- =================================================================
-local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70) -- Tamaño del botón flotante
-
--- Ancho y Alto MÁXIMO nativo que Rayfield debe respetar (evita que se estire)
-local MAX_MENU_SIZE = Vector2.new(620, 380) 
+local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70)
+local MAX_MENU_SIZE = Vector2.new(620, 380)
 
 -- =================================================================
 -- 🧹 SISTEMA KILL-SWITCH
 -- =================================================================
 if getgenv().TrasherCleanup then
-	getgenv().TrasherCleanup()
+	pcall(getgenv().TrasherCleanup)
 end
 
 local Connections = {}
 getgenv().TrasherCleanup = function()
 	for _, conn in ipairs(Connections) do
-		if conn then conn:Disconnect() end
+		if conn and conn.Connected then
+			conn:Disconnect()
+		end
 	end
 	table.clear(Connections)
-	if MPrompt then
-		MPrompt.Visible = true
-		local oldCircle = MPrompt.Parent:FindFirstChild("TrasherFloatingButton")
-		if oldCircle then oldCircle:Destroy() end
-	end
-	if Main then
-		local constraint = Main:FindFirstChild("FixSizeConstraint")
-		if constraint then constraint:Destroy() end
+	
+	local rayfieldGui = CoreGui:FindFirstChild("Rayfield")
+	if rayfieldGui then
+		local oldButton = rayfieldGui:FindFirstChild("TrasherFloatingButton", true)
+		if oldButton then oldButton:Destroy() end
 	end
 end
 
 -- =================================================================
--- 🚀 BLOQUEO DE TAMAÑO + BOTÓN FLOTANTE
+-- 🚀 INICIALIZACIÓN SEGURA Y BOTÓN FLOTANTE
 -- =================================================================
-local function SetupCustomPrompt()
-	if not MPrompt or not MPrompt.Parent or not Main then return end
+local function InitCustomPrompt()
+	-- Búsqueda segura del menú Main y ScreenGui
+	local Main = nil
+	if typeof(Rayfield) == "table" and Rayfield.Main then
+		Main = Rayfield.Main
+	else
+		local rayfieldGui = CoreGui:FindFirstChild("Rayfield")
+		if rayfieldGui then
+			Main = rayfieldGui:FindFirstChild("Main", true)
+		end
+	end
 
-	-- 1. FORZAR TAMAÑO Y EVITAR QUE EL MENÚ SE ESTIRE A PANTALLA COMPLETA
+	if not Main then return end
+
+	local ScreenGui = Main:FindFirstAncestorOfClass("ScreenGui") or Main.Parent
+	local MPrompt = ScreenGui:FindFirstChild("Prompt", true) or ScreenGui:FindFirstChild("MPrompt", true)
+
+	-- 1. Candado de tamaño para evitar estiramiento
 	Main.AnchorPoint = Vector2.new(0.5, 0.5)
 	Main.Position = UDim2.new(0.5, 0, 0.5, 0)
 	Main.Size = UDim2.new(0, MAX_MENU_SIZE.X, 0, MAX_MENU_SIZE.Y)
 
-	-- Crear un candado de tamaño (UISizeConstraint) que le prohíbe crecer
 	local SizeConstraint = Main:FindFirstChild("FixSizeConstraint") or Instance.new("UISizeConstraint")
 	SizeConstraint.Name = "FixSizeConstraint"
 	SizeConstraint.MaxSize = MAX_MENU_SIZE
 	SizeConstraint.MinSize = Vector2.new(300, 200)
 	SizeConstraint.Parent = Main
 
-	-- 2. Ocultar el Prompt original alargado
-	MPrompt.Visible = false
-	table.insert(Connections, MPrompt:GetPropertyChangedSignal("Visible"):Connect(function()
-		if MPrompt.Visible then MPrompt.Visible = false end
-	end))
+	-- 2. Ocultar botón nativo
+	if MPrompt then
+		MPrompt.Visible = false
+		table.insert(Connections, MPrompt:GetPropertyChangedSignal("Visible"):Connect(function()
+			if MPrompt.Visible then MPrompt.Visible = false end
+		end))
+	end
 
-	-- 3. Crear el botón flotante en la ScreenGui principal
-	local ScreenGui = MPrompt.Parent
+	-- 3. Crear el botón circular Trasher
 	local VisualCircle = ScreenGui:FindFirstChild("TrasherFloatingButton") or Instance.new("Frame")
 	VisualCircle.Name = "TrasherFloatingButton"
 	VisualCircle.Size = CIRCLE_SIZE
@@ -978,7 +994,7 @@ local function SetupCustomPrompt()
 	VisualCircle.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 	VisualCircle.BackgroundTransparency = 0.15
 	VisualCircle.ClipsDescendants = false
-	VisualCircle.ZIndex = 100
+	VisualCircle.ZIndex = 1000
 	VisualCircle.Parent = ScreenGui
 
 	getgenv().TrasherCircleOffset = getgenv().TrasherCircleOffset or UDim2.new(0.85, 0, 0.2, 0)
@@ -1010,7 +1026,7 @@ local function SetupCustomPrompt()
 	CustomText.TextScaled = true
 	CustomText.TextXAlignment = Enum.TextXAlignment.Center
 	CustomText.TextYAlignment = Enum.TextYAlignment.Center
-	CustomText.ZIndex = 101
+	CustomText.ZIndex = 1001
 	CustomText.Parent = VisualCircle
 
 	local UIPadding = CustomText:FindFirstChildOfClass("UIPadding") or Instance.new("UIPadding")
@@ -1026,24 +1042,23 @@ local function SetupCustomPrompt()
 	ClickTrigger.Size = UDim2.new(1, 0, 1, 0)
 	ClickTrigger.BackgroundTransparency = 1
 	ClickTrigger.Text = ""
-	ClickTrigger.ZIndex = 102
+	ClickTrigger.ZIndex = 1002
 	ClickTrigger.Parent = VisualCircle
 
-	-- Lógica de Interacción y Arrastre
-	local TweenService = game:GetService("TweenService")
-	local UserInputService = game:GetService("UserInputService")
+	-- Interacción y Arrastre
 	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-
 	local dragging = false
 	local hasMoved = false
 	local dragStart, startPos
 
 	-- Efecto Hundido
 	table.insert(Connections, ClickTrigger.MouseButton1Down:Connect(function()
-		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(CIRCLE_SIZE.X.Scale, CIRCLE_SIZE.X.Offset * 0.85, CIRCLE_SIZE.Y.Scale, CIRCLE_SIZE.Y.Offset * 0.85)}):Play()
+		TweenService:Create(VisualCircle, tweenInfo, {
+			Size = UDim2.new(CIRCLE_SIZE.X.Scale, CIRCLE_SIZE.X.Offset * 0.85, CIRCLE_SIZE.Y.Scale, CIRCLE_SIZE.Y.Offset * 0.85)
+		}):Play()
 	end))
 
-	-- Inicio de Arrastre
+	-- Arrastrar
 	table.insert(Connections, ClickTrigger.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
@@ -1053,7 +1068,6 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Movimiento
 	table.insert(Connections, UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
@@ -1069,7 +1083,7 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Abrir/Cerrar menú
+	-- Soltar y conmutar menú
 	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if dragging then
@@ -1079,7 +1093,6 @@ local function SetupCustomPrompt()
 				if not hasMoved then
 					Main.Visible = not Main.Visible
 					if Main.Visible then
-						-- Reasegurar el tamaño original exacto en píxeles al abrir
 						Main.Size = UDim2.new(0, MAX_MENU_SIZE.X, 0, MAX_MENU_SIZE.Y)
 						Main.Position = UDim2.new(0.5, 0, 0.5, 0)
 					end
@@ -1089,7 +1102,7 @@ local function SetupCustomPrompt()
 	end))
 end
 
-task.defer(SetupCustomPrompt)
+task.defer(InitCustomPrompt)
 
 local Elements = Main.Elements
 local LoadingFrame = Main.LoadingFrame
