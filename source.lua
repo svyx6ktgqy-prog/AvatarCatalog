@@ -918,6 +918,9 @@ local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFi
 -- =================================================================
 local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70) -- Tamaño del botón flotante
 
+-- Ancho y Alto MÁXIMO nativo que Rayfield debe respetar (evita que se estire)
+local MAX_MENU_SIZE = Vector2.new(620, 380) 
+
 -- =================================================================
 -- 🧹 SISTEMA KILL-SWITCH
 -- =================================================================
@@ -936,21 +939,37 @@ getgenv().TrasherCleanup = function()
 		local oldCircle = MPrompt.Parent:FindFirstChild("TrasherFloatingButton")
 		if oldCircle then oldCircle:Destroy() end
 	end
+	if Main then
+		local constraint = Main:FindFirstChild("FixSizeConstraint")
+		if constraint then constraint:Destroy() end
+	end
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER INDEPENDIENTE
+-- 🚀 BLOQUEO DE TAMAÑO + BOTÓN FLOTANTE
 -- =================================================================
 local function SetupCustomPrompt()
-	if not MPrompt or not MPrompt.Parent then return end
+	if not MPrompt or not MPrompt.Parent or not Main then return end
 
-	-- Ocultar el Prompt original alargado sin destruirlo
+	-- 1. FORZAR TAMAÑO Y EVITAR QUE EL MENÚ SE ESTIRE A PANTALLA COMPLETA
+	Main.AnchorPoint = Vector2.new(0.5, 0.5)
+	Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+	Main.Size = UDim2.new(0, MAX_MENU_SIZE.X, 0, MAX_MENU_SIZE.Y)
+
+	-- Crear un candado de tamaño (UISizeConstraint) que le prohíbe crecer
+	local SizeConstraint = Main:FindFirstChild("FixSizeConstraint") or Instance.new("UISizeConstraint")
+	SizeConstraint.Name = "FixSizeConstraint"
+	SizeConstraint.MaxSize = MAX_MENU_SIZE
+	SizeConstraint.MinSize = Vector2.new(300, 200)
+	SizeConstraint.Parent = Main
+
+	-- 2. Ocultar el Prompt original alargado
 	MPrompt.Visible = false
 	table.insert(Connections, MPrompt:GetPropertyChangedSignal("Visible"):Connect(function()
 		if MPrompt.Visible then MPrompt.Visible = false end
 	end))
 
-	-- Crear el botón flotante en la ScreenGui principal (Totalmente aislado de Main)
+	-- 3. Crear el botón flotante en la ScreenGui principal
 	local ScreenGui = MPrompt.Parent
 	local VisualCircle = ScreenGui:FindFirstChild("TrasherFloatingButton") or Instance.new("Frame")
 	VisualCircle.Name = "TrasherFloatingButton"
@@ -962,7 +981,6 @@ local function SetupCustomPrompt()
 	VisualCircle.ZIndex = 100
 	VisualCircle.Parent = ScreenGui
 
-	-- Posición persistente en pantalla
 	getgenv().TrasherCircleOffset = getgenv().TrasherCircleOffset or UDim2.new(0.85, 0, 0.2, 0)
 	VisualCircle.Position = getgenv().TrasherCircleOffset
 
@@ -1051,7 +1069,7 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Abrir/Cerrar menú sin tocar sus propiedades de tamaño
+	-- Abrir/Cerrar menú
 	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if dragging then
@@ -1060,6 +1078,11 @@ local function SetupCustomPrompt()
 
 				if not hasMoved then
 					Main.Visible = not Main.Visible
+					if Main.Visible then
+						-- Reasegurar el tamaño original exacto en píxeles al abrir
+						Main.Size = UDim2.new(0, MAX_MENU_SIZE.X, 0, MAX_MENU_SIZE.Y)
+						Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+					end
 				end
 			end
 		end
