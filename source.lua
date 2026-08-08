@@ -914,16 +914,16 @@ local Main = Rayfield.Main
 local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
 local Topbar = Main.Topbar
 
--- [INICIO] BOTÓN CIRCULAR + ARRASTRE MEJORADO
+-- [INICIO] BOTÓN TRASHER CIRCULAR Y ARRASTRABLE
 local function SetupCustomPrompt()
 	if not MPrompt then return end
 
-	-- 1. Redimensionar el botón base de Rayfield
-	MPrompt.Size = UDim2.new(0, 50, 0, 50)
+	-- 1. Asegurar contenedor transparente y de tamaño fijo
+	MPrompt.Size = UDim2.new(0, 55, 0, 55)
 	MPrompt.BackgroundTransparency = 1
 	MPrompt.ClipsDescendants = false
 
-	-- 2. Ocultar layouts e íconos antiguos
+	-- Limpiar elementos antiguos
 	for _, child in ipairs(MPrompt:GetChildren()) do
 		if child:IsA("UIListLayout") or child:IsA("UIGridLayout") then
 			child:Destroy()
@@ -932,56 +932,84 @@ local function SetupCustomPrompt()
 		end
 	end
 
-	-- 3. Crear el diseño circular visible
+	-- 2. Máscara circular perfecta
 	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("Frame")
 	VisualCircle.Name = "VisualCircle"
 	VisualCircle.Size = UDim2.new(1, 0, 1, 0)
 	VisualCircle.Position = UDim2.new(0, 0, 0, 0)
+	VisualCircle.AnchorPoint = Vector2.new(0.5, 0.5)
+	VisualCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
 	VisualCircle.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 	VisualCircle.BackgroundTransparency = 0.15
 	VisualCircle.ZIndex = 5
 	VisualCircle.Parent = MPrompt
+
+	-- Fuerza el aspecto 1:1 para un círculo perfecto
+	local AspectRatio = VisualCircle:FindFirstChildOfClass("UIAspectRatioConstraint") or Instance.new("UIAspectRatioConstraint")
+	AspectRatio.AspectRatio = 1
+	AspectRatio.Parent = VisualCircle
 
 	local Corner = VisualCircle:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
 	Corner.CornerRadius = UDim.new(1, 0)
 	Corner.Parent = VisualCircle
 
 	local Stroke = VisualCircle:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
-	Stroke.Color = Color3.fromRGB(255, 255, 255)
+	Stroke.Color = Color3.fromRGB(180, 130, 255) -- Tono morado para combinar con el emoji
 	Stroke.Thickness = 1.5
-	Stroke.Transparency = 0.5
+	Stroke.Transparency = 0.3
 	Stroke.Parent = VisualCircle
 
-	-- 4. Texto "Show" totalmente centrado
+	-- 3. Texto personalizado
 	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
-	CustomText.Name = "🚬 TRASHER 💜"
+	CustomText.Name = "CustomText"
 	CustomText.Size = UDim2.new(1, 0, 1, 0)
 	CustomText.Position = UDim2.new(0, 0, 0, 0)
 	CustomText.BackgroundTransparency = 1
-	CustomText.Text = "Show"
+	CustomText.Text = "🚬 TRASHER 💜"
 	CustomText.TextColor3 = Color3.fromRGB(255, 255, 255)
-	CustomText.TextSize = 14
+	CustomText.TextSize = 10
 	CustomText.Font = Enum.Font.Garamond
+	CustomText.TextScaled = true
 	CustomText.TextXAlignment = Enum.TextXAlignment.Center
 	CustomText.TextYAlignment = Enum.TextYAlignment.Center
 	CustomText.ZIndex = 6
 	CustomText.Parent = VisualCircle
 
-	-- 5. Lógica de arrastre directo usando UserInputService global
+	-- Margen de texto para que no toque los bordes
+	local UIPadding = CustomText:FindFirstChildOfClass("UIPadding") or Instance.new("UIPadding")
+	UIPadding.PaddingTop = UDim.new(0.2, 0)
+	UIPadding.PaddingBottom = UDim.new(0.2, 0)
+	UIPadding.PaddingLeft = UDim.new(0.1, 0)
+	UIPadding.PaddingRight = UDim.new(0.1, 0)
+	UIPadding.Parent = CustomText
+
+	-- 4. Arrastre, persistencia de posición y efecto de hundido
+	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
+	local tweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
 	local dragging = false
+	local hasMoved = false
 	local dragStart, startPos
 
 	VisualCircle.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
+			hasMoved = false
 			dragStart = input.Position
 			startPos = MPrompt.Position
+
+			-- Efecto de hundido (Achicar)
+			TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(0.85, 0, 0.85, 0)}):Play()
 
 			local connection
 			connection = input.Changed:Connect(function()
 				if input.UserInputState == Enum.UserInputState.End then
 					dragging = false
+					
+					-- Restaurar tamaño original (Efecto soltar)
+					TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(1, 0, 1, 0)}):Play()
+					
 					connection:Disconnect()
 				end
 			end)
@@ -991,6 +1019,13 @@ local function SetupCustomPrompt()
 	UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
+			
+			-- Si se movió más de 5 píxeles, cuenta como arrastre y no como clic
+			if delta.Magnitude > 5 then
+				hasMoved = true
+			end
+
+			-- Actualizar posición de forma fija
 			MPrompt.Position = UDim2.new(
 				startPos.X.Scale, startPos.X.Offset + delta.X,
 				startPos.Y.Scale, startPos.Y.Offset + delta.Y
@@ -1000,7 +1035,7 @@ local function SetupCustomPrompt()
 end
 
 task.defer(SetupCustomPrompt)
--- [FIN] BOTÓN CIRCULAR + ARRASTRE MEJORADO
+-- [FIN] BOTÓN TRASHER CIRCULAR Y ARRASTRABLE
 
 local Elements = Main.Elements
 local LoadingFrame = Main.LoadingFrame
