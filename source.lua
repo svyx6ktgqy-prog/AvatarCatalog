@@ -914,6 +914,9 @@ local Main = Rayfield.Main
 local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
 local Topbar = Main.Topbar
 
+-- Guardar el tamaño original del menú antes de que Rayfield lo colapse
+local OriginalMainSize = (Main.Size.X.Offset > 100) and Main.Size or UDim2.new(0, 600, 0, 370)
+
 -- =================================================================
 -- ⚙️ PARÁMETROS CONFIGURABLES
 -- =================================================================
@@ -940,12 +943,12 @@ getgenv().TrasherCleanup = function()
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER CON DESPLEGADO NATIVO PERFECTO
+-- 🚀 BOTÓN TRASHER Y APERTURA GARANTIZADA
 -- =================================================================
 local function SetupCustomPrompt()
 	if not MPrompt then return end
 
-	-- 1. Redimensionar contenedor
+	-- 1. Ajustar contenedor
 	MPrompt.Size = PROMPT_SIZE
 	MPrompt.BackgroundTransparency = 1
 	MPrompt.ClipsDescendants = false
@@ -1025,7 +1028,7 @@ local function SetupCustomPrompt()
 	ClickTrigger.ZIndex = 52
 	ClickTrigger.Parent = VisualCircle
 
-	-- 5. Lógica de Arrastre e Invocación Nativa
+	-- 5. Animaciones, Arrastre y Método de Apertura Seguro
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
 	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -1049,7 +1052,7 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Movimiento del Círculo
+	-- Movimiento
 	table.insert(Connections, UserInputService.InputChanged:Connect(function(input)
 		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - dragStart
@@ -1065,7 +1068,49 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Soltar y desplegar nativamente
+	-- Función para restaurar y desplegar el menú
+	local function OpenMenu()
+		local fired = false
+
+		-- Identificar el botón objetivo (MPrompt o sus hijos)
+		local targetButton = MPrompt:IsA("GuiButton") and MPrompt or MPrompt:FindFirstChildWhichIsA("GuiButton", true)
+
+		if targetButton and getconnections then
+			pcall(function()
+				local c1 = getconnections(targetButton.MouseButton1Click)
+				if #c1 > 0 then
+					for _, c in ipairs(c1) do c:Fire() end
+					fired = true
+				end
+				local c2 = getconnections(targetButton.Activated)
+				if #c2 > 0 then
+					for _, c in ipairs(c2) do c:Fire() end
+					fired = true
+				end
+			end)
+		end
+
+		-- Respaldo si no hay getconnections o falló la llamada
+		if not fired then
+			Main.Visible = not Main.Visible
+			if Main.Visible then
+				Main.AnchorPoint = Vector2.new(0.5, 0.5)
+				Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+				Main.Size = OriginalMainSize
+
+				if Main:IsA("CanvasGroup") then
+					Main.GroupTransparency = 0
+				end
+				for _, desc in ipairs(Main:GetDescendants()) do
+					if desc:IsA("CanvasGroup") then
+						desc.GroupTransparency = 0
+					end
+				end
+			end
+		end
+	end
+
+	-- Soltar y desplegar
 	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if dragging then
@@ -1073,21 +1118,7 @@ local function SetupCustomPrompt()
 				TweenService:Create(VisualCircle, tweenInfo, {Size = CIRCLE_SIZE}):Play()
 
 				if not hasMoved then
-					-- Ejecución del método nativo de Rayfield para desminimizar/abrir
-					if Rayfield and Rayfield.Minimize then
-						Rayfield:Minimize()
-					else
-						-- Búsqueda del botón/evento original de activación si la función global no está mapeada
-						local promptButton = MPrompt:FindFirstChildOfClass("TextButton") or MPrompt:FindFirstChildOfClass("ImageButton")
-						if promptButton then
-							for _, connection in ipairs(getconnections(promptButton.MouseButton1Click)) do
-								connection:Fire()
-							end
-							for _, connection in ipairs(getconnections(promptButton.Activated)) do
-								connection:Fire()
-							end
-						end
-					end
+					OpenMenu()
 				end
 			end
 		end
