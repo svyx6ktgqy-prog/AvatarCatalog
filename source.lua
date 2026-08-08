@@ -912,15 +912,11 @@ end
 
 local Main = Rayfield.Main
 local MPrompt = Rayfield:FindFirstChild('Prompt') or Rayfield.Main.Parent:FindFirstChild("MPrompt") or Rayfield.Main:FindFirstChild("MPrompt")
-local Topbar = Main.Topbar
-
-local OriginalMainSize = (Main.Size.X.Offset > 100) and Main.Size or UDim2.new(0, 600, 0, 370)
 
 -- =================================================================
 -- ⚙️ PARÁMETROS CONFIGURABLES
 -- =================================================================
-local PROMPT_SIZE = UDim2.new(0, 85, 0, 85)
-local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70)
+local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70) -- Tamaño del botón flotante
 
 -- =================================================================
 -- 🧹 SISTEMA KILL-SWITCH
@@ -936,70 +932,38 @@ getgenv().TrasherCleanup = function()
 	end
 	table.clear(Connections)
 	if MPrompt then
-		local oldCircle = MPrompt:FindFirstChild("VisualCircle")
+		MPrompt.Visible = true
+		local oldCircle = MPrompt.Parent:FindFirstChild("TrasherFloatingButton")
 		if oldCircle then oldCircle:Destroy() end
 	end
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER + CONTROL TOTAL DE TOPBAR (CERRAR / MINIMIZAR)
+-- 🚀 BOTÓN TRASHER INDEPENDIENTE
 -- =================================================================
 local function SetupCustomPrompt()
-	if not MPrompt then return end
+	if not MPrompt or not MPrompt.Parent then return end
 
-	-- 1. Re-vincular botones nativos de la barra superior (Topbar)
-	if Topbar then
-		for _, desc in ipairs(Topbar:GetDescendants()) do
-			if desc:IsA("GuiButton") then
-				local name = desc.Name:lower()
-				-- Detección de botón Minimizar
-				if name:find("min") or name:find("hide") then
-					table.insert(Connections, desc.MouseButton1Click:Connect(function()
-						Main.Visible = false
-					end))
-				-- Detección de botón Cerrar
-				elseif name:find("close") or name:find("exit") or name:find("cerrar") then
-					table.insert(Connections, desc.MouseButton1Click:Connect(function()
-						if getgenv().TrasherCleanup then getgenv().TrasherCleanup() end
-						if Main.Parent then Main.Parent:Destroy() end
-					end))
-				end
-			end
-		end
-	end
+	-- Ocultar el Prompt original alargado sin destruirlo
+	MPrompt.Visible = false
+	table.insert(Connections, MPrompt:GetPropertyChangedSignal("Visible"):Connect(function()
+		if MPrompt.Visible then MPrompt.Visible = false end
+	end))
 
-	-- 2. Ajustar contenedor MPrompt
-	MPrompt.Size = PROMPT_SIZE
-	MPrompt.BackgroundTransparency = 1
-	MPrompt.ClipsDescendants = false
-
-	local function HideCapsule()
-		MPrompt.BackgroundTransparency = 1
-		MPrompt.ClipsDescendants = false
-		for _, child in ipairs(MPrompt:GetChildren()) do
-			if child.Name ~= "VisualCircle" then
-				if child:IsA("GuiObject") then
-					child.Visible = false
-				end
-			end
-		end
-	end
-
-	HideCapsule()
-	table.insert(Connections, MPrompt.ChildAdded:Connect(HideCapsule))
-
-	-- 3. Círculo estético con Contorno Púrpura
-	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("Frame")
-	VisualCircle.Name = "VisualCircle"
+	-- Crear el botón flotante en la ScreenGui principal (Totalmente aislado de Main)
+	local ScreenGui = MPrompt.Parent
+	local VisualCircle = ScreenGui:FindFirstChild("TrasherFloatingButton") or Instance.new("Frame")
+	VisualCircle.Name = "TrasherFloatingButton"
 	VisualCircle.Size = CIRCLE_SIZE
 	VisualCircle.AnchorPoint = Vector2.new(0.5, 0.5)
 	VisualCircle.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 	VisualCircle.BackgroundTransparency = 0.15
 	VisualCircle.ClipsDescendants = false
-	VisualCircle.ZIndex = 50
-	VisualCircle.Parent = MPrompt
+	VisualCircle.ZIndex = 100
+	VisualCircle.Parent = ScreenGui
 
-	getgenv().TrasherCircleOffset = getgenv().TrasherCircleOffset or UDim2.new(0.5, 0, 0.5, 0)
+	-- Posición persistente en pantalla
+	getgenv().TrasherCircleOffset = getgenv().TrasherCircleOffset or UDim2.new(0.85, 0, 0.2, 0)
 	VisualCircle.Position = getgenv().TrasherCircleOffset
 
 	local AspectRatio = VisualCircle:FindFirstChildOfClass("UIAspectRatioConstraint") or Instance.new("UIAspectRatioConstraint")
@@ -1016,11 +980,10 @@ local function SetupCustomPrompt()
 	Stroke.Transparency = 0
 	Stroke.Parent = VisualCircle
 
-	-- 4. Texto "🚬 TRASHER 💜"
+	-- Texto "🚬 TRASHER 💜"
 	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
 	CustomText.Name = "CustomText"
 	CustomText.Size = UDim2.new(1, 0, 1, 0)
-	CustomText.Position = UDim2.new(0, 0, 0, 0)
 	CustomText.BackgroundTransparency = 1
 	CustomText.Text = "🚬 TRASHER 💜"
 	CustomText.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1029,7 +992,7 @@ local function SetupCustomPrompt()
 	CustomText.TextScaled = true
 	CustomText.TextXAlignment = Enum.TextXAlignment.Center
 	CustomText.TextYAlignment = Enum.TextYAlignment.Center
-	CustomText.ZIndex = 51
+	CustomText.ZIndex = 101
 	CustomText.Parent = VisualCircle
 
 	local UIPadding = CustomText:FindFirstChildOfClass("UIPadding") or Instance.new("UIPadding")
@@ -1039,16 +1002,16 @@ local function SetupCustomPrompt()
 	UIPadding.PaddingRight = UDim.new(0.1, 0)
 	UIPadding.Parent = CustomText
 
-	-- 5. Botón de Interacción
+	-- Disparador transparente
 	local ClickTrigger = VisualCircle:FindFirstChild("ClickTrigger") or Instance.new("TextButton")
 	ClickTrigger.Name = "ClickTrigger"
 	ClickTrigger.Size = UDim2.new(1, 0, 1, 0)
 	ClickTrigger.BackgroundTransparency = 1
 	ClickTrigger.Text = ""
-	ClickTrigger.ZIndex = 52
+	ClickTrigger.ZIndex = 102
 	ClickTrigger.Parent = VisualCircle
 
-	-- 6. Animaciones, Arrastre y Toggle de Menú
+	-- Lógica de Interacción y Arrastre
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
 	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -1062,7 +1025,7 @@ local function SetupCustomPrompt()
 		TweenService:Create(VisualCircle, tweenInfo, {Size = UDim2.new(CIRCLE_SIZE.X.Scale, CIRCLE_SIZE.X.Offset * 0.85, CIRCLE_SIZE.Y.Scale, CIRCLE_SIZE.Y.Offset * 0.85)}):Play()
 	end))
 
-	-- Iniciar Arrastre
+	-- Inicio de Arrastre
 	table.insert(Connections, ClickTrigger.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
@@ -1088,26 +1051,7 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Alternar menú limpiamente
-	local function ToggleMenu()
-		Main.Visible = not Main.Visible
-		if Main.Visible then
-			Main.AnchorPoint = Vector2.new(0.5, 0.5)
-			Main.Position = UDim2.new(0.5, 0, 0.5, 0)
-			Main.Size = OriginalMainSize
-
-			if Main:IsA("CanvasGroup") then
-				Main.GroupTransparency = 0
-			end
-			for _, desc in ipairs(Main:GetDescendants()) do
-				if desc:IsA("CanvasGroup") then
-					desc.GroupTransparency = 0
-				end
-			end
-		end
-	end
-
-	-- Soltar y desplegar
+	-- Abrir/Cerrar menú sin tocar sus propiedades de tamaño
 	table.insert(Connections, UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			if dragging then
@@ -1115,7 +1059,7 @@ local function SetupCustomPrompt()
 				TweenService:Create(VisualCircle, tweenInfo, {Size = CIRCLE_SIZE}):Play()
 
 				if not hasMoved then
-					ToggleMenu()
+					Main.Visible = not Main.Visible
 				end
 			end
 		end
