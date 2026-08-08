@@ -920,7 +920,8 @@ local OriginalMainSize = (Main.Size.X.Offset > 100) and Main.Size or UDim2.new(0
 -- =================================================================
 local PROMPT_SIZE = UDim2.new(0, 85, 0, 85)
 local CIRCLE_SIZE = UDim2.new(0, 70, 0, 70)
-local ROTATION_SPEED = 25 -- Velocidad de giro (grados por segundo)
+local ROTATION_SPEED = 25 -- Velocidad de giro del sticker
+local GRADIENT_SPEED = 45 -- Velocidad a la que fluyen los colores en el texto
 
 -- =================================================================
 -- 🧹 SISTEMA KILL-SWITCH
@@ -942,12 +943,12 @@ getgenv().TrasherCleanup = function()
 end
 
 -- =================================================================
--- 🚀 BOTÓN TRASHER: ROTACIÓN Y TEXTO ESTÁTICO
+-- 🚀 BOTÓN TRASHER: ROTACIÓN INVERSA Y GRADIENTE PRISMA
 -- =================================================================
 local function SetupCustomPrompt()
 	if not MPrompt then return end
 
-	-- 1. DESTRUIR LA CÁPSULA NATIVA (Hacerla "null")
+	-- 1. DESTRUIR LA CÁPSULA NATIVA
 	MPrompt.Size = PROMPT_SIZE
 	MPrompt.BackgroundTransparency = 1
 	MPrompt.ClipsDescendants = false
@@ -955,7 +956,6 @@ local function SetupCustomPrompt()
 	local function NukeNativeUI()
 		MPrompt.BackgroundTransparency = 1
 		for _, child in ipairs(MPrompt:GetChildren()) do
-			-- Ocultamos todo lo que NO sea nuestro botón
 			if child.Name ~= "VisualCircle" and child:IsA("GuiObject") then
 				child.Visible = false
 				child.Transparency = 1
@@ -966,12 +966,13 @@ local function SetupCustomPrompt()
 	NukeNativeUI()
 	table.insert(Connections, MPrompt.ChildAdded:Connect(NukeNativeUI))
 
-	-- 2. CONTENEDOR MAESTRO (No rota, maneja la posición y los clics)
+	-- 2. CONTENEDOR MAESTRO
 	local VisualCircle = MPrompt:FindFirstChild("VisualCircle") or Instance.new("Frame")
 	VisualCircle.Name = "VisualCircle"
 	VisualCircle.Size = CIRCLE_SIZE
 	VisualCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-	VisualCircle.BackgroundTransparency = 1 -- 100% invisible
+	VisualCircle.BackgroundTransparency = 1 
+	VisualCircle.ClipsDescendants = false -- Sin cortes forzados
 	VisualCircle.ZIndex = 50
 	VisualCircle.Parent = MPrompt
 
@@ -982,48 +983,56 @@ local function SetupCustomPrompt()
 	AspectRatio.AspectRatio = 1
 	AspectRatio.Parent = VisualCircle
 
-	-- 3. IMAGEN ROTATORIA (Hija del contenedor maestro)
+	-- 3. IMAGEN ROTATORIA (Sticker Original Completo)
 	local RotatingImage = VisualCircle:FindFirstChild("RotatingImage") or Instance.new("ImageLabel")
 	RotatingImage.Name = "RotatingImage"
-	RotatingImage.Size = UDim2.new(1, 0, 1, 0) -- Ocupa todo el contenedor
+	RotatingImage.Size = UDim2.new(1, 0, 1, 0)
 	RotatingImage.AnchorPoint = Vector2.new(0.5, 0.5)
 	RotatingImage.Position = UDim2.new(0.5, 0, 0.5, 0)
 	RotatingImage.BackgroundTransparency = 1
 	RotatingImage.Image = "rbxassetid://107137560718417"
-	RotatingImage.ClipsDescendants = true
+	RotatingImage.ClipsDescendants = false -- Dejamos el sticker sin recortes de esquina
 	RotatingImage.ZIndex = 51
 	RotatingImage.Parent = VisualCircle
+	-- (Eliminamos el UICorner de aquí para no afectar el borde natural del sticker)
 
-	local Corner = RotatingImage:FindFirstChildOfClass("UICorner") or Instance.new("UICorner")
-	Corner.CornerRadius = UDim.new(1, 0)
-	Corner.Parent = RotatingImage
-
-	-- 4. TEXTO ESTÁTICO AMARILLO (Hermano de la imagen, por lo tanto NO rota)
+	-- 4. TEXTO ESTÁTICO MÁS PEQUEÑO CON COLOR BLANCO BASE
 	local CustomText = VisualCircle:FindFirstChild("CustomText") or Instance.new("TextLabel")
 	CustomText.Name = "CustomText"
 	CustomText.Size = UDim2.new(1, 0, 1, 0)
 	CustomText.BackgroundTransparency = 1
 	CustomText.Text = "TRASHER"
-	CustomText.TextColor3 = Color3.fromRGB(255, 235, 59) -- Amarillo vibrante
+	CustomText.TextColor3 = Color3.fromRGB(255, 255, 255) -- Base blanca para que el gradiente pinte todo
 	CustomText.Font = Enum.Font.GothamBold
 	CustomText.TextScaled = true
-	CustomText.ZIndex = 52 -- Por encima de la imagen
+	CustomText.ZIndex = 52
 	CustomText.Parent = VisualCircle
 
-	-- Agregamos un contorno negro al texto para que resalte encima de la imagen
+	-- Contorno para que resalte
 	local TextStroke = CustomText:FindFirstChildOfClass("UIStroke") or Instance.new("UIStroke")
-	TextStroke.Color = Color3.fromRGB(0, 0, 0)
-	TextStroke.Thickness = 2
+	TextStroke.Color = Color3.fromRGB(255, 255, 255)
+	TextStroke.Thickness = 0.5
 	TextStroke.Parent = CustomText
 	
+	-- Reducción del tamaño del texto aumentando los márgenes
 	local UIPadding = CustomText:FindFirstChildOfClass("UIPadding") or Instance.new("UIPadding")
-	UIPadding.PaddingTop = UDim.new(0.3, 0)
-	UIPadding.PaddingBottom = UDim.new(0.3, 0)
-	UIPadding.PaddingLeft = UDim.new(0.1, 0)
-	UIPadding.PaddingRight = UDim.new(0.1, 0)
+	UIPadding.PaddingTop = UDim.new(0.38, 0)    -- Más espacio = letra más chica
+	UIPadding.PaddingBottom = UDim.new(0.38, 0) -- Más espacio = letra más chica
+	UIPadding.PaddingLeft = UDim.new(0.05, 0)
+	UIPadding.PaddingRight = UDim.new(0.05, 0)
 	UIPadding.Parent = CustomText
 
-	-- 5. BOTÓN DE INTERACCIÓN (Capa superior invisible)
+	-- GRADIENTE DE PRISMA EN EL TEXTO
+	local TextGradient = CustomText:FindFirstChildOfClass("UIGradient") or Instance.new("UIGradient")
+	TextGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0.00, Color3.fromRGB(160, 32, 240)), -- Púrpura
+		ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 0, 0)),      -- Negro
+		ColorSequenceKeypoint.new(0.66, Color3.fromRGB(45, 60, 90)),   -- Azul apagado
+		ColorSequenceKeypoint.new(1.00, Color3.fromRGB(138, 3, 3))     -- Rojo sangre
+	})
+	TextGradient.Parent = CustomText
+
+	-- 5. BOTÓN DE INTERACCIÓN
 	local ClickTrigger = VisualCircle:FindFirstChild("ClickTrigger") or Instance.new("TextButton")
 	ClickTrigger.Name = "ClickTrigger"
 	ClickTrigger.Size = UDim2.new(1, 0, 1, 0)
@@ -1032,17 +1041,22 @@ local function SetupCustomPrompt()
 	ClickTrigger.ZIndex = 55
 	ClickTrigger.Parent = VisualCircle
 
-	-- 6. LÓGICA DE ROTACIÓN INFINITA Y SUAVE
+	-- 6. ANIMACIONES CONSTANTES (Rotación en reversa + Gradiente fluido)
 	local RunService = game:GetService("RunService")
 	local rotationConnection = RunService.RenderStepped:Connect(function(deltaTime)
+		-- Sentido antihorario para la imagen (restamos en vez de sumar)
 		if RotatingImage then
-			-- Gira la imagen progresivamente basado en los FPS para que sea siempre suave
-			RotatingImage.Rotation = (RotatingImage.Rotation + (ROTATION_SPEED * deltaTime)) % 360
+			RotatingImage.Rotation = (RotatingImage.Rotation - (ROTATION_SPEED * deltaTime)) % 360
+		end
+		
+		-- Giramos el UIGradient del texto para crear el flujo de colores (sentido horario)
+		if TextGradient then
+			TextGradient.Rotation = (TextGradient.Rotation + (GRADIENT_SPEED * deltaTime)) % 360
 		end
 	end)
 	table.insert(Connections, rotationConnection)
 
-	-- 7. ANIMACIONES Y ARRASTRE
+	-- 7. LÓGICA DE CLIC, ARRASTRE Y APERTURA
 	local TweenService = game:GetService("TweenService")
 	local UserInputService = game:GetService("UserInputService")
 	local tweenInfo = TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -1079,7 +1093,6 @@ local function SetupCustomPrompt()
 		end
 	end))
 
-	-- Función de apertura
 	local function OpenMenu()
 		local fired = false
 		local targetButton = MPrompt:IsA("GuiButton") and MPrompt or MPrompt:FindFirstChildWhichIsA("GuiButton", true)
