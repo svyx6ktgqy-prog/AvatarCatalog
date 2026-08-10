@@ -780,7 +780,7 @@ do
 	local AssetBaseURL = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/main/assets/"
 
 	local assetFiles = {
-		["BannerCustom"] = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/main/assets/100.png",
+		["BannerCustom"] = "https://raw.githubusercontent.com/svyx6ktgqy-prog/AvatarCatalog/refs/heads/main/assets/200.png",
 		["77891951053543"] = AssetBaseURL.."77891951053543.png",
 		["78137979054938"] = AssetBaseURL.."78137979054938.png",
 		["80503127983237"] = AssetBaseURL.."80503127983237.png",
