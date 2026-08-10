@@ -1203,8 +1203,8 @@ LoadingFrame.Version.Text = Release
 		local urlScene2 = "https://https://raw.githubusercontent.com/svyx6ktgqy-prog/AvatarCatalog/refs/heads/main/assets/Scene4.jpg"
 		
 		local folderPath = "kawaii"
-		local pathImage1 = folderPath .. "/Scene1.jpg"
-		local pathImage2 = folderPath .. "/Scene2.jpg"
+		local pathImage1 = folderPath .. "/Scene3.jpg"
+		local pathImage2 = folderPath .. "/Scene4.jpg"
 		
 		if type(getcustomasset) == "function" then
 			local requestFunc = request or http_request or (syn and syn.request)
