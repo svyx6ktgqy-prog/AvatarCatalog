@@ -1467,8 +1467,8 @@ LoadingFrame.Version.Text = Release
 
 					-- [INICIO] INYECCIÓN BLINDADA COMPLETA (V8 - SOLO TRASLUCIDEZ Y TOPBAR BLANCO)
 	task.spawn(function()
-		local colorRojo = Color3.fromRGB(255, 0, 0)
-		local transparenciaRojo = 0.6
+		local colorRojo = Color3.fromRGB(255, 105, 180) -- Color rosado (Hot Pink)
+		local transparenciaRojo = 0.5 -- Translucidez (0.5 hace que sea translúcido)
 		local colorBlanco = Color3.fromRGB(255, 255, 255)
 		
 		-- Ya no usamos el color azul, solo el nivel de transparencia para los fondos
