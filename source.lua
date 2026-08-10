@@ -1199,8 +1199,8 @@ LoadingFrame.Version.Text = Release
 			getgenv().TrasherMasterConn = nil
 		end
 		
-		local urlScene1 = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/refs/heads/main/assets/Scene1.jpg" 
-		local urlScene2 = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/refs/heads/main/assets/Scene2.jpg"
+		local urlScene1 = "https://raw.githubusercontent.com/svyx6ktgqy-prog/AvatarCatalog/refs/heads/main/assets/Scene3.jpg" 
+		local urlScene2 = "https://https://raw.githubusercontent.com/svyx6ktgqy-prog/AvatarCatalog/refs/heads/main/assets/Scene4.jpg"
 		
 		local folderPath = "trasher"
 		local pathImage1 = folderPath .. "/Scene1.jpg"
