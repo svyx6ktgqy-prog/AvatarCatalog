@@ -1202,7 +1202,7 @@ LoadingFrame.Version.Text = Release
 		local urlScene1 = "https://raw.githubusercontent.com/svyx6ktgqy-prog/AvatarCatalog/refs/heads/main/assets/Scene3.jpg" 
 		local urlScene2 = "https://https://raw.githubusercontent.com/svyx6ktgqy-prog/AvatarCatalog/refs/heads/main/assets/Scene4.jpg"
 		
-		local folderPath = "trasher"
+		local folderPath = "kawaii"
 		local pathImage1 = folderPath .. "/Scene1.jpg"
 		local pathImage2 = folderPath .. "/Scene2.jpg"
 		
