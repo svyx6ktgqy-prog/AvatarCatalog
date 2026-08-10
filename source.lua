@@ -994,7 +994,7 @@ local function SetupCustomPrompt()
 	RotatingImage.AnchorPoint = Vector2.new(0.5, 0.5)
 	RotatingImage.Position = UDim2.new(0.5, 0, 0.5, 0)
 	RotatingImage.BackgroundTransparency = 1
-	RotatingImage.Image = "rbxassetid://107137560718417"
+	RotatingImage.Image = "rbxassetid://14553154922"
 	RotatingImage.ClipsDescendants = true 
 	RotatingImage.ZIndex = 51
 	-- Dejamos el color base en blanco para no teñir la imagen original
@@ -1012,7 +1012,7 @@ local function SetupCustomPrompt()
 	CustomText.AnchorPoint = Vector2.new(0.5, 0.5)
 	CustomText.Position = UDim2.new(0.5, 0, 0.5, 0)
 	CustomText.BackgroundTransparency = 1
-	CustomText.Text = "TRASHER"
+	CustomText.Text = "🎩AvatarCatalog👚"
 	CustomText.TextColor3 = Color3.fromRGB(255, 255, 255) 
 	CustomText.Font = Enum.Font.GothamBold
 	CustomText.TextScaled = true
