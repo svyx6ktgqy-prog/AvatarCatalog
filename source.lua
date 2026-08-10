@@ -1774,11 +1774,11 @@ end) -- <<< ¡ESTE ES EL end) QUE TE FALTABA! Cierra el task.spawn(function()
 --  DESCARGA E INYECCIÓN DE TUS ASSETS DESDE GITHUB (icon.png y track.png)
 -- =============================================================================
 
-local imageUrl_icon = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/refs/heads/main/assets/icon.png"
+local imageUrl_icon = "https://raw.githubusercontent.com/svyx6ktgqy-prog/AvatarCatalog/refs/heads/main/assets/icon2.png"
 local fileName_icon = "rayfield_custom_ball.png"
 local customAssetId_icon = ""
 
-local imageUrl_track = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/refs/heads/main/assets/trackX.png"
+local imageUrl_track = "https://raw.https://raw.githubusercontent.com/svyx6ktgqy-prog/AvatarCatalog/refs/heads/main/assets/trackS.png"
 local fileName_track = "rayfield_custom_track.png"
 local customAssetId_track = ""
 
