@@ -1012,7 +1012,7 @@ local function SetupCustomPrompt()
 	CustomText.AnchorPoint = Vector2.new(0.5, 0.5)
 	CustomText.Position = UDim2.new(0.5, 0, 0.5, 0)
 	CustomText.BackgroundTransparency = 1
-	CustomText.Text = "🎩AvatarCatalog👚"
+	CustomText.Text = "Catalog"
 	CustomText.TextColor3 = Color3.fromRGB(255, 255, 255) 
 	CustomText.Font = Enum.Font.GothamBold
 	CustomText.TextScaled = true
