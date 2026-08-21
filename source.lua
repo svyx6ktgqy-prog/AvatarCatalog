@@ -708,7 +708,7 @@ local RayfieldLibrary = {
 }
 
 -- =================================================================
--- 🔒 DEFINICIÓN DE LA CAPA DE SEGURIDAD (SECURITY CHECK)
+-- 🔒 DEFINICIÓN DE LA CAPA DE SEGURIDAD (SECURITY CHECK BANNER)
 -- =================================================================
 local verified = false
 
@@ -728,37 +728,44 @@ local function runSecurityCheck()
         ScreenGui.Parent = game:GetService("CoreGui")
     end
 
-    -- 2. Fondo / Marco principal
+    -- 2. Fondo / Marco principal (ALTURA COMPACTA DE BANNER: 160px)
     local MainFrame = Instance.new("Frame")
-    MainFrame.Size = UDim2.new(0, 320, 0, 220)
-    MainFrame.Position = UDim2.new(0.5, -160, 0.5, -110)
+    MainFrame.Size = UDim2.new(0, 320, 0, 160) -- Se redujo de 220 a 160
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5) -- Centrado matemático perfecto
+    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     MainFrame.BorderSizePixel = 0
+    MainFrame.ClipsDescendants = true
     MainFrame.Parent = ScreenGui
 
     local FrameCorner = Instance.new("UICorner")
     FrameCorner.CornerRadius = UDim.new(0, 8)
     FrameCorner.Parent = MainFrame
 
-    -- 3. Título de la pregunta
+    local MainStroke = Instance.new("UIStroke")
+    MainStroke.Color = Color3.fromRGB(45, 45, 45)
+    MainStroke.Thickness = 1
+    MainStroke.Parent = MainFrame
+
+    -- 3. Título de la pregunta (Y: 12)
     local QuestionLabel = Instance.new("TextLabel")
-    QuestionLabel.Size = UDim2.new(1, -20, 0, 40)
-    QuestionLabel.Position = UDim2.new(0, 10, 0, 15)
+    QuestionLabel.Size = UDim2.new(1, -20, 0, 25)
+    QuestionLabel.Position = UDim2.new(0, 10, 0, 12)
     QuestionLabel.BackgroundTransparency = 1
     QuestionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     QuestionLabel.Font = Enum.Font.GothamBold
-    QuestionLabel.TextSize = 16
+    QuestionLabel.TextSize = 15
     QuestionLabel.Text = "Loading Question..."
     QuestionLabel.Parent = MainFrame
 
-    -- 4. Campo de respuesta (Input)
+    -- 4. Campo de respuesta / Input (Y: 45)
     local AnswerBox = Instance.new("TextBox")
-    AnswerBox.Size = UDim2.new(1, -40, 0, 35)
-    AnswerBox.Position = UDim2.new(0, 20, 0, 65)
+    AnswerBox.Size = UDim2.new(1, -40, 0, 32)
+    AnswerBox.Position = UDim2.new(0, 20, 0, 45)
     AnswerBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     AnswerBox.TextColor3 = Color3.fromRGB(255, 255, 255)
     AnswerBox.Font = Enum.Font.Gotham
-    AnswerBox.TextSize = 14
+    AnswerBox.TextSize = 13
     AnswerBox.PlaceholderText = "Enter answer here..."
     AnswerBox.Text = ""
     AnswerBox.Parent = MainFrame
@@ -772,14 +779,14 @@ local function runSecurityCheck()
     BoxStroke.Thickness = 1
     BoxStroke.Parent = AnswerBox
 
-    -- 5. Botón de Confirmación
+    -- 5. Botón de Confirmación (Y: 85)
     local VerifyBtn = Instance.new("TextButton")
-    VerifyBtn.Size = UDim2.new(1, -40, 0, 35)
-    VerifyBtn.Position = UDim2.new(0, 20, 0, 110)
+    VerifyBtn.Size = UDim2.new(1, -40, 0, 32)
+    VerifyBtn.Position = UDim2.new(0, 20, 0, 85)
     VerifyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
     VerifyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     VerifyBtn.Font = Enum.Font.GothamBold
-    VerifyBtn.TextSize = 14
+    VerifyBtn.TextSize = 13
     VerifyBtn.Text = "Verify"
     VerifyBtn.Parent = MainFrame
 
@@ -787,14 +794,14 @@ local function runSecurityCheck()
     BtnCorner.CornerRadius = UDim.new(0, 6)
     BtnCorner.Parent = VerifyBtn
 
-    -- 6. Alerta de Error
+    -- 6. Alerta de Error (Ajustada al borde inferior, Y: 125)
     local AlertLabel = Instance.new("TextLabel")
-    AlertLabel.Size = UDim2.new(1, 0, 0, 20)
-    AlertLabel.Position = UDim2.new(0, 0, 1, -30)
+    AlertLabel.Size = UDim2.new(1, -20, 0, 20)
+    AlertLabel.Position = UDim2.new(0, 10, 0, 125)
     AlertLabel.BackgroundTransparency = 1
     AlertLabel.TextColor3 = Color3.fromRGB(255, 85, 85)
     AlertLabel.Font = Enum.Font.Gotham
-    AlertLabel.TextSize = 12
+    AlertLabel.TextSize = 11
     AlertLabel.Text = "Incorrect answer. Please try again."
     AlertLabel.TextTransparency = 1
     AlertLabel.Parent = MainFrame
