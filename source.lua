@@ -949,7 +949,7 @@ task.spawn(function()
 	TweenService:Create(SuccessLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
 
 	-- Permanencia (2 segundos)
-	task.wait(2)
+	task.wait(6)
 
 	-- Animación de Salida (Se achica + Fade Out)
 	local tweenOut = TweenService:Create(SuccessBanner, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
