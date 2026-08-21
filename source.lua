@@ -860,7 +860,105 @@ while not verified do
 end
 -- =================================================================
 
+-- =================================================================
+-- 🏆 NOTIFICACIÓN DE ÉXITO (BANNER TEMPORAL DE VERIFICACIÓN)
+-- =================================================================
+local SuccessGui = Instance.new("ScreenGui")
+local SuccessBanner = Instance.new("Frame")
+local BannerUICorner = Instance.new("UICorner")
+local BannerUIStroke = Instance.new("UIStroke")
+local VerifiedIcon = Instance.new("ImageLabel")
+local SuccessLabel = Instance.new("TextLabel")
 
+-- Configuración del ScreenGui contenedor
+SuccessGui.Name = "SuccessNotificationGui"
+SuccessGui.ResetOnSpawn = false
+SuccessGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Proteger en CoreGui o asignar a PlayerGui
+if syn and syn.protect_gui then
+	syn.protect_gui(SuccessGui)
+	SuccessGui.Parent = game:GetService("CoreGui")
+elseif gethui then
+	SuccessGui.Parent = gethui()
+else
+	SuccessGui.Parent = game:GetService("CoreGui")
+end
+
+-- Configuración del Banner Mini
+SuccessBanner.Name = "SuccessBanner"
+SuccessBanner.Size = UDim2.new(0, 260, 0, 42)
+SuccessBanner.Position = UDim2.new(0.5, -130, 0.85, 0) -- Aparece en la parte inferior centrada
+SuccessBanner.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
+SuccessBanner.BackgroundTransparency = 1 -- Inicia invisible para la animación
+SuccessBanner.ClipsDescendants = true
+SuccessBanner.Parent = SuccessGui
+
+BannerUICorner.CornerRadius = UDim.new(0, 8)
+BannerUICorner.Parent = SuccessBanner
+
+BannerUIStroke.Color = Color3.fromRGB(46, 204, 113) -- Borde verde brillante
+BannerUIStroke.Thickness = 1.5
+BannerUIStroke.Transparency = 1
+BannerUIStroke.Parent = SuccessBanner
+
+-- Icono de Roblox Creator "Verified"
+VerifiedIcon.Name = "VerifiedIcon"
+VerifiedIcon.Size = UDim2.new(0, 22, 0, 22)
+VerifiedIcon.Position = UDim2.new(0, 12, 0.5, -11)
+VerifiedIcon.BackgroundTransparency = 1
+VerifiedIcon.Image = "rbxassetid://14895363719"
+VerifiedIcon.ImageTransparency = 1
+VerifiedIcon.Parent = SuccessBanner
+
+-- Texto "CORRECT RESULT"
+SuccessLabel.Name = "SuccessLabel"
+SuccessLabel.Size = UDim2.new(1, -48, 1, 0)
+SuccessLabel.Position = UDim2.new(0, 42, 0, 0)
+SuccessLabel.BackgroundTransparency = 1
+SuccessLabel.Font = Enum.Font.GothamBold
+SuccessLabel.Text = "CORRECT RESULT"
+SuccessLabel.TextColor3 = Color3.fromRGB(46, 204, 113)
+SuccessLabel.TextSize = 13
+SuccessLabel.TextXAlignment = Enum.TextXAlignment.Left
+SuccessLabel.TextTransparency = 1
+SuccessLabel.Parent = SuccessBanner
+
+-- Animación de Entrada / Salida (Fade & Slide Up)
+task.spawn(function()
+	local startPos = UDim2.new(0.5, -130, 0.87, 0)
+	local targetPos = UDim2.new(0.5, -130, 0.84, 0)
+	
+	SuccessBanner.Position = startPos
+
+	-- Animación de Entrada
+	TweenService:Create(SuccessBanner, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+		Position = targetPos,
+		BackgroundTransparency = 0.1
+	}):Play()
+	TweenService:Create(BannerUIStroke, TweenInfo.new(0.4), {Transparency = 0}):Play()
+	TweenService:Create(VerifiedIcon, TweenInfo.new(0.4), {ImageTransparency = 0}):Play()
+	TweenService:Create(SuccessLabel, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+
+	-- Tiempo de permanencia en pantalla (2 segundos)
+	task.wait(2)
+
+	-- Animación de Salida
+	local tweenOut = TweenService:Create(SuccessBanner, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+		Position = startPos,
+		BackgroundTransparency = 1
+	})
+	TweenService:Create(BannerUIStroke, TweenInfo.new(0.4), {Transparency = 1}):Play()
+	TweenService:Create(VerifiedIcon, TweenInfo.new(0.4), {ImageTransparency = 1}):Play()
+	TweenService:Create(SuccessLabel, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+	
+	tweenOut:Play()
+	tweenOut.Completed:Wait()
+	
+	-- Limpieza de la interfaz temporal
+	SuccessGui:Destroy()
+end)
+		
 -- Interface Management
 
 local RayfieldAssetId = customAssetId or 10804731440
