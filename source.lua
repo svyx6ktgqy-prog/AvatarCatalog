@@ -707,7 +707,158 @@ local RayfieldLibrary = {
 	}
 }
 
+-- =================================================================
+-- 🔒 DEFINICIÓN DE LA CAPA DE SEGURIDAD (SECURITY CHECK)
+-- =================================================================
+local verified = false
 
+local function runSecurityCheck()
+    -- 1. Crear el ScreenGui principal para la verificación
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "SecurityCheckGui"
+    ScreenGui.ResetOnSpawn = false
+    
+    -- Inserción segura según el executor
+    if gethui then
+        ScreenGui.Parent = gethui()
+    elseif syn and syn.protect_gui then 
+        syn.protect_gui(ScreenGui)
+        ScreenGui.Parent = game:GetService("CoreGui")
+    else
+        ScreenGui.Parent = game:GetService("CoreGui")
+    end
+
+    -- 2. Fondo / Marco principal
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, 320, 0, 220)
+    MainFrame.Position = UDim2.new(0.5, -160, 0.5, -110)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Parent = ScreenGui
+
+    local FrameCorner = Instance.new("UICorner")
+    FrameCorner.CornerRadius = UDim.new(0, 8)
+    FrameCorner.Parent = MainFrame
+
+    -- 3. Título de la pregunta
+    local QuestionLabel = Instance.new("TextLabel")
+    QuestionLabel.Size = UDim2.new(1, -20, 0, 40)
+    QuestionLabel.Position = UDim2.new(0, 10, 0, 15)
+    QuestionLabel.BackgroundTransparency = 1
+    QuestionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    QuestionLabel.Font = Enum.Font.GothamBold
+    QuestionLabel.TextSize = 16
+    QuestionLabel.Text = "Loading Question..."
+    QuestionLabel.Parent = MainFrame
+
+    -- 4. Campo de respuesta (Input)
+    local AnswerBox = Instance.new("TextBox")
+    AnswerBox.Size = UDim2.new(1, -40, 0, 35)
+    AnswerBox.Position = UDim2.new(0, 20, 0, 65)
+    AnswerBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    AnswerBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    AnswerBox.Font = Enum.Font.Gotham
+    AnswerBox.TextSize = 14
+    AnswerBox.PlaceholderText = "Enter answer here..."
+    AnswerBox.Text = ""
+    AnswerBox.Parent = MainFrame
+
+    local BoxCorner = Instance.new("UICorner")
+    BoxCorner.CornerRadius = UDim.new(0, 6)
+    BoxCorner.Parent = AnswerBox
+
+    local BoxStroke = Instance.new("UIStroke")
+    BoxStroke.Color = Color3.fromRGB(65, 65, 65)
+    BoxStroke.Thickness = 1
+    BoxStroke.Parent = AnswerBox
+
+    -- 5. Botón de Confirmación
+    local VerifyBtn = Instance.new("TextButton")
+    VerifyBtn.Size = UDim2.new(1, -40, 0, 35)
+    VerifyBtn.Position = UDim2.new(0, 20, 0, 110)
+    VerifyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+    VerifyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    VerifyBtn.Font = Enum.Font.GothamBold
+    VerifyBtn.TextSize = 14
+    VerifyBtn.Text = "Verify"
+    VerifyBtn.Parent = MainFrame
+
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 6)
+    BtnCorner.Parent = VerifyBtn
+
+    -- 6. Alerta de Error
+    local AlertLabel = Instance.new("TextLabel")
+    AlertLabel.Size = UDim2.new(1, 0, 0, 20)
+    AlertLabel.Position = UDim2.new(0, 0, 1, -30)
+    AlertLabel.BackgroundTransparency = 1
+    AlertLabel.TextColor3 = Color3.fromRGB(255, 85, 85)
+    AlertLabel.Font = Enum.Font.Gotham
+    AlertLabel.TextSize = 12
+    AlertLabel.Text = "Incorrect answer. Please try again."
+    AlertLabel.TextTransparency = 1
+    AlertLabel.Parent = MainFrame
+
+    -- LÓGICA DE PREGUNTAS Y VERIFICACIÓN
+    local currentAnswer = 0
+    local TweenService = game:GetService("TweenService")
+
+    local function generateQuestion()
+        local op = math.random(1, 2)
+        local num1 = math.random(10, 50)
+        local num2 = math.random(1, 20)
+        
+        if op == 2 and num1 < num2 then
+            num1, num2 = num2, num1
+        end
+        
+        if op == 1 then
+            currentAnswer = num1 + num2
+            QuestionLabel.Text = "What is " .. num1 .. " + " .. num2 .. "?"
+        else
+            currentAnswer = num1 - num2
+            QuestionLabel.Text = "What is " .. num1 .. " - " .. num2 .. "?"
+        end
+        AnswerBox.Text = ""
+    end
+
+    local function checkAnswer()
+        local userAnswer = tonumber(AnswerBox.Text)
+        if userAnswer == currentAnswer then
+            verified = true
+            ScreenGui:Destroy()
+        else
+            AnswerBox.Text = ""
+            TweenService:Create(AlertLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+            TweenService:Create(BoxStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(255, 85, 85)}):Play()
+            
+            task.delay(2, function()
+                if AlertLabel.Parent then
+                    TweenService:Create(AlertLabel, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+                    TweenService:Create(BoxStroke, TweenInfo.new(0.5), {Color = Color3.fromRGB(65, 65, 65)}):Play()
+                end
+            end)
+            generateQuestion()
+        end
+    end
+
+    VerifyBtn.MouseButton1Click:Connect(checkAnswer)
+    AnswerBox.FocusLost:Connect(function(enterPressed)
+        if enterPressed then checkAnswer() end
+    end)
+
+    generateQuestion()
+end
+
+-- =================================================================
+-- 🔓 EJECUCIÓN DE LA CAPA DE SEGURIDAD (Bloquea todo hasta verificar)
+-- =================================================================
+runSecurityCheck()
+
+while not verified do
+	task.wait(0.1)
+end
+-- =================================================================
 
 
 -- Interface Management
@@ -775,19 +926,6 @@ if secureMode and not customAssetId then
 end
 
 do
-	-- =================================================================
-	-- 🔓 CAPA DE VERIFICACIÓN (Ejecuta antes de cargar Assets)
-	-- =================================================================
-	runSecurityCheck()
-
-	-- Pausar el hilo hasta que el usuario resuelva el problema
-	while not verified do
-		task.wait(0.1)
-	end
-	-- =================================================================
-	-- 🚀 FIN DE LA CAPA DE VERIFICACIÓN
-	-- =================================================================
-
 	local AssetPath = RayfieldFolder.."/Assets"
 	-- [CORREGIDO] Usando el enlace RAW directo y agregando el "/" al final
 	local AssetBaseURL = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/main/assets/"
