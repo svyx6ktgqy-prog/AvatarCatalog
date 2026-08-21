@@ -1926,11 +1926,11 @@ end) -- <<< ¡ESTE ES EL end) QUE TE FALTABA! Cierra el task.spawn(function()
 -- =============================================================================
 
 local imageUrl_icon = "https://raw.githubusercontent.com/svyx6ktgqy-prog/AvatarCatalog/refs/heads/main/assets/icon2.png"
-local fileName_icon = "rayfield_custom_ball.png"
+local fileName_icon = "rayfield_custom_ball1.png"
 local customAssetId_icon = ""
 
-local imageUrl_track = "https://raw.https://raw.githubusercontent.com/svyx6ktgqy-prog/AvatarCatalog/refs/heads/main/assets/trackS.png"
-local fileName_track = "rayfield_custom_track.png"
+local imageUrl_track = "https://raw.githubusercontent.com/svyx6ktgqy-prog/AvatarCatalog/refs/heads/main/assets/trackS.png"
+local fileName_track = "rayfield_custom_track1.png"
 local customAssetId_track = ""
 
 -- Función local para descargar y convertir archivos a Assets de Roblox de forma segura
