@@ -885,10 +885,11 @@ else
 	SuccessGui.Parent = game:GetService("CoreGui")
 end
 
--- Configuración del Banner Mini
+-- Configuración del Banner Mini (CENTRADOR EXACTO)
 SuccessBanner.Name = "SuccessBanner"
 SuccessBanner.Size = UDim2.new(0, 260, 0, 42)
-SuccessBanner.Position = UDim2.new(0.5, -130, 0.85, 0) -- Aparece en la parte inferior centrada
+SuccessBanner.AnchorPoint = Vector2.new(0.5, 0.5) -- Point central de referencia
+SuccessBanner.Position = UDim2.new(0.5, 0, 0.5, 0) -- Centro exacto de la pantalla
 SuccessBanner.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
 SuccessBanner.BackgroundTransparency = 1 -- Inicia invisible para la animación
 SuccessBanner.ClipsDescendants = true
@@ -924,14 +925,16 @@ SuccessLabel.TextXAlignment = Enum.TextXAlignment.Left
 SuccessLabel.TextTransparency = 1
 SuccessLabel.Parent = SuccessBanner
 
--- Animación de Entrada / Salida (Fade & Slide Up)
+-- Animación de Entrada / Salida Centrada (Popup suave)
 task.spawn(function()
-	local startPos = UDim2.new(0.5, -130, 0.87, 0)
-	local targetPos = UDim2.new(0.5, -130, 0.84, 0)
+	-- Inicio 15px más abajo del centro absoluto
+	local startPos = UDim2.new(0.5, 0, 0.5, 15)
+	-- Centro exacto
+	local targetPos = UDim2.new(0.5, 0, 0.5, 0)
 	
 	SuccessBanner.Position = startPos
 
-	-- Animación de Entrada
+	-- Animación de Entrada (Sube al centro y hace Fade In)
 	TweenService:Create(SuccessBanner, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
 		Position = targetPos,
 		BackgroundTransparency = 0.1
@@ -943,9 +946,10 @@ task.spawn(function()
 	-- Tiempo de permanencia en pantalla (2 segundos)
 	task.wait(2)
 
-	-- Animación de Salida
+	-- Animación de Salida (Sigue subiendo levemente y desaparece)
+	local exitPos = UDim2.new(0.5, 0, 0.5, -15)
 	local tweenOut = TweenService:Create(SuccessBanner, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-		Position = startPos,
+		Position = exitPos,
 		BackgroundTransparency = 1
 	})
 	TweenService:Create(BannerUIStroke, TweenInfo.new(0.4), {Transparency = 1}):Play()
