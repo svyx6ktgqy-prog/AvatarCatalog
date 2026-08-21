@@ -775,7 +775,20 @@ if secureMode and not customAssetId then
 end
 
 do
-		local AssetPath = RayfieldFolder.."/Assets"
+	-- =================================================================
+	-- 🔓 CAPA DE VERIFICACIÓN (Ejecuta antes de cargar Assets)
+	-- =================================================================
+	runSecurityCheck()
+
+	-- Pausar el hilo hasta que el usuario resuelva el problema
+	while not verified do
+		task.wait(0.1)
+	end
+	-- =================================================================
+	-- 🚀 FIN DE LA CAPA DE VERIFICACIÓN
+	-- =================================================================
+
+	local AssetPath = RayfieldFolder.."/Assets"
 	-- [CORREGIDO] Usando el enlace RAW directo y agregando el "/" al final
 	local AssetBaseURL = "https://raw.githubusercontent.com/svyx6ktgqy-prog/rayfield/main/assets/"
 
