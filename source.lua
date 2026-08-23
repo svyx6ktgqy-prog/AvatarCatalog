@@ -868,6 +868,198 @@ end
 -- =================================================================
 
 -- =================================================================
+-- 💰 FAKE ROBUX COUNTER SYSTEM (300.0K base) - Compatible con Catalog Avatar
+-- =================================================================
+local SoundService = getService("SoundService")
+local StarterGui = getService("StarterGui")
+
+local FAKE_ROBUX_BASE = 300000
+local FakeRobuxBalance = FAKE_ROBUX_BASE
+
+local function FormatRobux(amount)
+	amount = math.floor(tonumber(amount) or 0)
+	if amount >= 1000000 then
+		return string.format("%.1fM", amount / 1000000)
+	elseif amount >= 1000 then
+		return string.format("%.1fK", amount / 1000)
+	else
+		return tostring(amount)
+	end
+end
+
+-- Crear UI del contador (arriba a la derecha, junto al botón de Rayfield)
+local RobuxCounterGui = Instance.new("ScreenGui")
+RobuxCounterGui.Name = "FakeRobuxCounter"
+RobuxCounterGui.ResetOnSpawn = false
+RobuxCounterGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+RobuxCounterGui.DisplayOrder = 9998
+RobuxCounterGui.IgnoreGuiInset = true
+
+if gethui then
+	RobuxCounterGui.Parent = gethui()
+elseif syn and syn.protect_gui then
+	syn.protect_gui(RobuxCounterGui)
+	RobuxCounterGui.Parent = CoreGui
+else
+	RobuxCounterGui.Parent = CoreGui
+end
+
+local CounterFrame = Instance.new("Frame")
+CounterFrame.Name = "CounterFrame"
+CounterFrame.Size = UDim2.new(0, 130, 0, 36)
+CounterFrame.Position = UDim2.new(1, -145, 0, 12) -- Arriba a la derecha
+CounterFrame.AnchorPoint = Vector2.new(0, 0)
+CounterFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+CounterFrame.BackgroundTransparency = 0.15
+CounterFrame.BorderSizePixel = 0
+CounterFrame.Parent = RobuxCounterGui
+
+local CounterCorner = Instance.new("UICorner")
+CounterCorner.CornerRadius = UDim.new(0, 10)
+CounterCorner.Parent = CounterFrame
+
+local CounterStroke = Instance.new("UIStroke")
+CounterStroke.Color = Color3.fromRGB(255, 200, 50)
+CounterStroke.Thickness = 1.5
+CounterStroke.Transparency = 0.3
+CounterStroke.Parent = CounterFrame
+
+local RobuxIcon = Instance.new("ImageLabel")
+RobuxIcon.Name = "RobuxIcon"
+RobuxIcon.Size = UDim2.new(0, 22, 0, 22)
+RobuxIcon.Position = UDim2.new(0, 8, 0.5, 0)
+RobuxIcon.AnchorPoint = Vector2.new(0, 0.5)
+RobuxIcon.BackgroundTransparency = 1
+RobuxIcon.Image = "rbxassetid://11560341824" -- Icono oficial Robux
+RobuxIcon.Parent = CounterFrame
+
+local AmountLabel = Instance.new("TextLabel")
+AmountLabel.Name = "AmountLabel"
+AmountLabel.Size = UDim2.new(1, -40, 1, 0)
+AmountLabel.Position = UDim2.new(0, 34, 0, 0)
+AmountLabel.BackgroundTransparency = 1
+AmountLabel.Font = Enum.Font.GothamBold
+AmountLabel.TextSize = 16
+AmountLabel.TextColor3 = Color3.fromRGB(255, 220, 80)
+AmountLabel.TextXAlignment = Enum.TextXAlignment.Left
+AmountLabel.Text = FormatRobux(FakeRobuxBalance)
+AmountLabel.Parent = CounterFrame
+
+local function UpdateCounterUI()
+	AmountLabel.Text = FormatRobux(FakeRobuxBalance)
+	-- Pequeña animación de pulso
+	TweenService:Create(CounterFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Size = UDim2.new(0, 138, 0, 38)
+	}):Play()
+	task.delay(0.15, function()
+		if CounterFrame and CounterFrame.Parent then
+			TweenService:Create(CounterFrame, TweenInfo.new(0.15), {
+				Size = UDim2.new(0, 130, 0, 36)
+			}):Play()
+		end
+	end)
+end
+
+local function PlaySound(assetId)
+	task.spawn(function()
+		local sound = Instance.new("Sound")
+		sound.SoundId = "rbxassetid://" .. tostring(assetId)
+		sound.Volume = 0.7
+		sound.Parent = SoundService
+		sound:Play()
+		sound.Ended:Connect(function()
+			sound:Destroy()
+		end)
+		task.delay(3, function()
+			if sound and sound.Parent then sound:Destroy() end
+		end)
+	end)
+end
+
+local function ShowSpendNotification(spentAmount)
+	task.spawn(function()
+		pcall(function()
+			StarterGui:SetCore("SendNotification", {
+				Title = "Robux Spent",
+				Text = "- " .. tostring(spentAmount) .. " R$ spent",
+				Duration = 3.5,
+				Icon = "rbxassetid://11560341824"
+			})
+		end)
+	end)
+end
+
+-- Función principal de deducción (llamada desde el catálogo u otros scripts)
+local function DeductFakeRobux(amount)
+	amount = tonumber(amount) or 0
+	if amount <= 0 then return FakeRobuxBalance end
+
+	local previous = FakeRobuxBalance
+
+	if amount >= FakeRobuxBalance then
+		-- Gasta más de lo que tiene → baja a 0 inmediatamente
+		FakeRobuxBalance = 0
+	else
+		FakeRobuxBalance = FakeRobuxBalance - amount
+	end
+
+	UpdateCounterUI()
+	PlaySound(88888888) -- Sonido de gastar
+	ShowSpendNotification(math.min(amount, previous))
+
+	-- Regeneración automática al llegar a 0
+	if FakeRobuxBalance <= 0 then
+		task.delay(0.6, function()
+			FakeRobuxBalance = FAKE_ROBUX_BASE
+			UpdateCounterUI()
+			PlaySound(6666666) -- Sonido de recibir / regenerar
+
+			pcall(function()
+				StarterGui:SetCore("SendNotification", {
+					Title = "Robux Regenerated",
+					Text = "Balance restored to 300.0K R$",
+					Duration = 3,
+					Icon = "rbxassetid://11560341824"
+				})
+			end)
+		end)
+	end
+
+	return FakeRobuxBalance
+end
+
+local function GetFakeRobux()
+	return FakeRobuxBalance
+end
+
+local function SetFakeRobux(value)
+	FakeRobuxBalance = math.max(0, tonumber(value) or FAKE_ROBUX_BASE)
+	UpdateCounterUI()
+	return FakeRobuxBalance
+end
+
+-- Exponer funciones globalmente para que el script del Catálogo (u otros) las usen sin modificarlo
+if getgenv then
+	getgenv().DeductFakeRobux = DeductFakeRobux
+	getgenv().GetFakeRobux = GetFakeRobux
+	getgenv().SetFakeRobux = SetFakeRobux
+	getgenv().FakeRobuxBalance = function() return FakeRobuxBalance end
+	getgenv().FakeRobuxSystem = {
+		Deduct = DeductFakeRobux,
+		Get = GetFakeRobux,
+		Set = SetFakeRobux,
+		Balance = function() return FakeRobuxBalance end,
+		Base = FAKE_ROBUX_BASE
+	}
+end
+
+-- Actualizar UI inicial
+UpdateCounterUI()
+
+print("[FakeRobux] Counter loaded | Base: 300.0K | Functions ready (DeductFakeRobux / GetFakeRobux)")
+-- =================================================================
+		
+-- =================================================================
 -- 🏆 NOTIFICACIÓN DE ÉXITO (CENTRO ABSOLUTO DE PANTALLA)
 -- =================================================================
 local SuccessGui = Instance.new("ScreenGui")
