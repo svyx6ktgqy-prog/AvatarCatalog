@@ -1004,7 +1004,7 @@ local function DeductFakeRobux(amount)
 	end
 
 	UpdateCounterUI()
-	PlaySound(88888888) -- Sonido de gastar
+	PlaySound(130452529897520) -- Sonido de gastar
 	ShowSpendNotification(math.min(amount, previous))
 
 	-- Regeneración automática al llegar a 0
@@ -1012,7 +1012,7 @@ local function DeductFakeRobux(amount)
 		task.delay(0.6, function()
 			FakeRobuxBalance = FAKE_ROBUX_BASE
 			UpdateCounterUI()
-			PlaySound(6666666) -- Sonido de recibir / regenerar
+			PlaySound(607665037) -- Sonido de recibir / regenerar
 
 			pcall(function()
 				StarterGui:SetCore("SendNotification", {
