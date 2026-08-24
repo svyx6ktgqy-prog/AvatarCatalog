@@ -969,7 +969,7 @@ local function runColorCheck()
 	end
 
 	local colorData = {
-		{emoji = "🩷🌸🐷", name = "Pink"},
+		{emoji = "💖🌸🐷", name = "Pink"},
 		{emoji = "❤️🚩📍", name = "Red"},
 		{emoji = "🧡🍊🎃", name = "Orange"},
 		{emoji = "💛🌟🐣", name = "Yellow"},
@@ -978,9 +978,9 @@ local function runColorCheck()
 		{emoji = "🩵💦🐬", name = "Light Blue"},
 		{emoji = "💚🍀🐸", name = "Green"},
 		{emoji = "🩶♾️🐺", name = "Gray"},
-		{emoji = "🖤🏴‍☠️🐦‍⬛", name = "Black"},
+		{emoji = "🖤♠️🕷️", name = "Black"},
 		{emoji = "🤍🦷🐑", name = "White"},
-		{emoji = "🤎🍄‍🟫🐿️", name = "Brown"},
+		{emoji = "🤎💩🐿️", name = "Brown"},
 	}
 
 	local correct = colorData[math.random(1, #colorData)]
@@ -1313,7 +1313,7 @@ do
 	end)
 
 	-- Tiempo de carga (un poco más)
-	task.wait(18.1)
+	task.wait(8.1)
 
 	running = false
 
