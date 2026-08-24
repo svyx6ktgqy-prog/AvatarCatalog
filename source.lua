@@ -992,60 +992,69 @@ local function runColorCheck()
 		ScreenGui.Parent = game:GetService("CoreGui")
 	end
 
-	local MainFrame = Instance.new("Frame")
-	MainFrame.Size = UDim2.new(0, 340, 0, 380)
-	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-	MainFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
-	MainFrame.BackgroundTransparency = 1
-	MainFrame.BorderSizePixel = 0
-	MainFrame.Parent = ScreenGui
+	-- Detección simple de mobile
+local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+local frameWidth  = isMobile and 300 or 340
+local frameHeight = isMobile and 340 or 380
+local cellW       = isMobile and 88 or 100
+local cellH       = isMobile and 34 or 36
+local cellPad     = isMobile and 6 or 8
+local emojiSize   = isMobile and 46 or 52
 
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 12)
-	corner.Parent = MainFrame
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, frameWidth, 0, frameHeight)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+MainFrame.BackgroundTransparency = 1
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
 
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = Color3.fromRGB(60, 60, 70)
-	stroke.Thickness = 1.5
-	stroke.Transparency = 1
-	stroke.Parent = MainFrame
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = MainFrame
 
-	local Title = Instance.new("TextLabel")
-	Title.Size = UDim2.new(1, -20, 0, 28)
-	Title.Position = UDim2.new(0, 10, 0, 12)
-	Title.BackgroundTransparency = 1
-	Title.Font = Enum.Font.GothamBold
-	Title.TextSize = 16
-	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Title.Text = "What color do you see?"
-	Title.TextTransparency = 1
-	Title.Parent = MainFrame
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(60, 60, 70)
+stroke.Thickness = 1.5
+stroke.Transparency = 1
+stroke.Parent = MainFrame
 
-	local EmojiLabel = Instance.new("TextLabel")
-	EmojiLabel.Size = UDim2.new(1, 0, 0, 70)
-	EmojiLabel.Position = UDim2.new(0, 0, 0, 45)
-	EmojiLabel.BackgroundTransparency = 1
-	EmojiLabel.Font = Enum.Font.GothamBold
-	EmojiLabel.TextSize = 52
-	EmojiLabel.Text = correct.emoji
-	EmojiLabel.TextTransparency = 1
-	EmojiLabel.Parent = MainFrame
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -20, 0, 28)
+Title.Position = UDim2.new(0, 10, 0, 12)
+Title.BackgroundTransparency = 1
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = isMobile and 15 or 16
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "What color do you see?"
+Title.TextTransparency = 1
+Title.Parent = MainFrame
 
-	local ButtonContainer = Instance.new("Frame")
-	ButtonContainer.Size = UDim2.new(1, -24, 0, 230)
-	ButtonContainer.Position = UDim2.new(0, 12, 0, 125)
-	ButtonContainer.BackgroundTransparency = 1
-	ButtonContainer.Parent = MainFrame
+local EmojiLabel = Instance.new("TextLabel")
+EmojiLabel.Size = UDim2.new(1, 0, 0, 70)
+EmojiLabel.Position = UDim2.new(0, 0, 0, 45)
+EmojiLabel.BackgroundTransparency = 1
+EmojiLabel.Font = Enum.Font.GothamBold
+EmojiLabel.TextSize = emojiSize
+EmojiLabel.Text = correct.emoji
+EmojiLabel.TextTransparency = 1
+EmojiLabel.Parent = MainFrame
 
-	local grid = Instance.new("UIGridLayout")
-	grid.CellSize = UDim2.new(0, 100, 0, 36)
-	grid.CellPadding = UDim2.new(0, 8, 0, 8)
-	grid.FillDirectionMaxCells = 3
-	grid.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	grid.VerticalAlignment = Enum.VerticalAlignment.Top
-	grid.SortOrder = Enum.SortOrder.LayoutOrder
-	grid.Parent = ButtonContainer
+local ButtonContainer = Instance.new("Frame")
+ButtonContainer.Size = UDim2.new(1, -24, 0, isMobile and 200 or 230)
+ButtonContainer.Position = UDim2.new(0, 12, 0, isMobile and 118 or 125)
+ButtonContainer.BackgroundTransparency = 1
+ButtonContainer.Parent = MainFrame
+
+local grid = Instance.new("UIGridLayout")
+grid.CellSize = UDim2.new(0, cellW, 0, cellH)
+grid.CellPadding = UDim2.new(0, cellPad, 0, cellPad)
+grid.FillDirectionMaxCells = 3
+grid.HorizontalAlignment = Enum.HorizontalAlignment.Center
+grid.VerticalAlignment = Enum.VerticalAlignment.Top
+grid.SortOrder = Enum.SortOrder.LayoutOrder
+grid.Parent = ButtonContainer
 
 	local AlertLabel = Instance.new("TextLabel")
 	AlertLabel.Size = UDim2.new(1, -20, 0, 22)
