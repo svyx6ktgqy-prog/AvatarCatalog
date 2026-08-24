@@ -1266,7 +1266,7 @@ do
 	Container.Size = UDim2.new(0, 100, 0, 28)
 	Container.AnchorPoint = Vector2.new(0.5, 0.5)
 	Container.Position = UDim2.new(0.5, 0, 0.5, 0)
-	Container.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
+	Container.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
 	Container.BackgroundTransparency = 0.1
 	Container.ZIndex = 1
 	Container.Parent = LoadingGui
