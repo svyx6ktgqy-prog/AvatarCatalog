@@ -1389,7 +1389,7 @@ do
 	})
 	beatTween:Play()
 
-	-- ── Puntos que saltan en secuencia ──
+		-- ── Puntos: aparecen uno a uno haciendo ola, se quedan visibles, al final todos se desvanecen y reinicia ──
 	local DotsFrame = Instance.new("Frame")
 	DotsFrame.Size = UDim2.new(0, 48, 0, 28)
 	DotsFrame.Position = UDim2.new(0.5, 4, 0.5, 0)
@@ -1399,7 +1399,7 @@ do
 	DotsFrame.Parent = LoadingGui
 
 	local dots = {}
-	local dotPositions = {-14, 0, 14} -- separación horizontal
+	local dotPositions = {-14, 0, 14}
 
 	for i = 1, 3 do
 		local dot = Instance.new("TextLabel")
@@ -1411,30 +1411,52 @@ do
 		dot.TextSize = 22
 		dot.TextColor3 = Color3.fromRGB(255, 255, 255)
 		dot.Text = "•"
+		dot.TextTransparency = 1 -- empiezan invisibles
 		dot.ZIndex = 3
 		dot.Parent = DotsFrame
 		dots[i] = dot
 	end
 
-	-- Animación de salto secuencial
+	-- Animación secuencial
 	local running = true
 	task.spawn(function()
 		while running and DotsFrame and DotsFrame.Parent do
+			-- Aparecen uno por uno haciendo la ola (los anteriores se quedan)
 			for i = 1, 3 do
 				if not running then break end
 				local dot = dots[i]
-				-- sube
+
+				-- Aparece
 				TweenService:Create(dot, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					Position = UDim2.new(0.5, dotPositions[i], 0.5, -7)
+					TextTransparency = 0
 				}):Play()
-				task.wait(0.12)
-				-- baja
-				TweenService:Create(dot, TweenInfo.new(0.22, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {
+
+				task.wait(0.08)
+
+				-- Hace la ola
+				TweenService:Create(dot, TweenInfo.new(0.26, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+					Position = UDim2.new(0.5, dotPositions[i], 0.5, -8)
+				}):Play()
+				task.wait(0.26)
+
+				TweenService:Create(dot, TweenInfo.new(0.28, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {
 					Position = UDim2.new(0.5, dotPositions[i], 0.5, 0)
 				}):Play()
-				task.wait(0.08)
+
+				task.wait(0.18)
 			end
-			task.wait(0.25) -- pequeña pausa entre ciclos
+
+			-- Pequeña pausa con los 3 visibles
+			task.wait(0.35)
+
+			-- Todos se desvanecen juntos
+			for i = 1, 3 do
+				TweenService:Create(dots[i], TweenInfo.new(0.28, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+					TextTransparency = 1
+				}):Play()
+			end
+
+			task.wait(0.35) -- espera a que terminen de desaparecer antes de reiniciar
 		end
 	end)
 
