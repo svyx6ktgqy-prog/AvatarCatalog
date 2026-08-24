@@ -868,6 +868,164 @@ end
 -- =================================================================
 
 -- =================================================================
+-- 🎨 SEGUNDA CAPA DE SEGURIDAD - COLOR CHECK
+-- =================================================================
+local colorVerified = false
+
+local function runColorCheck()
+    local colorData = {
+        {emoji = "🩷", name = "Pink"},
+        {emoji = "❤️", name = "Red"},
+        {emoji = "🧡", name = "Orange"},
+        {emoji = "💛", name = "Yellow"},
+        {emoji = "💜", name = "Purple"},
+        {emoji = "💙", name = "Blue"},
+        {emoji = "🩵", name = "Light Blue"},
+        {emoji = "💚", name = "Green"},
+        {emoji = "🩶", name = "Gray"},
+        {emoji = "🖤", name = "Black"},
+        {emoji = "🤍", name = "White"},
+        {emoji = "🤎", name = "Brown"},
+    }
+
+    local correct = colorData[math.random(1, #colorData)]
+
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "ColorCheckGui"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.DisplayOrder = 9999
+
+    if gethui then
+        ScreenGui.Parent = gethui()
+    elseif syn and syn.protect_gui then
+        syn.protect_gui(ScreenGui)
+        ScreenGui.Parent = game:GetService("CoreGui")
+    else
+        ScreenGui.Parent = game:GetService("CoreGui")
+    end
+
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, 340, 0, 380)
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Parent = ScreenGui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = MainFrame
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(60, 60, 70)
+    stroke.Thickness = 1.5
+    stroke.Parent = MainFrame
+
+    -- Título
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, -20, 0, 28)
+    Title.Position = UDim2.new(0, 10, 0, 12)
+    Title.BackgroundTransparency = 1
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 16
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.Text = "What color do you see?"
+    Title.Parent = MainFrame
+
+    -- Emoji grande
+    local EmojiLabel = Instance.new("TextLabel")
+    EmojiLabel.Size = UDim2.new(1, 0, 0, 70)
+    EmojiLabel.Position = UDim2.new(0, 0, 0, 45)
+    EmojiLabel.BackgroundTransparency = 1
+    EmojiLabel.Font = Enum.Font.GothamBold
+    EmojiLabel.TextSize = 52
+    EmojiLabel.Text = correct.emoji
+    EmojiLabel.Parent = MainFrame
+
+    -- Contenedor de botones
+    local ButtonContainer = Instance.new("Frame")
+    ButtonContainer.Size = UDim2.new(1, -24, 0, 230)
+    ButtonContainer.Position = UDim2.new(0, 12, 0, 125)
+    ButtonContainer.BackgroundTransparency = 1
+    ButtonContainer.Parent = MainFrame
+
+    local grid = Instance.new("UIGridLayout")
+    grid.CellSize = UDim2.new(0, 100, 0, 36)
+    grid.CellPadding = UDim2.new(0, 8, 0, 8)
+    grid.FillDirectionMaxCells = 3
+    grid.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    grid.VerticalAlignment = Enum.VerticalAlignment.Top
+    grid.SortOrder = Enum.SortOrder.LayoutOrder
+    grid.Parent = ButtonContainer
+
+    local AlertLabel = Instance.new("TextLabel")
+    AlertLabel.Size = UDim2.new(1, -20, 0, 22)
+    AlertLabel.Position = UDim2.new(0, 10, 1, -30)
+    AlertLabel.BackgroundTransparency = 1
+    AlertLabel.Font = Enum.Font.Gotham
+    AlertLabel.TextSize = 12
+    AlertLabel.TextColor3 = Color3.fromRGB(255, 85, 85)
+    AlertLabel.Text = ""
+    AlertLabel.TextTransparency = 1
+    AlertLabel.Parent = MainFrame
+
+    local TweenService = game:GetService("TweenService")
+
+    local function showError()
+        AlertLabel.Text = "Incorrect color. Try again."
+        TweenService:Create(AlertLabel, TweenInfo.new(0.25), {TextTransparency = 0}):Play()
+        task.delay(1.8, function()
+            if AlertLabel and AlertLabel.Parent then
+                TweenService:Create(AlertLabel, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+            end
+        end)
+    end
+
+    -- Crear los 12 botones
+    for i, data in ipairs(colorData) do
+        local btn = Instance.new("TextButton")
+        btn.Name = data.name
+        btn.Size = UDim2.new(0, 100, 0, 36)
+        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        btn.TextColor3 = Color3.fromRGB(240, 240, 240)
+        btn.Font = Enum.Font.GothamMedium
+        btn.TextSize = 13
+        btn.Text = data.name
+        btn.AutoButtonColor = false
+        btn.Parent = ButtonContainer
+
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 6)
+        btnCorner.Parent = btn
+
+        local btnStroke = Instance.new("UIStroke")
+        btnStroke.Color = Color3.fromRGB(70, 70, 85)
+        btnStroke.Thickness = 1
+        btnStroke.Parent = btn
+
+        btn.MouseEnter:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(55, 55, 70)}):Play()
+        end)
+        btn.MouseLeave:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)}):Play()
+        end)
+
+        btn.MouseButton1Click:Connect(function()
+            if data.name == correct.name then
+                colorVerified = true
+                ScreenGui:Destroy()
+            else
+                showError()
+                -- Regenerar color nuevo
+                correct = colorData[math.random(1, #colorData)]
+                EmojiLabel.Text = correct.emoji
+            end
+        end)
+    end
+end
+		
+-- =================================================================
 -- 💰 FAKE ROBUX COUNTER SYSTEM (300.0K base) - Compatible con Catalog Avatar
 -- =================================================================
 local SoundService = getService("SoundService")
