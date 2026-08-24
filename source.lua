@@ -1261,12 +1261,14 @@ do
 		LoadingGui.Parent = game:GetService("CoreGui")
 	end
 
+	-- Casilla más baja (detrás)
 	local Container = Instance.new("Frame")
-	Container.Size = UDim2.new(0, 110, 0, 46)
+	Container.Size = UDim2.new(0, 160, 0, 28)
 	Container.AnchorPoint = Vector2.new(0.5, 0.5)
 	Container.Position = UDim2.new(0.5, 0, 0.5, 0)
 	Container.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
 	Container.BackgroundTransparency = 0.1
+	Container.ZIndex = 1
 	Container.Parent = LoadingGui
 
 	local Corner = Instance.new("UICorner")
@@ -1274,30 +1276,33 @@ do
 	Corner.Parent = Container
 
 	local Stroke = Instance.new("UIStroke")
-	Stroke.Color = Color3.fromRGB(255, 105, 180) -- Pink
+	Stroke.Color = Color3.fromRGB(255, 105, 180)
 	Stroke.Thickness = 1.5
 	Stroke.Parent = Container
 
-	-- Imagen
+	-- Imagen (delante del alerta, mismos parámetros)
 	local Icon = Instance.new("ImageLabel")
 	Icon.Size = UDim2.new(0, 60, 0, 60)
-	Icon.Position = UDim2.new(0, 14, 0.5, 0)
+	Icon.Position = UDim2.new(0.5, -66, 0.5, 0)
 	Icon.AnchorPoint = Vector2.new(0, 0.5)
 	Icon.BackgroundTransparency = 1
 	Icon.Image = "rbxassetid://91815956720137"
-	Icon.Parent = Container
+	Icon.ZIndex = 2
+	Icon.Parent = LoadingGui
 
-	-- Solo los puntos al lado de la imagen
+	-- Puntos al lado (delante del alerta, mismos parámetros)
 	local DotsLabel = Instance.new("TextLabel")
-	DotsLabel.Size = UDim2.new(0, 50, 1, 0)
-	DotsLabel.Position = UDim2.new(0, 82, 0, 0)
+	DotsLabel.Size = UDim2.new(0, 50, 0, 28)
+	DotsLabel.Position = UDim2.new(0.5, 2, 0.5, 0)
+	DotsLabel.AnchorPoint = Vector2.new(0, 0.5)
 	DotsLabel.BackgroundTransparency = 1
 	DotsLabel.Font = Enum.Font.GothamBold
 	DotsLabel.TextSize = 18
 	DotsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	DotsLabel.TextXAlignment = Enum.TextXAlignment.Left
 	DotsLabel.Text = ""
-	DotsLabel.Parent = Container
+	DotsLabel.ZIndex = 2
+	DotsLabel.Parent = LoadingGui
 
 	-- Animación de puntos
 	local dots = {".", "..", "...", ""}
@@ -1312,8 +1317,8 @@ do
 		end
 	end)
 
-	-- Tiempo de carga (un poco más)
-	task.wait(8.1)
+	-- Tiempo de carga
+	task.wait(4.2)
 
 	running = false
 
