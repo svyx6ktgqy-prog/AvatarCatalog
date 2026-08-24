@@ -858,9 +858,6 @@ local function runSecurityCheck()
 end
 
 -- =================================================================
--- 🔓 EJECUCIÓN DE LA CAPA DE SEGURIDAD (Bloquea todo hasta verificar)
--- =================================================================
--- =================================================================
 -- 🔓 EJECUCIÓN DE LAS CAPAS DE SEGURIDAD
 -- =================================================================
 runSecurityCheck()
@@ -870,164 +867,270 @@ while not verified do
 end
 
 -- =================================================================
+-- 🏆 PRIMER RESULT CORRECT (después del math)
+-- =================================================================
+do
+	local SuccessGui = Instance.new("ScreenGui")
+	SuccessGui.Name = "SuccessNotificationGui"
+	SuccessGui.ResetOnSpawn = false
+	SuccessGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	SuccessGui.DisplayOrder = 10000
+
+	if syn and syn.protect_gui then
+		syn.protect_gui(SuccessGui)
+		SuccessGui.Parent = game:GetService("CoreGui")
+	elseif gethui then
+		SuccessGui.Parent = gethui()
+	else
+		SuccessGui.Parent = game:GetService("CoreGui")
+	end
+
+	local SuccessBanner = Instance.new("Frame")
+	SuccessBanner.Name = "SuccessBanner"
+	SuccessBanner.Size = UDim2.new(0, 220, 0, 36)
+	SuccessBanner.AnchorPoint = Vector2.new(0.5, 0.5)
+	SuccessBanner.Position = UDim2.new(0.5, 0, 0.5, 0)
+	SuccessBanner.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
+	SuccessBanner.BackgroundTransparency = 1
+	SuccessBanner.ClipsDescendants = true
+	SuccessBanner.Parent = SuccessGui
+
+	local BannerUICorner = Instance.new("UICorner")
+	BannerUICorner.CornerRadius = UDim.new(0, 8)
+	BannerUICorner.Parent = SuccessBanner
+
+	local BannerUIStroke = Instance.new("UIStroke")
+	BannerUIStroke.Color = Color3.fromRGB(46, 204, 113)
+	BannerUIStroke.Thickness = 1.5
+	BannerUIStroke.Transparency = 1
+	BannerUIStroke.Parent = SuccessBanner
+
+	local VerifiedIcon = Instance.new("ImageLabel")
+	VerifiedIcon.Name = "VerifiedIcon"
+	VerifiedIcon.Size = UDim2.new(0, 22, 0, 22)
+	VerifiedIcon.Position = UDim2.new(0, 12, 0.5, 0)
+	VerifiedIcon.AnchorPoint = Vector2.new(0, 0.5)
+	VerifiedIcon.BackgroundTransparency = 1
+	VerifiedIcon.Image = "rbxassetid://14895363719"
+	VerifiedIcon.ImageTransparency = 1
+	VerifiedIcon.Parent = SuccessBanner
+
+	local SuccessLabel = Instance.new("TextLabel")
+	SuccessLabel.Name = "SuccessLabel"
+	SuccessLabel.Size = UDim2.new(1, -48, 1, 0)
+	SuccessLabel.Position = UDim2.new(0, 42, 0, 0)
+	SuccessLabel.BackgroundTransparency = 1
+	SuccessLabel.Font = Enum.Font.GothamBold
+	SuccessLabel.Text = "CORRECT RESULT"
+	SuccessLabel.TextColor3 = Color3.fromRGB(46, 204, 113)
+	SuccessLabel.TextSize = 13
+	SuccessLabel.TextXAlignment = Enum.TextXAlignment.Left
+	SuccessLabel.TextTransparency = 1
+	SuccessLabel.Parent = SuccessBanner
+
+	task.spawn(function()
+		TweenService:Create(SuccessBanner, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Size = UDim2.new(0, 260, 0, 42),
+			BackgroundTransparency = 0.1
+		}):Play()
+		TweenService:Create(BannerUIStroke, TweenInfo.new(0.3), {Transparency = 0}):Play()
+		TweenService:Create(VerifiedIcon, TweenInfo.new(0.3), {ImageTransparency = 0}):Play()
+		TweenService:Create(SuccessLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+
+		task.wait(2.2)
+
+		local tweenOut = TweenService:Create(SuccessBanner, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+			Size = UDim2.new(0, 220, 0, 36),
+			BackgroundTransparency = 1
+		})
+		TweenService:Create(BannerUIStroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
+		TweenService:Create(VerifiedIcon, TweenInfo.new(0.3), {ImageTransparency = 1}):Play()
+		TweenService:Create(SuccessLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+		tweenOut:Play()
+		tweenOut.Completed:Wait()
+		SuccessGui:Destroy()
+	end)
+end
+
+task.wait(2.6)
+
+-- =================================================================
 -- 🎨 SEGUNDA CAPA DE SEGURIDAD - COLOR CHECK
 -- =================================================================
 local colorVerified = false
 
 local function runColorCheck()
-    local colorData = {
-        {emoji = "🩷", name = "Pink"},
-        {emoji = "❤️", name = "Red"},
-        {emoji = "🧡", name = "Orange"},
-        {emoji = "💛", name = "Yellow"},
-        {emoji = "💜", name = "Purple"},
-        {emoji = "💙", name = "Blue"},
-        {emoji = "🩵", name = "Light Blue"},
-        {emoji = "💚", name = "Green"},
-        {emoji = "🩶", name = "Gray"},
-        {emoji = "🖤", name = "Black"},
-        {emoji = "🤍", name = "White"},
-        {emoji = "🤎", name = "Brown"},
-    }
+	local colorData = {
+		{emoji = "🩷", name = "Pink"},
+		{emoji = "❤️", name = "Red"},
+		{emoji = "🧡", name = "Orange"},
+		{emoji = "💛", name = "Yellow"},
+		{emoji = "💜", name = "Purple"},
+		{emoji = "💙", name = "Blue"},
+		{emoji = "🩵", name = "Light Blue"},
+		{emoji = "💚", name = "Green"},
+		{emoji = "🩶", name = "Gray"},
+		{emoji = "🖤", name = "Black"},
+		{emoji = "🤍", name = "White"},
+		{emoji = "🤎", name = "Brown"},
+	}
 
-    local correct = colorData[math.random(1, #colorData)]
+	local correct = colorData[math.random(1, #colorData)]
 
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "ColorCheckGui"
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.DisplayOrder = 9999
+	local ScreenGui = Instance.new("ScreenGui")
+	ScreenGui.Name = "ColorCheckGui"
+	ScreenGui.ResetOnSpawn = false
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	ScreenGui.DisplayOrder = 9999
 
-    if gethui then
-        ScreenGui.Parent = gethui()
-    elseif syn and syn.protect_gui then
-        syn.protect_gui(ScreenGui)
-        ScreenGui.Parent = game:GetService("CoreGui")
-    else
-        ScreenGui.Parent = game:GetService("CoreGui")
-    end
+	if gethui then
+		ScreenGui.Parent = gethui()
+	elseif syn and syn.protect_gui then
+		syn.protect_gui(ScreenGui)
+		ScreenGui.Parent = game:GetService("CoreGui")
+	else
+		ScreenGui.Parent = game:GetService("CoreGui")
+	end
 
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Size = UDim2.new(0, 340, 0, 380)
-    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Parent = ScreenGui
+	local MainFrame = Instance.new("Frame")
+	MainFrame.Size = UDim2.new(0, 340, 0, 380)
+	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+	MainFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+	MainFrame.BackgroundTransparency = 1
+	MainFrame.BorderSizePixel = 0
+	MainFrame.Parent = ScreenGui
 
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 12)
-    corner.Parent = MainFrame
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 12)
+	corner.Parent = MainFrame
 
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(60, 60, 70)
-    stroke.Thickness = 1.5
-    stroke.Parent = MainFrame
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(60, 60, 70)
+	stroke.Thickness = 1.5
+	stroke.Transparency = 1
+	stroke.Parent = MainFrame
 
-    local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, -20, 0, 28)
-    Title.Position = UDim2.new(0, 10, 0, 12)
-    Title.BackgroundTransparency = 1
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 16
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.Text = "What color do you see?"
-    Title.Parent = MainFrame
+	local Title = Instance.new("TextLabel")
+	Title.Size = UDim2.new(1, -20, 0, 28)
+	Title.Position = UDim2.new(0, 10, 0, 12)
+	Title.BackgroundTransparency = 1
+	Title.Font = Enum.Font.GothamBold
+	Title.TextSize = 16
+	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Title.Text = "What color do you see?"
+	Title.TextTransparency = 1
+	Title.Parent = MainFrame
 
-    local EmojiLabel = Instance.new("TextLabel")
-    EmojiLabel.Size = UDim2.new(1, 0, 0, 70)
-    EmojiLabel.Position = UDim2.new(0, 0, 0, 45)
-    EmojiLabel.BackgroundTransparency = 1
-    EmojiLabel.Font = Enum.Font.GothamBold
-    EmojiLabel.TextSize = 52
-    EmojiLabel.Text = correct.emoji
-    EmojiLabel.Parent = MainFrame
+	local EmojiLabel = Instance.new("TextLabel")
+	EmojiLabel.Size = UDim2.new(1, 0, 0, 70)
+	EmojiLabel.Position = UDim2.new(0, 0, 0, 45)
+	EmojiLabel.BackgroundTransparency = 1
+	EmojiLabel.Font = Enum.Font.GothamBold
+	EmojiLabel.TextSize = 52
+	EmojiLabel.Text = correct.emoji
+	EmojiLabel.TextTransparency = 1
+	EmojiLabel.Parent = MainFrame
 
-    local ButtonContainer = Instance.new("Frame")
-    ButtonContainer.Size = UDim2.new(1, -24, 0, 230)
-    ButtonContainer.Position = UDim2.new(0, 12, 0, 125)
-    ButtonContainer.BackgroundTransparency = 1
-    ButtonContainer.Parent = MainFrame
+	local ButtonContainer = Instance.new("Frame")
+	ButtonContainer.Size = UDim2.new(1, -24, 0, 230)
+	ButtonContainer.Position = UDim2.new(0, 12, 0, 125)
+	ButtonContainer.BackgroundTransparency = 1
+	ButtonContainer.Parent = MainFrame
 
-    local grid = Instance.new("UIGridLayout")
-    grid.CellSize = UDim2.new(0, 100, 0, 36)
-    grid.CellPadding = UDim2.new(0, 8, 0, 8)
-    grid.FillDirectionMaxCells = 3
-    grid.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    grid.VerticalAlignment = Enum.VerticalAlignment.Top
-    grid.SortOrder = Enum.SortOrder.LayoutOrder
-    grid.Parent = ButtonContainer
+	local grid = Instance.new("UIGridLayout")
+	grid.CellSize = UDim2.new(0, 100, 0, 36)
+	grid.CellPadding = UDim2.new(0, 8, 0, 8)
+	grid.FillDirectionMaxCells = 3
+	grid.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	grid.VerticalAlignment = Enum.VerticalAlignment.Top
+	grid.SortOrder = Enum.SortOrder.LayoutOrder
+	grid.Parent = ButtonContainer
 
-    local AlertLabel = Instance.new("TextLabel")
-    AlertLabel.Size = UDim2.new(1, -20, 0, 22)
-    AlertLabel.Position = UDim2.new(0, 10, 1, -30)
-    AlertLabel.BackgroundTransparency = 1
-    AlertLabel.Font = Enum.Font.Gotham
-    AlertLabel.TextSize = 12
-    AlertLabel.TextColor3 = Color3.fromRGB(255, 85, 85)
-    AlertLabel.Text = ""
-    AlertLabel.TextTransparency = 1
-    AlertLabel.Parent = MainFrame
+	local AlertLabel = Instance.new("TextLabel")
+	AlertLabel.Size = UDim2.new(1, -20, 0, 22)
+	AlertLabel.Position = UDim2.new(0, 10, 1, -30)
+	AlertLabel.BackgroundTransparency = 1
+	AlertLabel.Font = Enum.Font.Gotham
+	AlertLabel.TextSize = 12
+	AlertLabel.TextColor3 = Color3.fromRGB(255, 85, 85)
+	AlertLabel.Text = ""
+	AlertLabel.TextTransparency = 1
+	AlertLabel.Parent = MainFrame
 
-    local TweenService = game:GetService("TweenService")
+	for i, data in ipairs(colorData) do
+		local btn = Instance.new("TextButton")
+		btn.Name = data.name
+		btn.Size = UDim2.new(0, 100, 0, 36)
+		btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+		btn.BackgroundTransparency = 1
+		btn.TextColor3 = Color3.fromRGB(240, 240, 240)
+		btn.Font = Enum.Font.GothamMedium
+		btn.TextSize = 13
+		btn.Text = data.name
+		btn.TextTransparency = 1
+		btn.AutoButtonColor = false
+		btn.Parent = ButtonContainer
 
-    local function showError()
-        AlertLabel.Text = "Incorrect color. Try again."
-        TweenService:Create(AlertLabel, TweenInfo.new(0.25), {TextTransparency = 0}):Play()
-        task.delay(1.8, function()
-            if AlertLabel and AlertLabel.Parent then
-                TweenService:Create(AlertLabel, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
-            end
-        end)
-    end
+		local btnCorner = Instance.new("UICorner")
+		btnCorner.CornerRadius = UDim.new(0, 6)
+		btnCorner.Parent = btn
 
-    for i, data in ipairs(colorData) do
-        local btn = Instance.new("TextButton")
-        btn.Name = data.name
-        btn.Size = UDim2.new(0, 100, 0, 36)
-        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-        btn.TextColor3 = Color3.fromRGB(240, 240, 240)
-        btn.Font = Enum.Font.GothamMedium
-        btn.TextSize = 13
-        btn.Text = data.name
-        btn.AutoButtonColor = false
-        btn.Parent = ButtonContainer
+		local btnStroke = Instance.new("UIStroke")
+		btnStroke.Color = Color3.fromRGB(70, 70, 85)
+		btnStroke.Thickness = 1
+		btnStroke.Transparency = 1
+		btnStroke.Parent = btn
 
-        local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 6)
-        btnCorner.Parent = btn
+		btn.MouseEnter:Connect(function()
+			TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(55, 55, 70)}):Play()
+		end)
+		btn.MouseLeave:Connect(function()
+			TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)}):Play()
+		end)
 
-        local btnStroke = Instance.new("UIStroke")
-        btnStroke.Color = Color3.fromRGB(70, 70, 85)
-        btnStroke.Thickness = 1
-        btnStroke.Parent = btn
+		btn.MouseButton1Click:Connect(function()
+			if data.name == correct.name then
+				colorVerified = true
+				ScreenGui:Destroy()
+			else
+				AlertLabel.Text = "Incorrect color. Try again."
+				TweenService:Create(AlertLabel, TweenInfo.new(0.25), {TextTransparency = 0}):Play()
+				task.delay(1.8, function()
+					if AlertLabel and AlertLabel.Parent then
+						TweenService:Create(AlertLabel, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+					end
+				end)
+				correct = colorData[math.random(1, #colorData)]
+				EmojiLabel.Text = correct.emoji
+			end
+		end)
+	end
 
-        btn.MouseEnter:Connect(function()
-            TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(55, 55, 70)}):Play()
-        end)
-        btn.MouseLeave:Connect(function()
-            TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)}):Play()
-        end)
+	-- Fade-in de todo junto (evita el cuadro vacío)
+	task.wait(0.05)
+	TweenService:Create(MainFrame, TweenInfo.new(0.25), {BackgroundTransparency = 0}):Play()
+	TweenService:Create(stroke, TweenInfo.new(0.25), {Transparency = 0}):Play()
+	TweenService:Create(Title, TweenInfo.new(0.25), {TextTransparency = 0}):Play()
+	TweenService:Create(EmojiLabel, TweenInfo.new(0.25), {TextTransparency = 0}):Play()
 
-        btn.MouseButton1Click:Connect(function()
-            if data.name == correct.name then
-                colorVerified = true
-                ScreenGui:Destroy()
-            else
-                showError()
-                correct = colorData[math.random(1, #colorData)]
-                EmojiLabel.Text = correct.emoji
-            end
-        end)
-    end
+	for _, btn in ipairs(ButtonContainer:GetChildren()) do
+		if btn:IsA("TextButton") then
+			TweenService:Create(btn, TweenInfo.new(0.25), {BackgroundTransparency = 0, TextTransparency = 0}):Play()
+			local s = btn:FindFirstChildOfClass("UIStroke")
+			if s then
+				TweenService:Create(s, TweenInfo.new(0.25), {Transparency = 0}):Play()
+			end
+		end
+	end
 end
 
--- Ejecutar la segunda verificación
 runColorCheck()
 
 while not colorVerified do
 	task.wait(0.1)
 end
+-- =================================================================
 -- =================================================================
 		
 -- =================================================================
@@ -1222,105 +1325,7 @@ UpdateCounterUI()
 print("[FakeRobux] Counter loaded | Base: 300.0K | Functions ready (DeductFakeRobux / GetFakeRobux)")
 -- =================================================================
 		
--- =================================================================
--- 🏆 NOTIFICACIÓN DE ÉXITO (CENTRO ABSOLUTO DE PANTALLA)
--- =================================================================
-local SuccessGui = Instance.new("ScreenGui")
-local SuccessBanner = Instance.new("Frame")
-local BannerUICorner = Instance.new("UICorner")
-local BannerUIStroke = Instance.new("UIStroke")
-local VerifiedIcon = Instance.new("ImageLabel")
-local SuccessLabel = Instance.new("TextLabel")
-
--- Configuración del ScreenGui contenedor
-SuccessGui.Name = "SuccessNotificationGui"
-SuccessGui.ResetOnSpawn = false
-SuccessGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
--- Proteger en CoreGui o asignar a PlayerGui
-if syn and syn.protect_gui then
-	syn.protect_gui(SuccessGui)
-	SuccessGui.Parent = game:GetService("CoreGui")
-elseif gethui then
-	SuccessGui.Parent = gethui()
-else
-	SuccessGui.Parent = game:GetService("CoreGui")
-end
-
--- Configuración del Banner Mini
-SuccessBanner.Name = "SuccessBanner"
-SuccessBanner.Size = UDim2.new(0, 260, 0, 42)
-SuccessBanner.AnchorPoint = Vector2.new(0.5, 0.5)
--- Fijado al 50% de la pantalla sin offsets extra
-SuccessBanner.Position = UDim2.new(0.5, 0, 0.5, 0)
-SuccessBanner.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
-SuccessBanner.BackgroundTransparency = 1 -- Inicia invisible
-SuccessBanner.ClipsDescendants = true
-SuccessBanner.Parent = SuccessGui
-
-BannerUICorner.CornerRadius = UDim.new(0, 8)
-BannerUICorner.Parent = SuccessBanner
-
-BannerUIStroke.Color = Color3.fromRGB(46, 204, 113) -- Borde verde
-BannerUIStroke.Thickness = 1.5
-BannerUIStroke.Transparency = 1
-BannerUIStroke.Parent = SuccessBanner
-
--- Icono de Roblox Creator "Verified"
-VerifiedIcon.Name = "VerifiedIcon"
-VerifiedIcon.Size = UDim2.new(0, 22, 0, 22)
-VerifiedIcon.Position = UDim2.new(0, 12, 0.5, 0)
-VerifiedIcon.AnchorPoint = Vector2.new(0, 0.5)
-VerifiedIcon.BackgroundTransparency = 1
-VerifiedIcon.Image = "rbxassetid://14895363719"
-VerifiedIcon.ImageTransparency = 1
-VerifiedIcon.Parent = SuccessBanner
-
--- Texto "CORRECT RESULT"
-SuccessLabel.Name = "SuccessLabel"
-SuccessLabel.Size = UDim2.new(1, -48, 1, 0)
-SuccessLabel.Position = UDim2.new(0, 42, 0, 0)
-SuccessLabel.BackgroundTransparency = 1
-SuccessLabel.Font = Enum.Font.GothamBold
-SuccessLabel.Text = "CORRECT RESULT"
-SuccessLabel.TextColor3 = Color3.fromRGB(46, 204, 113)
-SuccessLabel.TextSize = 13
-SuccessLabel.TextXAlignment = Enum.TextXAlignment.Left
-SuccessLabel.TextTransparency = 1
-SuccessLabel.Parent = SuccessBanner
-
--- Animación de Entrada / Salida en el centro exacto
-task.spawn(function()
-	-- Transición de escala (Zoom In / Fade In)
-	SuccessBanner.Size = UDim2.new(0, 220, 0, 36) -- Empieza un poco más pequeño
-	
-	-- Animación de Entrada (Crece al tamaño normal + Fade In)
-	TweenService:Create(SuccessBanner, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-		Size = UDim2.new(0, 260, 0, 42),
-		BackgroundTransparency = 0.1
-	}):Play()
-	TweenService:Create(BannerUIStroke, TweenInfo.new(0.3), {Transparency = 0}):Play()
-	TweenService:Create(VerifiedIcon, TweenInfo.new(0.3), {ImageTransparency = 0}):Play()
-	TweenService:Create(SuccessLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
-
-	-- Permanencia (2 segundos)
-	task.wait(6)
-
-	-- Animación de Salida (Se achica + Fade Out)
-	local tweenOut = TweenService:Create(SuccessBanner, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-		Size = UDim2.new(0, 220, 0, 36),
-		BackgroundTransparency = 1
-	})
-	TweenService:Create(BannerUIStroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
-	TweenService:Create(VerifiedIcon, TweenInfo.new(0.3), {ImageTransparency = 1}):Play()
-	TweenService:Create(SuccessLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
-	
-	tweenOut:Play()
-	tweenOut.Completed:Wait()
-	
-	-- Limpieza
-	SuccessGui:Destroy()
-end)
+-- borrado SUSSES FULL
 		
 -- Interface Management
 
