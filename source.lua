@@ -1290,7 +1290,7 @@ do
 	-- Solo los puntos al lado de la imagen
 	local DotsLabel = Instance.new("TextLabel")
 	DotsLabel.Size = UDim2.new(0, 50, 1, 0)
-	DotsLabel.Position = UDim2.new(0, 80, 0, 0)
+	DotsLabel.Position = UDim2.new(0, 180, 0, 0)
 	DotsLabel.BackgroundTransparency = 1
 	DotsLabel.Font = Enum.Font.GothamBold
 	DotsLabel.TextSize = 18
