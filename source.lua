@@ -1276,19 +1276,43 @@ do
 	Corner.Parent = Container
 
 	local Stroke = Instance.new("UIStroke")
-	Stroke.Color = Color3.fromRGB(255, 255, 255)
-	Stroke.Thickness = 1.5
-	Stroke.Parent = Container
+Stroke.Color = Color3.fromRGB(255, 255, 255)
+Stroke.Thickness = 1.5
+Stroke.Parent = Container
+
+local Gradient = Instance.new("UIGradient")
+Gradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), -- blanco izquierda
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 105, 180))  -- rosado derecha
+})
+Gradient.Parent = Stroke
 
 	-- Imagen (delante del alerta, mismos parámetros)
 	local Icon = Instance.new("ImageLabel")
-	Icon.Size = UDim2.new(0, 60, 0, 60)
-	Icon.Position = UDim2.new(0.5, -66, 0.5, 0)
-	Icon.AnchorPoint = Vector2.new(0, 0.5)
-	Icon.BackgroundTransparency = 1
-	Icon.Image = "rbxassetid://91815956720137"
-	Icon.ZIndex = 2
-	Icon.Parent = LoadingGui
+Icon.Size = UDim2.new(0, 60, 0, 60)
+Icon.Position = UDim2.new(0.5, -66, 0.5, 0)
+Icon.AnchorPoint = Vector2.new(0, 0.5)
+Icon.BackgroundTransparency = 1
+Icon.Image = "rbxassetid://91815956720137"
+Icon.ZIndex = 2
+Icon.Parent = LoadingGui
+
+-- Latido mínimo
+local TweenService = game:GetService("TweenService")
+
+local beatInfo = TweenInfo.new(
+	0.4, -- duración de cada mitad del latido
+	Enum.EasingStyle.Sine,
+	Enum.EasingDirection.InOut,
+	-1, -- infinito
+	true -- reverse (va y vuelve)
+)
+
+local beatTween = TweenService:Create(Icon, beatInfo, {
+	Size = UDim2.new(0, 66, 0, 66) -- solo un poco más grande
+})
+
+beatTween:Play()
 
 	-- Puntos al lado (delante del alerta, mismos parámetros)
 	local DotsLabel = Instance.new("TextLabel")
