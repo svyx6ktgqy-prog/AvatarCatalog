@@ -1280,7 +1280,7 @@ do
 
 	-- Imagen
 	local Icon = Instance.new("ImageLabel")
-	Icon.Size = UDim2.new(0, 28, 0, 28)
+	Icon.Size = UDim2.new(0, 60, 0, 60)
 	Icon.Position = UDim2.new(0, 14, 0.5, 0)
 	Icon.AnchorPoint = Vector2.new(0, 0.5)
 	Icon.BackgroundTransparency = 1
@@ -1290,7 +1290,7 @@ do
 	-- Solo los puntos al lado de la imagen
 	local DotsLabel = Instance.new("TextLabel")
 	DotsLabel.Size = UDim2.new(0, 50, 1, 0)
-	DotsLabel.Position = UDim2.new(0, 50, 0, 0)
+	DotsLabel.Position = UDim2.new(0, 58, 0, 0)
 	DotsLabel.BackgroundTransparency = 1
 	DotsLabel.Font = Enum.Font.GothamBold
 	DotsLabel.TextSize = 18
