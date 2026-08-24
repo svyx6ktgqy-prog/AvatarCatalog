@@ -1132,6 +1132,94 @@ while not colorVerified do
 end
 -- =================================================================
 -- =================================================================
+
+-- =================================================================
+-- 🏆 SEGUNDO RESULT CORRECT (después del color)
+-- =================================================================
+do
+	local SuccessGui2 = Instance.new("ScreenGui")
+	SuccessGui2.Name = "SuccessNotificationGui2"
+	SuccessGui2.ResetOnSpawn = false
+	SuccessGui2.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	SuccessGui2.DisplayOrder = 10000
+
+	if syn and syn.protect_gui then
+		syn.protect_gui(SuccessGui2)
+		SuccessGui2.Parent = game:GetService("CoreGui")
+	elseif gethui then
+		SuccessGui2.Parent = gethui()
+	else
+		SuccessGui2.Parent = game:GetService("CoreGui")
+	end
+
+	local SuccessBanner2 = Instance.new("Frame")
+	SuccessBanner2.Name = "SuccessBanner"
+	SuccessBanner2.Size = UDim2.new(0, 220, 0, 36)
+	SuccessBanner2.AnchorPoint = Vector2.new(0.5, 0.5)
+	SuccessBanner2.Position = UDim2.new(0.5, 0, 0.5, 0)
+	SuccessBanner2.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
+	SuccessBanner2.BackgroundTransparency = 1
+	SuccessBanner2.ClipsDescendants = true
+	SuccessBanner2.Parent = SuccessGui2
+
+	local BannerUICorner2 = Instance.new("UICorner")
+	BannerUICorner2.CornerRadius = UDim.new(0, 8)
+	BannerUICorner2.Parent = SuccessBanner2
+
+	local BannerUIStroke2 = Instance.new("UIStroke")
+	BannerUIStroke2.Color = Color3.fromRGB(46, 204, 113)
+	BannerUIStroke2.Thickness = 1.5
+	BannerUIStroke2.Transparency = 1
+	BannerUIStroke2.Parent = SuccessBanner2
+
+	local VerifiedIcon2 = Instance.new("ImageLabel")
+	VerifiedIcon2.Name = "VerifiedIcon"
+	VerifiedIcon2.Size = UDim2.new(0, 22, 0, 22)
+	VerifiedIcon2.Position = UDim2.new(0, 12, 0.5, 0)
+	VerifiedIcon2.AnchorPoint = Vector2.new(0, 0.5)
+	VerifiedIcon2.BackgroundTransparency = 1
+	VerifiedIcon2.Image = "rbxassetid://14895363719"
+	VerifiedIcon2.ImageTransparency = 1
+	VerifiedIcon2.Parent = SuccessBanner2
+
+	local SuccessLabel2 = Instance.new("TextLabel")
+	SuccessLabel2.Name = "SuccessLabel"
+	SuccessLabel2.Size = UDim2.new(1, -48, 1, 0)
+	SuccessLabel2.Position = UDim2.new(0, 42, 0, 0)
+	SuccessLabel2.BackgroundTransparency = 1
+	SuccessLabel2.Font = Enum.Font.GothamBold
+	SuccessLabel2.Text = "CORRECT RESULT"
+	SuccessLabel2.TextColor3 = Color3.fromRGB(46, 204, 113)
+	SuccessLabel2.TextSize = 13
+	SuccessLabel2.TextXAlignment = Enum.TextXAlignment.Left
+	SuccessLabel2.TextTransparency = 1
+	SuccessLabel2.Parent = SuccessBanner2
+
+	task.spawn(function()
+		TweenService:Create(SuccessBanner2, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Size = UDim2.new(0, 260, 0, 42),
+			BackgroundTransparency = 0.1
+		}):Play()
+		TweenService:Create(BannerUIStroke2, TweenInfo.new(0.3), {Transparency = 0}):Play()
+		TweenService:Create(VerifiedIcon2, TweenInfo.new(0.3), {ImageTransparency = 0}):Play()
+		TweenService:Create(SuccessLabel2, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+
+		task.wait(2.5)
+
+		local tweenOut = TweenService:Create(SuccessBanner2, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+			Size = UDim2.new(0, 220, 0, 36),
+			BackgroundTransparency = 1
+		})
+		TweenService:Create(BannerUIStroke2, TweenInfo.new(0.3), {Transparency = 1}):Play()
+		TweenService:Create(VerifiedIcon2, TweenInfo.new(0.3), {ImageTransparency = 1}):Play()
+		TweenService:Create(SuccessLabel2, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+		tweenOut:Play()
+		tweenOut.Completed:Wait()
+		SuccessGui2:Destroy()
+	end)
+end
+
+task.wait(2.8)
 		
 -- =================================================================
 -- 💰 FAKE ROBUX COUNTER SYSTEM (300.0K base) - Compatible con Catalog Avatar
