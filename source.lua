@@ -960,6 +960,14 @@ task.wait(2.6)
 local colorVerified = false
 
 local function runColorCheck()
+	-- Limpiar cualquier ColorCheckGui anterior
+	local parent = gethui and gethui() or game:GetService("CoreGui")
+	for _, gui in ipairs(parent:GetChildren()) do
+		if gui.Name == "ColorCheckGui" or gui.Name == "SuccessNotificationGui" or gui.Name == "SuccessNotificationGui2" then
+			gui:Destroy()
+		end
+	end
+
 	local colorData = {
 		{emoji = "🩷", name = "Pink"},
 		{emoji = "❤️", name = "Red"},
