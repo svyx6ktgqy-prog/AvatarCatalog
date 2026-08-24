@@ -860,12 +860,14 @@ end
 -- =================================================================
 -- 🔓 EJECUCIÓN DE LA CAPA DE SEGURIDAD (Bloquea todo hasta verificar)
 -- =================================================================
+-- =================================================================
+-- 🔓 EJECUCIÓN DE LAS CAPAS DE SEGURIDAD
+-- =================================================================
 runSecurityCheck()
 
 while not verified do
 	task.wait(0.1)
 end
--- =================================================================
 
 -- =================================================================
 -- 🎨 SEGUNDA CAPA DE SEGURIDAD - COLOR CHECK
@@ -922,7 +924,6 @@ local function runColorCheck()
     stroke.Thickness = 1.5
     stroke.Parent = MainFrame
 
-    -- Título
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, -20, 0, 28)
     Title.Position = UDim2.new(0, 10, 0, 12)
@@ -933,7 +934,6 @@ local function runColorCheck()
     Title.Text = "What color do you see?"
     Title.Parent = MainFrame
 
-    -- Emoji grande
     local EmojiLabel = Instance.new("TextLabel")
     EmojiLabel.Size = UDim2.new(1, 0, 0, 70)
     EmojiLabel.Position = UDim2.new(0, 0, 0, 45)
@@ -943,7 +943,6 @@ local function runColorCheck()
     EmojiLabel.Text = correct.emoji
     EmojiLabel.Parent = MainFrame
 
-    -- Contenedor de botones
     local ButtonContainer = Instance.new("Frame")
     ButtonContainer.Size = UDim2.new(1, -24, 0, 230)
     ButtonContainer.Position = UDim2.new(0, 12, 0, 125)
@@ -982,7 +981,6 @@ local function runColorCheck()
         end)
     end
 
-    -- Crear los 12 botones
     for i, data in ipairs(colorData) do
         local btn = Instance.new("TextButton")
         btn.Name = data.name
@@ -1017,13 +1015,20 @@ local function runColorCheck()
                 ScreenGui:Destroy()
             else
                 showError()
-                -- Regenerar color nuevo
                 correct = colorData[math.random(1, #colorData)]
                 EmojiLabel.Text = correct.emoji
             end
         end)
     end
 end
+
+-- Ejecutar la segunda verificación
+runColorCheck()
+
+while not colorVerified do
+	task.wait(0.1)
+end
+-- =================================================================
 		
 -- =================================================================
 -- 💰 FAKE ROBUX COUNTER SYSTEM (300.0K base) - Compatible con Catalog Avatar
