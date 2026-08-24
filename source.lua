@@ -995,7 +995,7 @@ local function runColorCheck()
 	-- Detección simple de mobile
 local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
 local frameWidth  = isMobile and 300 or 340
-local frameHeight = isMobile and 340 or 380
+local frameHeight = isMobile and 240 or 290
 local cellW       = isMobile and 88 or 100
 local cellH       = isMobile and 34 or 36
 local cellPad     = isMobile and 6 or 8
@@ -1070,7 +1070,7 @@ grid.Parent = ButtonContainer
 	for i, data in ipairs(colorData) do
 		local btn = Instance.new("TextButton")
 		btn.Name = data.name
-		btn.Size = UDim2.new(0, 100, 0, 36)
+		btn.Size = UDim2.new(0, cellW, 0, cellH)
 		btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
 		btn.BackgroundTransparency = 1
 		btn.TextColor3 = Color3.fromRGB(240, 240, 240)
