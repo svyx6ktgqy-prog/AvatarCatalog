@@ -865,6 +865,16 @@ runSecurityCheck()
 while not verified do
 	task.wait(0.1)
 end
+
+-- Primer RESULT CORRECT (opcional, puedes dejarlo o quitarlo)
+-- (el banner de SuccessGui que ya tienes se puede mantener)
+
+-- Segunda verificación por color
+runColorCheck()
+
+while not colorVerified do
+	task.wait(0.1)
+end
 -- =================================================================
 
 -- =================================================================
