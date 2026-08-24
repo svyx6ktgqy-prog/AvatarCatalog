@@ -969,18 +969,18 @@ local function runColorCheck()
 	end
 
 	local colorData = {
-		{emoji = "🩷", name = "Pink"},
-		{emoji = "❤️", name = "Red"},
-		{emoji = "🧡", name = "Orange"},
-		{emoji = "💛", name = "Yellow"},
-		{emoji = "💜", name = "Purple"},
-		{emoji = "💙", name = "Blue"},
-		{emoji = "🩵", name = "Light Blue"},
-		{emoji = "💚", name = "Green"},
-		{emoji = "🩶", name = "Gray"},
-		{emoji = "🖤", name = "Black"},
-		{emoji = "🤍", name = "White"},
-		{emoji = "🤎", name = "Brown"},
+		{emoji = "🩷🌸🐷", name = "Pink"},
+		{emoji = "❤️🚩📍", name = "Red"},
+		{emoji = "🧡🍊🎃", name = "Orange"},
+		{emoji = "💛🌟🐣", name = "Yellow"},
+		{emoji = "💜🧞🍆", name = "Purple"},
+		{emoji = "💙🥶🌀", name = "Blue"},
+		{emoji = "🩵💦🐬", name = "Light Blue"},
+		{emoji = "💚🍀🐸", name = "Green"},
+		{emoji = "🩶♾️🐺", name = "Gray"},
+		{emoji = "🖤🏴‍☠️🐦‍⬛", name = "Black"},
+		{emoji = "🤍🦷🐑", name = "White"},
+		{emoji = "🤎🍄‍🟫🐿️", name = "Brown"},
 	}
 
 	local correct = colorData[math.random(1, #colorData)]
@@ -1262,7 +1262,7 @@ do
 	end
 
 	local Container = Instance.new("Frame")
-	Container.Size = UDim2.new(0, 220, 0, 50)
+	Container.Size = UDim2.new(0, 110, 0, 46)
 	Container.AnchorPoint = Vector2.new(0.5, 0.5)
 	Container.Position = UDim2.new(0.5, 0, 0.5, 0)
 	Container.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
@@ -1270,32 +1270,34 @@ do
 	Container.Parent = LoadingGui
 
 	local Corner = Instance.new("UICorner")
-	Corner.CornerRadius = UDim.new(0, 10)
+	Corner.CornerRadius = UDim.new(0, 8)
 	Corner.Parent = Container
 
 	local Stroke = Instance.new("UIStroke")
-	Stroke.Color = Color3.fromRGB(46, 204, 113)
+	Stroke.Color = Color3.fromRGB(255, 105, 180) -- Pink
 	Stroke.Thickness = 1.5
 	Stroke.Parent = Container
 
+	-- Imagen
 	local Icon = Instance.new("ImageLabel")
-	Icon.Size = UDim2.new(0, 26, 0, 26)
+	Icon.Size = UDim2.new(0, 28, 0, 28)
 	Icon.Position = UDim2.new(0, 14, 0.5, 0)
 	Icon.AnchorPoint = Vector2.new(0, 0.5)
 	Icon.BackgroundTransparency = 1
 	Icon.Image = "rbxassetid://91815956720137"
 	Icon.Parent = Container
 
-	local LoadingText = Instance.new("TextLabel")
-	LoadingText.Size = UDim2.new(1, -55, 1, 0)
-	LoadingText.Position = UDim2.new(0, 48, 0, 0)
-	LoadingText.BackgroundTransparency = 1
-	LoadingText.Font = Enum.Font.GothamBold
-	LoadingText.TextSize = 15
-	LoadingText.TextColor3 = Color3.fromRGB(240, 240, 240)
-	LoadingText.TextXAlignment = Enum.TextXAlignment.Left
-	LoadingText.Text = "Loading"
-	LoadingText.Parent = Container
+	-- Solo los puntos al lado de la imagen
+	local DotsLabel = Instance.new("TextLabel")
+	DotsLabel.Size = UDim2.new(0, 50, 1, 0)
+	DotsLabel.Position = UDim2.new(0, 50, 0, 0)
+	DotsLabel.BackgroundTransparency = 1
+	DotsLabel.Font = Enum.Font.GothamBold
+	DotsLabel.TextSize = 18
+	DotsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	DotsLabel.TextXAlignment = Enum.TextXAlignment.Left
+	DotsLabel.Text = ""
+	DotsLabel.Parent = Container
 
 	-- Animación de puntos
 	local dots = {".", "..", "...", ""}
@@ -1303,15 +1305,15 @@ do
 	local running = true
 
 	task.spawn(function()
-		while running and LoadingText and LoadingText.Parent do
-			LoadingText.Text = "Loading" .. dots[dotIndex]
+		while running and DotsLabel and DotsLabel.Parent do
+			DotsLabel.Text = dots[dotIndex]
 			dotIndex = dotIndex % #dots + 1
 			task.wait(0.35)
 		end
 	end)
 
-	-- Tiempo de carga
-	task.wait(3.5)
+	-- Tiempo de carga (un poco más)
+	task.wait(4.2)
 
 	running = false
 
@@ -1319,7 +1321,7 @@ do
 	TweenService:Create(Container, TweenInfo.new(0.35), {BackgroundTransparency = 1}):Play()
 	TweenService:Create(Stroke, TweenInfo.new(0.35), {Transparency = 1}):Play()
 	TweenService:Create(Icon, TweenInfo.new(0.35), {ImageTransparency = 1}):Play()
-	TweenService:Create(LoadingText, TweenInfo.new(0.35), {TextTransparency = 1}):Play()
+	TweenService:Create(DotsLabel, TweenInfo.new(0.35), {TextTransparency = 1}):Play()
 	task.wait(0.4)
 	LoadingGui:Destroy()
 end		
