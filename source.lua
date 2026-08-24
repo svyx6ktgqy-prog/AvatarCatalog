@@ -1263,7 +1263,7 @@ do
 
 	-- Casilla más baja (detrás)
 	local Container = Instance.new("Frame")
-	Container.Size = UDim2.new(0, 100, 0, 28)
+	Container.Size = UDim2.new(0, 50, 0, 18)
 	Container.AnchorPoint = Vector2.new(0.5, 0.5)
 	Container.Position = UDim2.new(0.5, 0, 0.5, 0)
 	Container.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
