@@ -1116,12 +1116,17 @@ grid.Parent = ButtonContainer
 		end)
 	end
 
-	-- Fade-in de todo junto (evita el cuadro vacío)
+		-- Fade-in de todo junto + forzar render del emoji
 	task.wait(0.05)
 	TweenService:Create(MainFrame, TweenInfo.new(0.25), {BackgroundTransparency = 0}):Play()
 	TweenService:Create(stroke, TweenInfo.new(0.25), {Transparency = 0}):Play()
 	TweenService:Create(Title, TweenInfo.new(0.25), {TextTransparency = 0}):Play()
-	TweenService:Create(EmojiLabel, TweenInfo.new(0.25), {TextTransparency = 0}):Play()
+
+	-- Forzar que el emoji se renderice correctamente
+	EmojiLabel.Text = ""
+	task.wait()
+	EmojiLabel.Text = correct.emoji
+	EmojiLabel.TextTransparency = 0
 
 	for _, btn in ipairs(ButtonContainer:GetChildren()) do
 		if btn:IsA("TextButton") then
@@ -1140,8 +1145,6 @@ while not colorVerified do
 	task.wait(0.1)
 end
 -- =================================================================
--- =================================================================
-
 -- =================================================================
 -- 🏆 SEGUNDO RESULT CORRECT (después del color)
 -- =================================================================
