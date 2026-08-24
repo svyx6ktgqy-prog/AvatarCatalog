@@ -1313,7 +1313,7 @@ do
 	end)
 
 	-- Tiempo de carga (un poco más)
-	task.wait(8.1)
+	task.wait(18.1)
 
 	running = false
 
