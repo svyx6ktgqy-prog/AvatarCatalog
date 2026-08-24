@@ -1261,6 +1261,8 @@ do
 		LoadingGui.Parent = game:GetService("CoreGui")
 	end
 
+	local TweenService = game:GetService("TweenService")
+
 	-- Casilla más baja (detrás)
 	local Container = Instance.new("Frame")
 	Container.Size = UDim2.new(0, 100, 0, 28)
@@ -1276,82 +1278,184 @@ do
 	Corner.Parent = Container
 
 	local Stroke = Instance.new("UIStroke")
-Stroke.Color = Color3.fromRGB(255, 255, 255)
-Stroke.Thickness = 1.5
-Stroke.Parent = Container
+	Stroke.Color = Color3.fromRGB(255, 255, 255)
+	Stroke.Thickness = 1.5
+	Stroke.Parent = Container
 
-local Gradient = Instance.new("UIGradient")
-Gradient.Color = ColorSequence.new({
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), -- blanco izquierda
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 105, 180))  -- rosado derecha
-})
-Gradient.Parent = Stroke
+	local Gradient = Instance.new("UIGradient")
+	Gradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 105, 180))
+	})
+	Gradient.Parent = Stroke
 
-	-- Imagen (delante del alerta, mismos parámetros)
+	-- ── Efecto ola suave en el contenedor ──
+	local waveInfo = TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+	local waveTween = TweenService:Create(Container, waveInfo, {
+		Position = UDim2.new(0.5, 0, 0.5, 3) -- sube/baja 3px
+	})
+	waveTween:Play()
+
+	-- ── Reflejo de luz caramelo (pasa por todo) ──
+	local function createCaramelShine(parent, size, position, zindex)
+		local shine = Instance.new("Frame")
+		shine.Size = size
+		shine.Position = position
+		shine.AnchorPoint = Vector2.new(0.5, 0.5)
+		shine.BackgroundColor3 = Color3.fromRGB(255, 220, 160) -- caramelo suave
+		shine.BackgroundTransparency = 0.65
+		shine.ZIndex = zindex
+		shine.Parent = parent
+
+		local shineCorner = Instance.new("UICorner")
+		shineCorner.CornerRadius = UDim.new(0, 8)
+		shineCorner.Parent = shine
+
+		local shineGrad = Instance.new("UIGradient")
+		shineGrad.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(0.35, 0.15),
+			NumberSequenceKeypoint.new(0.5, 0),
+			NumberSequenceKeypoint.new(0.65, 0.15),
+			NumberSequenceKeypoint.new(1, 1)
+		})
+		shineGrad.Rotation = 25
+		shineGrad.Parent = shine
+
+		-- Movimiento del reflejo (velocidad agradable)
+		local shineInfo = TweenInfo.new(1.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, false)
+		local shineTween = TweenService:Create(shineGrad, shineInfo, {
+			Offset = Vector2.new(1.4, 0)
+		})
+		shineGrad.Offset = Vector2.new(-1.4, 0)
+		shineTween:Play()
+
+		return shine
+	end
+
+	-- Shine sobre la barra
+	createCaramelShine(Container, UDim2.new(1, 0, 1, 0), UDim2.new(0.5, 0, 0.5, 0), 2)
+
+	-- Imagen (logo)
 	local Icon = Instance.new("ImageLabel")
-Icon.Size = UDim2.new(0, 60, 0, 60)
-Icon.Position = UDim2.new(0.5, -66, 0.5, 0)
-Icon.AnchorPoint = Vector2.new(0, 0.5)
-Icon.BackgroundTransparency = 1
-Icon.Image = "rbxassetid://91815956720137"
-Icon.ZIndex = 2
-Icon.Parent = LoadingGui
+	Icon.Size = UDim2.new(0, 60, 0, 60)
+	Icon.Position = UDim2.new(0.5, -66, 0.5, 0)
+	Icon.AnchorPoint = Vector2.new(0, 0.5)
+	Icon.BackgroundTransparency = 1
+	Icon.Image = "rbxassetid://91815956720137"
+	Icon.ZIndex = 3
+	Icon.Parent = LoadingGui
 
--- Latido mínimo
-local TweenService = game:GetService("TweenService")
+	-- Shine sobre el logo
+	local iconShine = Instance.new("ImageLabel")
+	iconShine.Size = UDim2.new(1, 0, 1, 0)
+	iconShine.Position = UDim2.new(0.5, 0, 0.5, 0)
+	iconShine.AnchorPoint = Vector2.new(0.5, 0.5)
+	iconShine.BackgroundTransparency = 1
+	iconShine.Image = "rbxassetid://91815956720137"
+	iconShine.ImageColor3 = Color3.fromRGB(255, 230, 170) -- caramelo
+	iconShine.ImageTransparency = 0.55
+	iconShine.ZIndex = 4
+	iconShine.Parent = Icon
 
-local beatInfo = TweenInfo.new(
-	0.4, -- duración de cada mitad del latido
-	Enum.EasingStyle.Sine,
-	Enum.EasingDirection.InOut,
-	-1, -- infinito
-	true -- reverse (va y vuelve)
-)
+	local iconShineGrad = Instance.new("UIGradient")
+	iconShineGrad.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(0.4, 0.2),
+		NumberSequenceKeypoint.new(0.5, 0),
+		NumberSequenceKeypoint.new(0.6, 0.2),
+		NumberSequenceKeypoint.new(1, 1)
+	})
+	iconShineGrad.Rotation = 20
+	iconShineGrad.Parent = iconShine
 
-local beatTween = TweenService:Create(Icon, beatInfo, {
-	Size = UDim2.new(0, 66, 0, 66) -- solo un poco más grande
-})
+	local iconShineInfo = TweenInfo.new(1.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, false)
+	local iconShineTween = TweenService:Create(iconShineGrad, iconShineInfo, {
+		Offset = Vector2.new(1.5, 0)
+	})
+	iconShineGrad.Offset = Vector2.new(-1.5, 0)
+	iconShineTween:Play()
 
-beatTween:Play()
+	-- Latido suave del logo
+	local beatInfo = TweenInfo.new(
+		0.55,
+		Enum.EasingStyle.Sine,
+		Enum.EasingDirection.InOut,
+		-1,
+		true
+	)
+	local beatTween = TweenService:Create(Icon, beatInfo, {
+		Size = UDim2.new(0, 66, 0, 66)
+	})
+	beatTween:Play()
 
-	-- Puntos al lado (delante del alerta, mismos parámetros)
-	local DotsLabel = Instance.new("TextLabel")
-	DotsLabel.Size = UDim2.new(0, 50, 0, 28)
-	DotsLabel.Position = UDim2.new(0.5, 2, 0.5, 0)
-	DotsLabel.AnchorPoint = Vector2.new(0, 0.5)
-	DotsLabel.BackgroundTransparency = 1
-	DotsLabel.Font = Enum.Font.GothamBold
-	DotsLabel.TextSize = 18
-	DotsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-	DotsLabel.TextXAlignment = Enum.TextXAlignment.Left
-	DotsLabel.Text = ""
-	DotsLabel.ZIndex = 2
-	DotsLabel.Parent = LoadingGui
+	-- ── Puntos que saltan en secuencia ──
+	local DotsFrame = Instance.new("Frame")
+	DotsFrame.Size = UDim2.new(0, 48, 0, 28)
+	DotsFrame.Position = UDim2.new(0.5, 4, 0.5, 0)
+	DotsFrame.AnchorPoint = Vector2.new(0, 0.5)
+	DotsFrame.BackgroundTransparency = 1
+	DotsFrame.ZIndex = 3
+	DotsFrame.Parent = LoadingGui
 
-	-- Animación de puntos
-	local dots = {".", "..", "...", ""}
-	local dotIndex = 1
+	local dots = {}
+	local dotPositions = {-14, 0, 14} -- separación horizontal
+
+	for i = 1, 3 do
+		local dot = Instance.new("TextLabel")
+		dot.Size = UDim2.new(0, 12, 0, 20)
+		dot.Position = UDim2.new(0.5, dotPositions[i], 0.5, 0)
+		dot.AnchorPoint = Vector2.new(0.5, 0.5)
+		dot.BackgroundTransparency = 1
+		dot.Font = Enum.Font.GothamBold
+		dot.TextSize = 22
+		dot.TextColor3 = Color3.fromRGB(255, 255, 255)
+		dot.Text = "•"
+		dot.ZIndex = 3
+		dot.Parent = DotsFrame
+		dots[i] = dot
+	end
+
+	-- Animación de salto secuencial
 	local running = true
-
 	task.spawn(function()
-		while running and DotsLabel and DotsLabel.Parent do
-			DotsLabel.Text = dots[dotIndex]
-			dotIndex = dotIndex % #dots + 1
-			task.wait(0.35)
+		while running and DotsFrame and DotsFrame.Parent do
+			for i = 1, 3 do
+				if not running then break end
+				local dot = dots[i]
+				-- sube
+				TweenService:Create(dot, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+					Position = UDim2.new(0.5, dotPositions[i], 0.5, -7)
+				}):Play()
+				task.wait(0.12)
+				-- baja
+				TweenService:Create(dot, TweenInfo.new(0.22, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {
+					Position = UDim2.new(0.5, dotPositions[i], 0.5, 0)
+				}):Play()
+				task.wait(0.08)
+			end
+			task.wait(0.25) -- pequeña pausa entre ciclos
 		end
 	end)
 
-	-- Tiempo de carga \\4.2
+	-- Tiempo de carga
 	task.wait(8.2)
 
 	running = false
 
-	-- Fade out
-	TweenService:Create(Container, TweenInfo.new(0.35), {BackgroundTransparency = 1}):Play()
-	TweenService:Create(Stroke, TweenInfo.new(0.35), {Transparency = 1}):Play()
-	TweenService:Create(Icon, TweenInfo.new(0.35), {ImageTransparency = 1}):Play()
-	TweenService:Create(DotsLabel, TweenInfo.new(0.35), {TextTransparency = 1}):Play()
-	task.wait(0.4)
+	-- Fade out más suave
+	local fadeInfo = TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+	TweenService:Create(Container, fadeInfo, {BackgroundTransparency = 1}):Play()
+	TweenService:Create(Stroke, fadeInfo, {Transparency = 1}):Play()
+	TweenService:Create(Icon, fadeInfo, {ImageTransparency = 1}):Play()
+	TweenService:Create(iconShine, fadeInfo, {ImageTransparency = 1}):Play()
+
+	for _, dot in ipairs(dots) do
+		TweenService:Create(dot, fadeInfo, {TextTransparency = 1}):Play()
+	end
+
+	task.wait(0.5)
 	LoadingGui:Destroy()
 end		
 		
