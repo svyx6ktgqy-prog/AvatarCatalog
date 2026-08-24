@@ -1002,8 +1002,8 @@ local function runColorCheck()
 
 	-- Detección simple de mobile
 local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
-local frameWidth  = isMobile and 300 or 340
-local frameHeight = isMobile and 240 or 290
+local frameWidth  = isMobile and 300 or 310
+local frameHeight = isMobile and 240 or 250
 local cellW       = isMobile and 88 or 100
 local cellH       = isMobile and 34 or 36
 local cellPad     = isMobile and 6 or 8
@@ -1276,7 +1276,7 @@ do
 	Corner.Parent = Container
 
 	local Stroke = Instance.new("UIStroke")
-	Stroke.Color = Color3.fromRGB(255, 105, 180)
+	Stroke.Color = Color3.fromRGB(255, 255, 255)
 	Stroke.Thickness = 1.5
 	Stroke.Parent = Container
 
