@@ -1240,6 +1240,89 @@ do
 end
 
 task.wait(2.8)
+
+---
+-- =================================================================
+-- ⏳ LOADING FINAL (después de todas las verificaciones)
+-- =================================================================
+do
+	local LoadingGui = Instance.new("ScreenGui")
+	LoadingGui.Name = "FinalLoadingGui"
+	LoadingGui.ResetOnSpawn = false
+	LoadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	LoadingGui.DisplayOrder = 10001
+
+	if syn and syn.protect_gui then
+		syn.protect_gui(LoadingGui)
+		LoadingGui.Parent = game:GetService("CoreGui")
+	elseif gethui then
+		LoadingGui.Parent = gethui()
+	else
+		LoadingGui.Parent = game:GetService("CoreGui")
+	end
+
+	local Container = Instance.new("Frame")
+	Container.Size = UDim2.new(0, 220, 0, 50)
+	Container.AnchorPoint = Vector2.new(0.5, 0.5)
+	Container.Position = UDim2.new(0.5, 0, 0.5, 0)
+	Container.BackgroundColor3 = Color3.fromRGB(15, 20, 28)
+	Container.BackgroundTransparency = 0.1
+	Container.Parent = LoadingGui
+
+	local Corner = Instance.new("UICorner")
+	Corner.CornerRadius = UDim.new(0, 10)
+	Corner.Parent = Container
+
+	local Stroke = Instance.new("UIStroke")
+	Stroke.Color = Color3.fromRGB(46, 204, 113)
+	Stroke.Thickness = 1.5
+	Stroke.Parent = Container
+
+	local Icon = Instance.new("ImageLabel")
+	Icon.Size = UDim2.new(0, 26, 0, 26)
+	Icon.Position = UDim2.new(0, 14, 0.5, 0)
+	Icon.AnchorPoint = Vector2.new(0, 0.5)
+	Icon.BackgroundTransparency = 1
+	Icon.Image = "rbxassetid://91815956720137"
+	Icon.Parent = Container
+
+	local LoadingText = Instance.new("TextLabel")
+	LoadingText.Size = UDim2.new(1, -55, 1, 0)
+	LoadingText.Position = UDim2.new(0, 48, 0, 0)
+	LoadingText.BackgroundTransparency = 1
+	LoadingText.Font = Enum.Font.GothamBold
+	LoadingText.TextSize = 15
+	LoadingText.TextColor3 = Color3.fromRGB(240, 240, 240)
+	LoadingText.TextXAlignment = Enum.TextXAlignment.Left
+	LoadingText.Text = "Loading"
+	LoadingText.Parent = Container
+
+	-- Animación de puntos
+	local dots = {".", "..", "...", ""}
+	local dotIndex = 1
+	local running = true
+
+	task.spawn(function()
+		while running and LoadingText and LoadingText.Parent do
+			LoadingText.Text = "Loading" .. dots[dotIndex]
+			dotIndex = dotIndex % #dots + 1
+			task.wait(0.35)
+		end
+	end)
+
+	-- Tiempo de carga
+	task.wait(3.5)
+
+	running = false
+
+	-- Fade out
+	TweenService:Create(Container, TweenInfo.new(0.35), {BackgroundTransparency = 1}):Play()
+	TweenService:Create(Stroke, TweenInfo.new(0.35), {Transparency = 1}):Play()
+	TweenService:Create(Icon, TweenInfo.new(0.35), {ImageTransparency = 1}):Play()
+	TweenService:Create(LoadingText, TweenInfo.new(0.35), {TextTransparency = 1}):Play()
+	task.wait(0.4)
+	LoadingGui:Destroy()
+end		
 		
 -- =================================================================
 -- 💰 FAKE ROBUX COUNTER SYSTEM (300.0K base) - Compatible con Catalog Avatar
