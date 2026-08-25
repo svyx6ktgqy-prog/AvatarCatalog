@@ -1385,14 +1385,14 @@ do
 		-- ── Puntos: aparecen uno a uno haciendo ola, se quedan visibles, al final todos se desvanecen y reinicia ──
 	local DotsFrame = Instance.new("Frame")
 	DotsFrame.Size = UDim2.new(0, 48, 0, 28)
-	DotsFrame.Position = UDim2.new(0.5, 4, 0.5, 0)
+	DotsFrame.Position = UDim2.new(0.5, -8, 0.5, 0) -- movido más a la izquierda
 	DotsFrame.AnchorPoint = Vector2.new(0, 0.5)
 	DotsFrame.BackgroundTransparency = 1
 	DotsFrame.ZIndex = 3
 	DotsFrame.Parent = LoadingGui
 
 	local dots = {}
-	local dotPositions = {-14, 0, 14}
+	local dotPositions = {-18, -4, 10} -- también desplazados un poco más a la izquierda
 
 	for i = 1, 3 do
 		local dot = Instance.new("TextLabel")
