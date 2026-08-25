@@ -1289,13 +1289,6 @@ do
 	})
 	Gradient.Parent = Stroke
 
-	-- ── Efecto ola suave en el contenedor ──
-	local waveInfo = TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
-	local waveTween = TweenService:Create(Container, waveInfo, {
-		Position = UDim2.new(0.5, 0, 0.5, 3) -- sube/baja 3px
-	})
-	waveTween:Play()
-
 	-- ── Reflejo de luz caramelo (pasa por todo) ──
 	local function createCaramelShine(parent, size, position, zindex)
 		local shine = Instance.new("Frame")
@@ -1410,7 +1403,7 @@ do
 		dot.Font = Enum.Font.GothamBold
 		dot.TextSize = 22
 		dot.TextColor3 = Color3.fromRGB(166, 17, 207)
-		dot.Text = "♛"
+		dot.Text = "●"
 		dot.TextTransparency = 1 -- empiezan invisibles
 		dot.ZIndex = 3
 		dot.Parent = DotsFrame
