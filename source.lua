@@ -1342,7 +1342,7 @@ do
 	Icon.Position = UDim2.new(0.5, -66, 0.5, 0)
 	Icon.AnchorPoint = Vector2.new(0, 0.5)
 	Icon.BackgroundTransparency = 1
-	Icon.Image = "rbxassetid://95035299384868"
+	Icon.Image = "rbxassetid://106543029477081"
 	Icon.ZIndex = 3
 	Icon.Parent = LoadingGui
 
@@ -1352,7 +1352,7 @@ do
 	iconShine.Position = UDim2.new(0.5, 0, 0.5, 0)
 	iconShine.AnchorPoint = Vector2.new(0.5, 0.5)
 	iconShine.BackgroundTransparency = 1
-	iconShine.Image = "rbxassetid://95035299384868"
+	iconShine.Image = "rbxassetid://106543029477081"
 	iconShine.ImageColor3 = Color3.fromRGB(255, 230, 170) -- caramelo
 	iconShine.ImageTransparency = 0.55
 	iconShine.ZIndex = 4
