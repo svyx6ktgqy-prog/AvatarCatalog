@@ -1268,7 +1268,7 @@ do
 	Container.Size = UDim2.new(0, 100, 0, 28)
 	Container.AnchorPoint = Vector2.new(0.5, 0.5)
 	Container.Position = UDim2.new(0.5, 0, 0.5, 0)
-	Container.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
+	Container.BackgroundColor3 = Color3.fromRGB(255, 212, 0)
 	Container.BackgroundTransparency = 0.1
 	Container.ZIndex = 1
 	Container.Parent = LoadingGui
@@ -1284,8 +1284,8 @@ do
 
 	local Gradient = Instance.new("UIGradient")
 	Gradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 105, 180))
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(166, 3, 3))
 	})
 	Gradient.Parent = Stroke
 
@@ -1342,7 +1342,7 @@ do
 	Icon.Position = UDim2.new(0.5, -66, 0.5, 0)
 	Icon.AnchorPoint = Vector2.new(0, 0.5)
 	Icon.BackgroundTransparency = 1
-	Icon.Image = "rbxassetid://91815956720137"
+	Icon.Image = "rbxassetid://95035299384868"
 	Icon.ZIndex = 3
 	Icon.Parent = LoadingGui
 
@@ -1409,7 +1409,7 @@ do
 		dot.BackgroundTransparency = 1
 		dot.Font = Enum.Font.GothamBold
 		dot.TextSize = 22
-		dot.TextColor3 = Color3.fromRGB(255, 255, 255)
+		dot.TextColor3 = Color3.fromRGB(166, 3, 3)
 		dot.Text = "•"
 		dot.TextTransparency = 1 -- empiezan invisibles
 		dot.ZIndex = 3
