@@ -1261,6 +1261,15 @@ do
 		LoadingGui.Parent = game:GetService("CoreGui")
 	end
 
+	-- ═══════════════════════════════════════════════
+	-- 🔥 PARÁMETRO GLOBAL DE ESCALA
+	-- ═══════════════════════════════════════════════
+	local SCALE = 1.35   -- ← Cambia solo este valor
+	local UIScale = Instance.new("UIScale")
+	UIScale.Scale = SCALE
+	UIScale.Parent = LoadingGui
+	-- ═══════════════════════════════════════════════		
+
 	local TweenService = game:GetService("TweenService")
 
 	-- Casilla más baja (detrás)
