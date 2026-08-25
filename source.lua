@@ -1285,7 +1285,7 @@ do
 	local Gradient = Instance.new("UIGradient")
 	Gradient.Color = ColorSequence.new({
 		ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(166, 3, 3))
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(166, 17, 207))
 	})
 	Gradient.Parent = Stroke
 
@@ -1377,17 +1377,17 @@ do
 	iconShineTween:Play()
 
 	-- Latido suave del logo
-	local beatInfo = TweenInfo.new(
-		0.55,
-		Enum.EasingStyle.Sine,
-		Enum.EasingDirection.InOut,
-		-1,
-		true
-	)
-	local beatTween = TweenService:Create(Icon, beatInfo, {
-		Size = UDim2.new(0, 66, 0, 66)
-	})
-	beatTween:Play()
+	--local beatInfo = TweenInfo.new(
+		--0.55,
+		--Enum.EasingStyle.Sine,
+		--Enum.EasingDirection.InOut,
+		---1,
+		--true
+	--)
+	--local beatTween = TweenService:Create(Icon, beatInfo, {
+		--Size = UDim2.new(0, 66, 0, 66)
+	--})
+	--beatTween:Play()
 
 		-- ── Puntos: aparecen uno a uno haciendo ola, se quedan visibles, al final todos se desvanecen y reinicia ──
 	local DotsFrame = Instance.new("Frame")
@@ -1409,8 +1409,8 @@ do
 		dot.BackgroundTransparency = 1
 		dot.Font = Enum.Font.GothamBold
 		dot.TextSize = 22
-		dot.TextColor3 = Color3.fromRGB(166, 3, 3)
-		dot.Text = "•"
+		dot.TextColor3 = Color3.fromRGB(166, 17, 207)
+		dot.Text = "♛"
 		dot.TextTransparency = 1 -- empiezan invisibles
 		dot.ZIndex = 3
 		dot.Parent = DotsFrame
