@@ -1352,7 +1352,7 @@ do
 	iconShine.Position = UDim2.new(0.5, 0, 0.5, 0)
 	iconShine.AnchorPoint = Vector2.new(0.5, 0.5)
 	iconShine.BackgroundTransparency = 1
-	iconShine.Image = "rbxassetid://91815956720137"
+	iconShine.Image = "rbxassetid://95035299384868"
 	iconShine.ImageColor3 = Color3.fromRGB(255, 230, 170) -- caramelo
 	iconShine.ImageTransparency = 0.55
 	iconShine.ZIndex = 4
