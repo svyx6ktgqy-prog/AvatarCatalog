@@ -1264,7 +1264,7 @@ do
 	-- ═══════════════════════════════════════════════
 	-- 🔥 PARÁMETRO GLOBAL DE ESCALA
 	-- ═══════════════════════════════════════════════
-	local SCALE = 2.20   -- ← Cambia solo este valor
+	local SCALE = 2.00   -- ← Cambia solo este valor
 	local UIScale = Instance.new("UIScale")
 	UIScale.Scale = SCALE
 	UIScale.Parent = LoadingGui
